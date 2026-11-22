@@ -15,5 +15,6 @@ COPY migrations ./migrations
 RUN useradd --system --uid 10001 atlas
 USER atlas
 EXPOSE 8000
-# Apply migrations, then serve. Exits non-zero if the database is unreachable or a migration fails.
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+# Migrate, seed reference data (idempotent), then serve. Startup stops if a migration or the seed
+# fails outright (exit 1); a recorded-but-not-applied reference conflict (exit 2) is logged only.
+CMD ["sh", "-c", "alembic upgrade head && { python -m app.ingestion reference || [ $? -eq 2 ]; } && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]

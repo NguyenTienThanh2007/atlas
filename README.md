@@ -3,9 +3,13 @@
 Vietnam Investment Discovery World: a platform for exploring Vietnam's listed economy by sector,
 company and region.
 
-**Status: Phase 0 (foundation).** The app shell, API, database and tooling are in place. No market
-data source is connected yet, so the UI shows empty states by design. ATLAS never shows invented
-financial figures.
+**Status: Phase 1 (financial data foundation).** The domain model (companies, securities,
+exchanges, sectors, evidence, financial statements), the import framework, the catalogue API and
+the companies and sectors UI are in place.
+
+**No real company data is loaded yet.** No data provider is licensed or reachable (see
+[data/SOURCES.md](data/SOURCES.md)), so ATLAS ships only a clearly labelled **fictional** sample
+fixture. ATLAS never shows invented figures as real data.
 
 ## Stack
 
@@ -45,8 +49,8 @@ For running services outside Docker, tests and day-to-day commands, see
 backend/     FastAPI app, Alembic migrations, pytest suite
 frontend/    Next.js app
 infra/       Infrastructure assets (Postgres init scripts)
-data/        Reserved for data-source docs and seed specs (no data yet)
-docs/        Architecture, development guide, Phase 0 checklist
+data/        Import bundles (fictional sample fixture), data-source research, import rules
+docs/        Architecture, development guide, phase checklists
 .github/     CI workflows (backend, frontend, docker)
 docker-compose.yml
 ```
@@ -56,6 +60,16 @@ docker-compose.yml
 | Method | Path | Description |
 | --- | --- | --- |
 | GET | `/api/v1/health` | `200` when the API and database are reachable; `503` with the same body shape when the database check fails |
+| GET | `/api/v1/exchanges` | Exchanges (HOSE, HNX, UPCOM) |
+| GET | `/api/v1/sectors`, `/api/v1/sectors/{id}` | ATLAS sector taxonomy with company counts |
+| GET | `/api/v1/companies` | Search (`q`: name or ticker), filter (`sector`, `exchange` codes), paginate (`limit`, `offset`) |
+| GET | `/api/v1/companies/{id}` | Company with sector and securities |
+| GET | `/api/v1/securities/{id}` | Security with exchange and company |
+| GET | `/api/v1/companies/{id}/evidence` | Source evidence with data source and usage status |
+| GET | `/api/v1/companies/{id}/financial-statements` | Latest revisions by default; values as exact decimal strings |
+
+Full parameters and design notes: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#api-apiv1). OpenAPI
+docs are at `/docs` on the backend.
 
 Example response:
 
@@ -67,11 +81,16 @@ Example response:
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): components, request flow, decisions
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): local setup, commands, troubleshooting
-- [docs/PHASE_0_CHECKLIST.md](docs/PHASE_0_CHECKLIST.md): verification evidence for Phase 0
+- [data/README.md](data/README.md): import format and rules, sector taxonomy, metric dictionary
+- [data/SOURCES.md](data/SOURCES.md): data providers and licensing status
+- [docs/PHASE_0_CHECKLIST.md](docs/PHASE_0_CHECKLIST.md),
+  [docs/PHASE_1_CHECKLIST.md](docs/PHASE_1_CHECKLIST.md): verification evidence
 
 ## Known limitations
 
-- No market data, domain models or authentication yet (Phase 1+).
+- No real company or financial data: 0 verified companies. Provider integration is blocked on
+  licensing and credentials (see `data/SOURCES.md`).
+- No authentication, and no price or market-event data.
 - The 3D world view is not implemented; the Discover page only reserves space for it.
 - `.env.example` credentials are for local development only. A production deployment needs
-  real secrets management, which is out of scope for Phase 0.
+  real secrets management, which is out of scope so far.

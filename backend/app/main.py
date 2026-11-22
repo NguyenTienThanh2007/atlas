@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.api.v1 import health
+from app.api.v1 import catalog, health
 from app.config import get_settings
 
 logger = logging.getLogger("app")
@@ -17,6 +17,7 @@ def create_app() -> FastAPI:
 
     v1 = APIRouter(prefix="/api/v1")
     v1.include_router(health.router)
+    v1.include_router(catalog.router)
     app.include_router(v1)
 
     @app.exception_handler(Exception)

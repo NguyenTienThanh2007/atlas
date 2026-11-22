@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 
 const NAV = [
   { href: "/", label: "Discover" },
@@ -19,8 +19,31 @@ function Wordmark() {
   );
 }
 
-export function Shell({ children, status }: { children: ReactNode; status: ReactNode }) {
+type NavLinkProps = { href: string; label: string; onNavigate?: () => void };
+
+function ActiveNavLink(props: NavLinkProps) {
   const pathname = usePathname();
+  const active = props.href === "/" ? pathname === "/" : pathname.startsWith(props.href);
+  return <NavLink {...props} active={active} />;
+}
+
+function NavLink({ href, label, active, onNavigate }: NavLinkProps & { active: boolean }) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      onClick={onNavigate}
+      className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+        active ? "bg-white/[0.06] text-mist" : "text-muted hover:bg-white/[0.03] hover:text-mist"
+      }`}
+    >
+      <span aria-hidden className={`h-4 w-px ${active ? "bg-brass" : "bg-transparent"}`} />
+      {label}
+    </Link>
+  );
+}
+
+export function Shell({ children, status }: { children: ReactNode; status: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -66,29 +89,15 @@ export function Shell({ children, status }: { children: ReactNode; status: React
 
         <nav aria-label="Main" className="mt-2 lg:mt-10">
           <ul className="space-y-1">
-            {NAV.map(({ href, label }) => {
-              const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    aria-current={active ? "page" : undefined}
-                    onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                      active
-                        ? "bg-white/[0.06] text-mist"
-                        : "text-muted hover:bg-white/[0.03] hover:text-mist"
-                    }`}
-                  >
-                    <span
-                      aria-hidden
-                      className={`h-4 w-px ${active ? "bg-brass" : "bg-transparent"}`}
-                    />
-                    {label}
-                  </Link>
-                </li>
-              );
-            })}
+            {NAV.map(({ href, label }) => (
+              <li key={href}>
+                {/* The path is unknown while prerendering dynamic routes: render the plain
+                    link first, then highlight once the pathname resolves. */}
+                <Suspense fallback={<NavLink href={href} label={label} active={false} />}>
+                  <ActiveNavLink href={href} label={label} onNavigate={() => setOpen(false)} />
+                </Suspense>
+              </li>
+            ))}
           </ul>
         </nav>
 

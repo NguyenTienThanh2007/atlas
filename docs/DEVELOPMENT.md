@@ -63,6 +63,25 @@ docker compose logs -f backend
 docker compose down              # keeps data
 ```
 
+## Data: reference seed and imports
+
+The backend container seeds exchanges and the sector taxonomy on every start (idempotent). On the
+host:
+
+```bash
+cd backend
+uv run python -m app.ingestion reference
+uv run python -m app.ingestion import ../data/seed/sample_companies.json   # FICTIONAL sample data
+```
+
+The sample fixture shows up in the UI with a "Sample data" badge. Bundle format, import rules,
+exit codes, taxonomy and metric dictionary: [data/README.md](../data/README.md). Provider and
+licensing status: [data/SOURCES.md](../data/SOURCES.md).
+
+Sample rows can't be deleted one by one, because financial history is append-only and foreign
+keys never cascade. To start from a clean dev database, run `docker compose down -v` (this
+**deletes all local data**), then `docker compose up -d --build --wait`.
+
 ## Checks (same as CI)
 
 Backend (needs the `db` container running; tests use `TEST_DATABASE_URL`):
@@ -81,6 +100,7 @@ Frontend:
 cd frontend
 npm run lint
 npm run typecheck
+npm test          # unit tests (node --test, no extra dependencies)
 npm run build
 ```
 
@@ -100,13 +120,17 @@ uv run alembic upgrade head
 uv run alembic downgrade -1
 ```
 
-Import new model modules where `app.db.Base` metadata is loaded (e.g. in `migrations/env.py`) so
-autogenerate can see them.
+Models live in `app/models.py`, which `migrations/env.py` imports so autogenerate sees them. Review
+every generated migration. Autogenerate can't express triggers or data changes, so add those by
+hand, as the domain-model revision does for the append-only triggers. Keep `downgrade()` working:
+the test suite runs upgrade, downgrade to base, then upgrade again.
 
 ## Troubleshooting
 
 | Symptom | Fix |
 | --- | --- |
+| Import exits `2` | Some records were rejected or conflicted. Read `issues` in the printed JSON (record index, key, reason). Nothing was overwritten |
+| Import exits `1` with "differs from the stored data source" | A bundle tried to change a data source's terms. Update the `data_sources` row deliberately instead |
 | `port is already allocated` on 5433/8000/3000 | Change `POSTGRES_PORT` / `BACKEND_PORT` / `FRONTEND_PORT` in `.env` and update `DATABASE_URL`, `TEST_DATABASE_URL` and `API_URL` to match |
 | Tests exit with `TEST_DATABASE_URL is not set` | Create `.env` from `.env.example` or export the variable |
 | `password authentication failed for user "atlas"` | The password in `.env` doesn't match the one the volume was created with. See "Database password" above |
