@@ -1,0 +1,23 @@
+{
+  "dictionary": "atlas-financial-metrics",
+  "version": "1.0.0",
+  "notes": "Reported line items only; ratios are derived at read time, never stored. Values are exact decimals in the statement currency (VND unless stated) at full units, not thousands or millions. Units: 'currency' = the statement's currency; 'currency_per_share'; 'shares'.",
+  "metrics": [
+    { "code": "net_revenue", "name": "Net revenue", "name_vi": "Doanh thu thuần", "statement_type": "income_statement", "unit": "currency" },
+    { "code": "net_interest_income", "name": "Net interest income", "name_vi": "Thu nhập lãi thuần", "statement_type": "income_statement", "unit": "currency" },
+    { "code": "gross_profit", "name": "Gross profit", "name_vi": "Lợi nhuận gộp", "statement_type": "income_statement", "unit": "currency" },
+    { "code": "operating_profit", "name": "Operating profit", "name_vi": "Lợi nhuận thuần từ hoạt động kinh doanh", "statement_type": "income_statement", "unit": "currency" },
+    { "code": "profit_before_tax", "name": "Profit before tax", "name_vi": "Lợi nhuận trước thuế", "statement_type": "income_statement", "unit": "currency" },
+    { "code": "net_profit", "name": "Net profit after tax", "name_vi": "Lợi nhuận sau thuế", "statement_type": "income_statement", "unit": "currency" },
+    { "code": "net_profit_parent", "name": "Net profit attributable to parent", "name_vi": "Lợi nhuận sau thuế của cổ đông công ty mẹ", "statement_type": "income_statement", "unit": "currency" },
+    { "code": "eps_basic", "name": "Basic earnings per share", "name_vi": "Lãi cơ bản trên cổ phiếu", "statement_type": "income_statement", "unit": "currency_per_share" },
+    { "code": "total_assets", "name": "Total assets", "name_vi": "Tổng tài sản", "statement_type": "balance_sheet", "unit": "currency" },
+    { "code": "total_liabilities", "name": "Total liabilities", "name_vi": "Tổng nợ phải trả", "statement_type": "balance_sheet", "unit": "currency" },
+    { "code": "total_equity", "name": "Total owners' equity", "name_vi": "Vốn chủ sở hữu", "statement_type": "balance_sheet", "unit": "currency" },
+    { "code": "cash_and_equivalents", "name": "Cash and cash equivalents", "name_vi": "Tiền và các khoản tương đương tiền", "statement_type": "balance_sheet", "unit": "currency" },
+    { "code": "shares_outstanding", "name": "Shares outstanding", "name_vi": "Số lượng cổ phiếu đang lưu hành", "statement_type": "balance_sheet", "unit": "shares" },
+    { "code": "operating_cash_flow", "name": "Net cash from operating activities", "name_vi": "Lưu chuyển tiền thuần từ hoạt động kinh doanh", "statement_type": "cash_flow", "unit": "currency" },
+    { "code": "investing_cash_flow", "name": "Net cash from investing activities", "name_vi": "Lưu chuyển tiền thuần từ hoạt động đầu tư", "statement_type": "cash_flow", "unit": "currency" },
+    { "code": "financing_cash_flow", "name": "Net cash from financing activities", "name_vi": "Lưu chuyển tiền thuần từ hoạt động tài chính", "statement_type": "cash_flow", "unit": "currency" }
+  ]
+}

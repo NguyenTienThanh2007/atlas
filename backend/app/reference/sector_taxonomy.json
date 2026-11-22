@@ -1,0 +1,50 @@
+{
+  "taxonomy": "atlas-sectors",
+  "version": "1.0.0",
+  "effective_from": "2026-11-22",
+  "methodology": "ATLAS's own initial product taxonomy for grouping Vietnamese listed companies by primary business line. It is NOT an official classification of HOSE, HNX, the State Securities Commission or any index provider, and does not map 1:1 to ICB, GICS or VSIC. Companies are assigned by their primary revenue-generating activity as stated in their own disclosures; every assignment must carry evidence. Codes are stable and never reused; names and descriptions may change in later versions.",
+  "sectors": [
+    {
+      "code": "BANKING_FINANCIAL",
+      "name": "Banking & Financial Services",
+      "name_vi": "Ngân hàng & Dịch vụ tài chính",
+      "description": "Commercial banks, securities firms, insurers, consumer finance and other financial intermediaries."
+    },
+    {
+      "code": "TECHNOLOGY",
+      "name": "Technology",
+      "name_vi": "Công nghệ",
+      "description": "Software, IT services, telecommunications services and technology hardware."
+    },
+    {
+      "code": "REAL_ESTATE",
+      "name": "Real Estate",
+      "name_vi": "Bất động sản",
+      "description": "Residential and commercial property development, industrial parks and property services."
+    },
+    {
+      "code": "ENERGY",
+      "name": "Energy",
+      "name_vi": "Năng lượng",
+      "description": "Oil and gas, power generation and distribution, and renewable energy."
+    },
+    {
+      "code": "MATERIALS_CONSTRUCTION",
+      "name": "Materials & Construction",
+      "name_vi": "Vật liệu & Xây dựng",
+      "description": "Steel, cement, chemicals, building materials, and construction and engineering contractors."
+    },
+    {
+      "code": "CONSUMER_RETAIL",
+      "name": "Consumer & Retail",
+      "name_vi": "Tiêu dùng & Bán lẻ",
+      "description": "Food and beverages, consumer goods, retail chains and consumer services."
+    },
+    {
+      "code": "LOGISTICS_INDUSTRIAL",
+      "name": "Logistics & Industrial",
+      "name_vi": "Logistics & Công nghiệp",
+      "description": "Ports, shipping, aviation, transport and warehousing, and industrial manufacturing."
+    }
+  ]
+}

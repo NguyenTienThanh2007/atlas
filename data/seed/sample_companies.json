@@ -1,0 +1,51 @@
+{
+  "schema_version": "1",
+  "data_source": {
+    "name": "ATLAS sample fixture (fictional)",
+    "source_type": "sample_fixture",
+    "description": "FICTIONAL companies for local development and UI testing only. None of these companies, names or tickers exist; they must never be presented as real market data. Contains no financial figures.",
+    "access_method": "file_import",
+    "commercial_usage_status": "restricted"
+  },
+  "companies": [
+    {
+      "legal_name": "Công ty Cổ phần Mẫu Alpha (SAMPLE — fictional)",
+      "short_name": "Sample Alpha",
+      "english_name": "Sample Alpha Joint Stock Company (fictional)",
+      "description": "Fictional company used to exercise the ATLAS UI. Not a real business.",
+      "sector_code": "BANKING_FINANCIAL",
+      "securities": [
+        { "ticker": "SAMPLE1", "exchange_code": "HOSE", "security_type": "common_stock", "currency": "VND", "listing_status": "listed" }
+      ],
+      "evidence": [
+        { "source_url": "fixture://atlas/data/seed/sample_companies.json", "document_title": "ATLAS sample fixture v1", "retrieved_at": "2026-11-22T00:00:00+07:00", "verification_status": "sample", "notes": "Fictional record." }
+      ]
+    },
+    {
+      "legal_name": "Công ty Cổ phần Mẫu Beta (SAMPLE — fictional)",
+      "short_name": "Sample Beta",
+      "english_name": "Sample Beta Joint Stock Company (fictional)",
+      "description": "Fictional company with two listings, to exercise company-vs-security handling. Not a real business.",
+      "sector_code": "LOGISTICS_INDUSTRIAL",
+      "securities": [
+        { "ticker": "SAMPLE2", "exchange_code": "HNX", "security_type": "common_stock", "currency": "VND", "listing_status": "listed" },
+        { "ticker": "SAMPLE2P", "exchange_code": "UPCOM", "security_type": "preferred_stock", "currency": "VND", "listing_status": "suspended" }
+      ],
+      "evidence": [
+        { "source_url": "fixture://atlas/data/seed/sample_companies.json", "document_title": "ATLAS sample fixture v1", "retrieved_at": "2026-11-22T00:00:00+07:00", "verification_status": "sample", "notes": "Fictional record." }
+      ]
+    },
+    {
+      "legal_name": "Công ty Cổ phần Mẫu Gamma (SAMPLE — fictional)",
+      "short_name": "Sample Gamma",
+      "description": "Fictional delisted company, to exercise listing history. Not a real business.",
+      "sector_code": "TECHNOLOGY",
+      "securities": [
+        { "ticker": "SAMPLE3", "exchange_code": "UPCOM", "security_type": "common_stock", "currency": "VND", "listing_status": "delisted", "listed_at": "2020-01-02", "delisted_at": "2024-06-28" }
+      ],
+      "evidence": [
+        { "source_url": "fixture://atlas/data/seed/sample_companies.json", "document_title": "ATLAS sample fixture v1", "retrieved_at": "2026-11-22T00:00:00+07:00", "verification_status": "sample", "notes": "Fictional record." }
+      ]
+    }
+  ]
+}

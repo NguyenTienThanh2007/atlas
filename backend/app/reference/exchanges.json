@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "notes": "UPCoM (Unlisted Public Company Market) is a trading venue operated by the Hanoi Stock Exchange; ATLAS models it as its own venue because securities are registered there separately.",
+  "exchanges": [
+    { "code": "HOSE", "name": "Ho Chi Minh City Stock Exchange", "country_code": "VN" },
+    { "code": "HNX", "name": "Hanoi Stock Exchange", "country_code": "VN" },
+    { "code": "UPCOM", "name": "Unlisted Public Company Market", "country_code": "VN" }
+  ]
+}
