@@ -1,0 +1,22 @@
+# Environment / secrets: ignore .env files at every depth; only templates may be committed.
+**/.env
+**/.env.*
+!**/.env.example
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / Next.js (frontend/.gitignore covers the rest)
+node_modules/
