@@ -81,16 +81,24 @@ def test_sample_fixture_imports_flagged_and_idempotently(ref: Session) -> None:
 
 
 def test_valid_import_creates_records_with_provenance(ref: Session) -> None:
-    verified = evidence(status="verified", retrieved_at="2026-02-01T10:00:00+07:00")
-    r = run(ref, bundle([company(1, tax_code="0100 000 001", evidence=[evidence(), verified])]))
+    second = evidence("https://example.test/other.pdf", retrieved_at="2026-02-01T10:00:00+07:00")
+    r = run(ref, bundle([company(1, tax_code="0100 000 001", evidence=[evidence(), second])]))
     assert r.status is IngestionStatus.SUCCEEDED
     c = ref.scalars(select(Company)).one()
     assert c.tax_code == "0100000001"  # normalised
     assert c.is_sample is False
-    assert c.last_verified_at is not None and c.last_verified_at.isoformat().startswith("2026-02")
+    assert c.last_verified_at is None  # an import never verifies (WS1)
     evs = ref.scalars(select(Evidence).where(Evidence.entity_id == c.id)).all()
-    assert {e.verification_status.value for e in evs} == {"unverified", "verified"}
+    assert {e.verification_status.value for e in evs} == {"unverified"}
     assert r.data_source_id == evs[0].data_source_id
+
+
+@pytest.mark.parametrize("status", ["verified", "rejected", "disputed", "superseded"])
+def test_imports_cannot_set_a_reviewed_state(ref: Session, status: str) -> None:
+    r = run(ref, bundle([company(1, evidence=[evidence(status=status)])]))
+    assert kinds(r) == ["invalid"]
+    assert "only through a review" in str(r.issues[0]["message"])
+    assert count(ref, Company) == 0
 
 
 def test_text_and_codes_are_normalised(ref: Session) -> None:

@@ -1,7 +1,7 @@
 """Input schemas for import bundles. Every field is validated and normalised before any
 business rule runs; unknown fields are rejected so typos never pass silently."""
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Annotated, Any, Literal
 
@@ -141,8 +141,20 @@ class CompanyIn(_In):
 
 class MetricIn(_In):
     code: Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_]{1,63}$")]
+    # The value exactly as printed in the document, in the statement's declared amount_scale.
     # Strings or JSON numbers parsed as Decimal by the connector; floats/NaN/Infinity rejected.
     value: Annotated[Decimal, Field(allow_inf_nan=False, max_digits=38, decimal_places=6)]
+    # Page of the statement's source document; required for real figures (importer + DB).
+    source_page: Annotated[int, Field(ge=1, le=100_000)] | None = None
+
+
+# Statement currencies ATLAS can import today. Extending this list needs scale names for the
+# new currency too, so nothing is ever guessed.
+STATEMENT_CURRENCIES = frozenset({"VND"})
+# How a document prints its amounts. The names are exact; anything else is rejected.
+AMOUNT_SCALES: dict[str, int] = {"dong": 1, "nghin_dong": 1_000, "trieu_dong": 1_000_000}
+QUARTER_DAYS = (80, 100)  # inclusive length of a quarterly flow period
+ANNUAL_DAYS = (360, 371)  # inclusive length of an annual flow period
 
 
 class CompanyRef(_In):
@@ -159,6 +171,8 @@ class FinancialStatementIn(_In):
     statement_type: StatementType
     scope: StatementScope
     currency: Currency
+    # Required: the scale the document prints currency amounts in (no default, no guessing).
+    amount_scale: Literal["dong", "nghin_dong", "trieu_dong"]
     publication_date: date | None = None
     revision: Annotated[int, Field(ge=1)] = 1
     evidence: EvidenceIn
@@ -166,11 +180,15 @@ class FinancialStatementIn(_In):
 
     @model_validator(mode="after")
     def _checks(self) -> "FinancialStatementIn":
-        if self.reporting_period_end < self.reporting_period_start:
+        start, end = self.reporting_period_start, self.reporting_period_end
+        if end < start:
             raise ValueError("reporting_period_end is before reporting_period_start")
+        if self.currency not in STATEMENT_CURRENCIES:
+            raise ValueError(f"currency {self.currency} is not supported for statements")
         codes = [m.code for m in self.metrics]
         if len(codes) != len(set(codes)):
             raise ValueError("a metric code appears twice in this statement")
+        _check_period(self.statement_type, self.fiscal_year, self.fiscal_quarter, start, end)
         return self
 
     @property
@@ -180,6 +198,32 @@ class FinancialStatementIn(_In):
             f"{self.company.exchange_code}:{self.company.ticker}:{self.statement_type}:"
             f"{self.scope}:{self.fiscal_year}{q}:{self.reporting_period_end}:r{self.revision}"
         )
+
+
+def _check_period(
+    statement_type: StatementType, fiscal_year: int, quarter: int | None, start: date, end: date
+) -> None:
+    """Period rules (docs/VERIFICATION_WORKFLOW.md, "Reporting periods").
+
+    The fiscal year is named after the calendar year it ends in, so non-calendar years work:
+    an annual period ends in `fiscal_year`; a quarter ends in `fiscal_year` or the year before.
+    A balance sheet is a position at one date; income and cash-flow statements cover a span.
+    """
+    if quarter is None and end.year != fiscal_year:
+        raise ValueError(f"an annual period ending {end} belongs to fiscal year {end.year}")
+    if quarter is not None and end.year not in (fiscal_year - 1, fiscal_year):
+        raise ValueError(f"a quarter ending {end} cannot belong to fiscal year {fiscal_year}")
+    if statement_type is StatementType.BALANCE_SHEET:
+        if start != end:
+            raise ValueError(
+                "a balance sheet is at one date: reporting_period_start must equal end"
+            )
+        return
+    days = (end - start + timedelta(days=1)).days
+    low, high = ANNUAL_DAYS if quarter is None else QUARTER_DAYS
+    if not low <= days <= high:
+        kind = "an annual" if quarter is None else "a quarterly"
+        raise ValueError(f"{kind} period must span {low}-{high} days, not {days}")
 
 
 class BundleIn(_In):

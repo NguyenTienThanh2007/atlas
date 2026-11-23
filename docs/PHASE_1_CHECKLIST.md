@@ -177,3 +177,21 @@ No CRITICAL or HIGH findings remain open.
 
 Data provider integration: **BLOCKED** (licensing and credentials). It is reported above and was not
 faked to satisfy the gate.
+
+## Exit audit re-verification (2026-11-23)
+
+Added after the [Phase 1 exit audit](PHASE_1_EXIT_AUDIT.md). The rows above are kept as recorded on
+2026-11-22. This section records only new evidence. The code under test was `3660e5f` (= `main`),
+from a clean `git archive` copy, on an isolated Compose project with a new volume.
+
+| Item | Status | New evidence |
+| --- | --- | --- |
+| Backend tests | PASS | `pytest`: 87 passed, 1 warning (L-6); ruff, ruff format, mypy clean |
+| Migrations | PASS | `upgrade head` → `alembic check` → `downgrade base` → `upgrade head` on `atlas_test` |
+| Frontend checks | PASS | `npm ci`, lint 0, typecheck 0, `npm test` 8/8, build OK, `npm audit` 0 |
+| Docker stack | PASS | Fresh volume `up --wait`; health 200; 3 exchanges / 7 sectors; restart keeps 3 sample companies; `down -v` |
+| GitHub Actions executed remotely | **PASS** (was BLOCKED) | Backend, Frontend and Docker workflows succeeded on `3660e5f` (push to `main`, 2026-11-22) and on the PR #2 head |
+| L-4 not-found HTTP status | Verified: **200**, not 404 | `curl` on `/companies/<zero uuid>`, `/companies/not-a-uuid`, `/sectors/<zero uuid>` → 200 with the 404 page and `noindex`. Open as exit-audit F-3 (LOW) |
+| Metric dictionary documentation | Corrected | `data/README.md` said descriptions exist; they don't. Open as F-1 (MEDIUM) |
+
+Exit decision: **CONDITIONAL PASS**. The software is complete; the data blockers above remain.

@@ -218,6 +218,9 @@ def test_metric_values_round_trip_exactly(ref: Session, value: Decimal) -> None:
         metric_name="Net revenue",
         value=value,
         unit="VND",
+        source_page=1,
+        reported_value=value,
+        reported_scale=1,
     )
     ref.add(m)
     ref.flush()
@@ -243,6 +246,9 @@ def test_financial_history_is_append_only(ref: Session) -> None:
             metric_name="Net revenue",
             value=Decimal("1"),
             unit="VND",
+            source_page=1,
+            reported_value=Decimal("1"),
+            reported_scale=1,
         )
     )
     ref.flush()

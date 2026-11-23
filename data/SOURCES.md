@@ -31,6 +31,28 @@ written permission from the site owner.
 - Use for ATLAS: possibly security reference data (ticker, exchange, ISIN). It can't provide
   company profiles or financials.
 
+## Approved data path (2026-11-23, decision A-6)
+
+Recorded in [docs/PRODUCT_DECISIONS.md](../docs/PRODUCT_DECISIONS.md):
+
+1. **Now:** a private pilot. Curate the first 5 companies by hand from **their own published
+   audited annual reports**, for internal usability testing only. Nothing is published. Record hours
+   per company (gate G2).
+2. **In parallel:** a Vietnamese legal opinion on storing and publicly displaying figures from
+   mandatory disclosures (gate G1).
+3. **If G1 is favourable:** publish figures with links to the source filings, business descriptions
+   in ATLAS's own words, and no copied report text or PDFs.
+4. **Later, for scale:** a licensed provider, only with public-display rights and per-figure
+   document references in the contract.
+
+Aggregator sites (CafeF, Vietstock, Simplize and similar) are **never** a source.
+
+**Commercial intent (Q-2, resolved 2026-11-23).** ATLAS is developed as a potential commercial
+product. The legal review (G1) must assess commercial use, storage, processing, display and
+redistribution rights for each source. **Any source without sufficiently clear rights stays
+restricted until reviewed.** This decision authorises no public launch, paid subscriptions or
+commercial redistribution (see [docs/PRODUCT_DECISIONS.md](../docs/PRODUCT_DECISIONS.md) §4a).
+
 ## What's needed to unblock real data
 
 1. **A decision from the project owner**: which provider(s) to pursue, and for what use (personal
