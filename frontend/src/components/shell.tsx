@@ -1,29 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, type ReactNode } from "react";
+import type { Dictionary } from "@/i18n/vi";
+import { LOCALES, localePath, stripLocale, type Locale } from "@/i18n/routing";
+
+type Labels = Dictionary["shell"];
 
 const NAV = [
-  { href: "/", label: "Discover" },
-  { href: "/sectors", label: "Sectors" },
-  { href: "/companies", label: "Companies" },
-  { href: "/watchlist", label: "Watchlist" },
+  { path: "/", key: "discover" },
+  { path: "/sectors", key: "sectors" },
+  { path: "/companies", key: "companies" },
+  { path: "/watchlist", key: "watchlist" },
 ] as const;
 
-function Wordmark() {
+const LANGUAGE_NAME: Record<Locale, string> = { vi: "Tiếng Việt", en: "English" };
+
+function Wordmark({ locale }: { locale: Locale }) {
   return (
-    <Link href="/" className="font-display text-2xl tracking-[0.22em] text-mist">
+    <Link href={localePath(locale, "/")} className="font-display text-2xl tracking-[0.22em] text-mist">
       ATLAS
     </Link>
   );
 }
 
-type NavLinkProps = { href: string; label: string; onNavigate?: () => void };
+type NavLinkProps = { href: string; path: string; label: string; onNavigate?: () => void };
 
 function ActiveNavLink(props: NavLinkProps) {
-  const pathname = usePathname();
-  const active = props.href === "/" ? pathname === "/" : pathname.startsWith(props.href);
+  const { path } = stripLocale(usePathname());
+  const active = props.path === "/" ? path === "/" : path.startsWith(props.path);
   return <NavLink {...props} active={active} />;
 }
 
@@ -43,7 +49,47 @@ function NavLink({ href, label, active, onNavigate }: NavLinkProps & { active: b
   );
 }
 
-export function Shell({ children, status }: { children: ReactNode; status: ReactNode }) {
+const switchLink = "rounded px-1.5 py-0.5 text-xs hover:text-mist";
+
+/** Same page and query in the other language. */
+function CurrentPageSwitch({ locale }: { locale: Locale }) {
+  const { path } = stripLocale(usePathname());
+  const query = useSearchParams().toString();
+  return <SwitchLinks locale={locale} target={(l) => localePath(l, path) + (query ? `?${query}` : "")} />;
+}
+
+function SwitchLinks({ locale, target }: { locale: Locale; target: (l: Locale) => string }) {
+  return (
+    <>
+      {LOCALES.map((l) =>
+        l === locale ? (
+          <span key={l} aria-current="true" className={`${switchLink} text-mist`}>
+            {LANGUAGE_NAME[l]}
+          </span>
+        ) : (
+          <Link key={l} href={target(l)} hrefLang={l} lang={l} className={`${switchLink} text-muted`}>
+            {LANGUAGE_NAME[l]}
+          </Link>
+        ),
+      )}
+    </>
+  );
+}
+
+function LanguageSwitch({ locale, label }: { locale: Locale; label: string }) {
+  return (
+    <nav aria-label={label} className="flex items-center gap-1">
+      {/* The path and query are unknown while prerendering: link to each home page first. */}
+      <Suspense fallback={<SwitchLinks locale={locale} target={(l) => localePath(l, "/")} />}>
+        <CurrentPageSwitch locale={locale} />
+      </Suspense>
+    </nav>
+  );
+}
+
+type ShellProps = { children: ReactNode; status: ReactNode; locale: Locale; labels: Labels };
+
+export function Shell({ children, status, locale, labels }: ShellProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -56,7 +102,7 @@ export function Shell({ children, status }: { children: ReactNode; status: React
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[15.5rem_1fr]">
       <header className="glass sticky top-0 z-50 flex items-center justify-between border-b border-line px-4 py-3 lg:hidden">
-        <Wordmark />
+        <Wordmark locale={locale} />
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -64,7 +110,7 @@ export function Shell({ children, status }: { children: ReactNode; status: React
           aria-controls="sidebar"
           className="rounded-md border border-line px-3 py-1.5 text-sm text-mist"
         >
-          {open ? "Close" : "Menu"}
+          {open ? labels.close : labels.menu}
         </button>
       </header>
 
@@ -83,25 +129,32 @@ export function Shell({ children, status }: { children: ReactNode; status: React
         }`}
       >
         <div className="hidden lg:block">
-          <Wordmark />
-          <p className="mt-1 text-xs text-muted">Vietnam investment discovery</p>
+          <Wordmark locale={locale} />
+          <p className="mt-1 text-xs text-muted">{labels.tagline}</p>
         </div>
 
-        <nav aria-label="Main" className="mt-2 lg:mt-10">
+        <nav aria-label={labels.navLabel} className="mt-2 lg:mt-10">
           <ul className="space-y-1">
-            {NAV.map(({ href, label }) => (
-              <li key={href}>
-                {/* The path is unknown while prerendering dynamic routes: render the plain
-                    link first, then highlight once the pathname resolves. */}
-                <Suspense fallback={<NavLink href={href} label={label} active={false} />}>
-                  <ActiveNavLink href={href} label={label} onNavigate={() => setOpen(false)} />
-                </Suspense>
-              </li>
-            ))}
+            {NAV.map(({ path, key }) => {
+              const href = localePath(locale, path);
+              const label = labels.nav[key];
+              return (
+                <li key={path}>
+                  {/* The path is unknown while prerendering dynamic routes: render the plain
+                      link first, then highlight once the pathname resolves. */}
+                  <Suspense fallback={<NavLink href={href} path={path} label={label} active={false} />}>
+                    <ActiveNavLink href={href} path={path} label={label} onNavigate={() => setOpen(false)} />
+                  </Suspense>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
-        <div className="mt-auto border-t border-line pt-4">{status}</div>
+        <div className="mt-auto space-y-3 border-t border-line pt-4">
+          <LanguageSwitch locale={locale} label={labels.language} />
+          {status}
+        </div>
       </aside>
 
       <main className="min-w-0 px-4 py-8 sm:px-8 lg:px-12 lg:py-12">{children}</main>

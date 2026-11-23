@@ -5,8 +5,9 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
 
+from app.ingestion.reference import metric_dictionary
 from app.models import (
     CommercialUsageStatus,
     EntityType,
@@ -127,6 +128,13 @@ class MetricOut(_Out):
     metric_name: str
     value: Decimal
     unit: str
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def metric_name_vi(self) -> str | None:
+        """Vietnamese label from the versioned metric dictionary (read-only; never stored)."""
+        definition = metric_dictionary().get(self.metric_code)
+        return definition.name_vi if definition else None
 
 
 class FinancialStatementOut(_Out):

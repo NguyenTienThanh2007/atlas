@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { getI18n } from "@/i18n";
 
 export function ApiErrorState({ title, message }: { title: string; message: string }) {
   return (
@@ -13,21 +14,23 @@ export function ApiErrorState({ title, message }: { title: string; message: stri
   );
 }
 
-export function SampleBadge() {
+export async function SampleBadge() {
+  const { t } = await getI18n();
   return (
     <span
-      title="Fictional record from the ATLAS sample fixture. Not a real company."
+      title={t.common.sampleTitle}
       className="rounded border border-brass/50 px-1.5 py-0.5 text-[11px] font-medium text-brass"
     >
-      Sample data
+      {t.common.sampleBadge}
     </span>
   );
 }
 
-export function LoadingRows({ rows = 5 }: { rows?: number }) {
+export async function LoadingRows({ rows = 5 }: { rows?: number }) {
+  const { t } = await getI18n();
   return (
     <div className="mt-10 max-w-3xl space-y-3" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading…</span>
+      <span className="sr-only">{t.common.loading}</span>
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="h-14 animate-pulse rounded-lg bg-white/[0.04] motion-reduce:animate-none" />
       ))}
@@ -35,9 +38,11 @@ export function LoadingRows({ rows = 5 }: { rows?: number }) {
   );
 }
 
-export function BackLink({ href, children }: { href: string; children: ReactNode }) {
+/** `path` is the app path ("/companies"); the link keeps the current language. */
+export async function BackLink({ path, children }: { path: string; children: ReactNode }) {
+  const { href } = await getI18n();
   return (
-    <Link href={href} className="text-sm text-muted hover:text-mist">
+    <Link href={href(path)} className="text-sm text-muted hover:text-mist">
       ← {children}
     </Link>
   );
