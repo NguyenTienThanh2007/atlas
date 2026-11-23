@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { getI18n } from "@/i18n";
 
 type State = "ok" | "degraded" | "error" | "offline";
 
@@ -20,13 +21,6 @@ async function readHealth(): Promise<State> {
   }
 }
 
-const LABEL: Record<State, string> = {
-  ok: "API and database online",
-  degraded: "API online, database unreachable",
-  error: "API returned an error",
-  offline: "API unreachable",
-};
-
 const DOT: Record<State, string> = {
   ok: "bg-ok",
   degraded: "bg-brass",
@@ -44,10 +38,11 @@ function Line({ dot, text }: { dot: string; text: string }) {
 }
 
 export async function ApiStatus() {
-  const state = await readHealth();
-  return <Line dot={DOT[state]} text={LABEL[state]} />;
+  const [state, { t }] = await Promise.all([readHealth(), getI18n()]);
+  return <Line dot={DOT[state]} text={t.status[state]} />;
 }
 
-export function ApiStatusPending() {
-  return <Line dot="bg-line" text="Checking services…" />;
+export async function ApiStatusPending() {
+  const { t } = await getI18n();
+  return <Line dot="bg-line" text={t.status.pending} />;
 }

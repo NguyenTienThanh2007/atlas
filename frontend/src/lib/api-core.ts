@@ -54,7 +54,7 @@ export type Evidence = {
   document_title: string | null;
   published_at: string | null;
   retrieved_at: string;
-  verification_status: "unverified" | "verified" | "disputed" | "superseded" | "sample";
+  verification_status: "unverified" | "verified" | "disputed" | "rejected" | "superseded" | "sample";
   notes: string | null;
   data_source: {
     name: string;
@@ -78,12 +78,22 @@ export type FinancialStatement = {
   is_superseded: boolean;
   source_evidence: Evidence;
   // Values arrive as decimal strings so no precision is lost; never parse them to floats.
-  metrics: { metric_code: string; metric_name: string; value: string; unit: string }[];
+  metrics: {
+    metric_code: string;
+    metric_name: string;
+    metric_name_vi: string | null;
+    value: string;
+    unit: string;
+  }[];
 };
 
-export type ApiResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; status: number | null; message: string };
+// Failures carry a kind, not text: pages translate it (src/i18n/text.ts).
+export type ApiFailure = {
+  ok: false;
+  status: number | null;
+  kind: "unreachable" | "bad_response" | "not_found" | "invalid_query" | "server";
+};
+export type ApiResult<T> = { ok: true; data: T } | ApiFailure;
 
 type Params = Record<string, string | number | boolean | null | undefined>;
 
@@ -106,34 +116,37 @@ export async function fetchJson<T>(
   try {
     res = await fetchImpl(url, { cache: "no-store", signal: AbortSignal.timeout(timeoutMs) });
   } catch {
-    return {
-      ok: false,
-      status: null,
-      message: "The ATLAS API didn't respond. Check that the backend is running, then reload.",
-    };
+    return { ok: false, status: null, kind: "unreachable" };
   }
   if (res.ok) {
     try {
       return { ok: true, data: (await res.json()) as T };
     } catch {
-      return { ok: false, status: res.status, message: "The ATLAS API sent an unreadable response." };
+      return { ok: false, status: res.status, kind: "bad_response" };
     }
   }
-  if (res.status === 404) return { ok: false, status: 404, message: "Not found." };
-  if (res.status === 422) {
-    return { ok: false, status: 422, message: "Those search or filter values aren't valid." };
-  }
-  return { ok: false, status: res.status, message: `The ATLAS API returned an error (${res.status}).` };
+  if (res.status === 404) return { ok: false, status: 404, kind: "not_found" };
+  if (res.status === 422) return { ok: false, status: 422, kind: "invalid_query" };
+  return { ok: false, status: res.status, kind: "server" };
 }
 
-/** Group the integer part of a decimal string without converting it to a float. */
-export function formatDecimal(value: string): string {
+export type DisplayLocale = "vi" | "en";
+
+// Vietnamese groups thousands with "." and uses "," for decimals; English the reverse.
+const SEPARATORS: Record<DisplayLocale, { group: string; decimal: string }> = {
+  vi: { group: ".", decimal: "," },
+  en: { group: ",", decimal: "." },
+};
+
+/** Group a decimal string for display without converting it to a float. */
+export function formatDecimal(value: string, locale: DisplayLocale): string {
   const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(value.trim());
   if (!match) return value;
   const [, sign, int, frac] = match;
-  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const { group, decimal } = SEPARATORS[locale];
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, group);
   const trimmed = frac?.replace(/0+$/, "");
-  return `${sign}${grouped}${trimmed ? `.${trimmed}` : ""}`;
+  return `${sign}${grouped}${trimmed ? `${decimal}${trimmed}` : ""}`;
 }
 
 /** Search-param helpers: keep only well-formed values; the API validates again. */
@@ -154,10 +167,16 @@ export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 
 const VN_DATE = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
 
-/** YYYY-MM-DD. Plain dates pass through; timestamps are shown in Vietnam time (UTC+7). */
-export function formatDate(value: string | null): string {
+/** Vietnamese DD/MM/YYYY, English YYYY-MM-DD. Plain dates are never shifted; timestamps are
+ * shown in Vietnam time (UTC+7). */
+export function formatDate(value: string | null, locale: DisplayLocale): string {
   if (!value) return "—";
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? value : VN_DATE.format(d);
+  let iso = value;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    iso = VN_DATE.format(d);
+  }
+  const [y, m, day] = iso.split("-");
+  return locale === "vi" ? `${day}/${m}/${y}` : iso;
 }

@@ -21,9 +21,11 @@ real, verified listed companies (stretch target 20–30) across the 4 approved s
 validation by real users.
 
 **Current status:** planning complete; all product decisions (A-1 to A-11) approved on 2026-11-23.
-Execution started under a **conditional go** (2026-11-23). 26 of 83 checklist items PASS
-(31.3%), including workstream 1: a two-person verification workflow, per-figure source pages and
+Execution started under a **conditional go** (2026-11-23). 27 of 83 checklist items PASS
+(32.5%). Workstream 1 added a two-person verification workflow, per-figure source pages and
 stricter period and unit checks ([docs/VERIFICATION_WORKFLOW.md](docs/VERIFICATION_WORKFLOW.md)).
+Workstream 2 made the interface **Vietnamese-first**, with English at `/en`
+([docs/GLOSSARY.md](docs/GLOSSARY.md); terms await a native-speaker review).
 10 items are **blocked**, mostly on the legal opinion (G1). No real data is loaded.
 
 **Product direction (approved 2026-11-23):** start with Vietnamese investors learning to research
@@ -62,7 +64,7 @@ docker compose up -d --build --wait
 `.env.example` contains a placeholder database password for local development only. Replace it in
 your `.env`; see [Database password](docs/DEVELOPMENT.md#database-password).
 
-- Frontend: http://localhost:3000
+- Frontend: http://localhost:3000 (Vietnamese), http://localhost:3000/en (English)
 - API health: http://localhost:8000/api/v1/health
 - API docs (OpenAPI): http://localhost:8000/docs
 - PostgreSQL: `localhost:5433` (host port 5433 so it doesn't clash with a local Postgres on 5432)
@@ -113,6 +115,8 @@ Example response:
 - [docs/PHASE_1_EXIT_AUDIT.md](docs/PHASE_1_EXIT_AUDIT.md),
   [docs/PHASE_2_READINESS.md](docs/PHASE_2_READINESS.md): Phase 1 exit audit and Phase 2 go/no-go
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): components, request flow, decisions
+- [docs/VERIFICATION_WORKFLOW.md](docs/VERIFICATION_WORKFLOW.md),
+  [docs/GLOSSARY.md](docs/GLOSSARY.md): two-person verification; Vietnamese UI terms
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): local setup, commands, troubleshooting
 - [data/README.md](data/README.md): import format and rules, sector taxonomy, metric dictionary
 - [data/SOURCES.md](data/SOURCES.md): data providers and licensing status

@@ -263,6 +263,8 @@ def test_financial_statements_latest_revision_and_exact_values(
     assert fy["revision"] == 2 and fy["is_superseded"] is False and fy["supersedes_id"]
     values = {m["metric_code"]: m["value"] for m in fy["metrics"]}
     assert values == {"net_revenue": "2000000000.000001"}  # decimal string, not a float
+    # Vietnamese label comes from the versioned metric dictionary (WS2), not from storage.
+    assert fy["metrics"][0]["metric_name_vi"] == "Doanh thu thuần"
     assert fy["source_evidence"]["data_source"]["name"] == "Test disclosure source"
 
     history = get(client, f"/companies/{cid}/financial-statements", include_superseded=True)

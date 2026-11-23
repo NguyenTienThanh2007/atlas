@@ -133,26 +133,38 @@ CLI) commits data and the run record together. The rules are listed in `data/REA
 
 ```
 frontend/src/
-  app/layout.tsx                 Fonts, Shell, API status slot
-  app/page.tsx                   Discover workspace
-  app/companies/page.tsx         List with search, sector and exchange filters, pagination (GET form, no client JS needed)
-  app/companies/[id]/page.tsx    Detail: facts, listings, financial statements, sources
-  app/sectors/page.tsx           Taxonomy with company counts
-  app/sectors/[id]/page.tsx      Sector with its companies
-  app/**/loading.tsx             Loading states (Suspense boundaries)
-  lib/api-core.ts                Pure API client and types, formatDecimal/formatDate (unit-tested with node --test)
-  lib/api.ts                     Server-only wrapper: connection() + API_URL
-  components/                    shell, states (error, sample badge, loading), company list, filters, pagination
+  proxy.ts                         Language routing: unprefixed URLs are Vietnamese (rewritten to /vi/...); /en/... is English; /vi/... redirects to the canonical URL
+  i18n/routing.ts                  Locales (vi default, en), localePath/stripLocale/routeRequest (pure, unit-tested)
+  i18n/vi.ts, i18n/en.ts           Dictionaries; en is typed against vi (same keys). Glossary: docs/GLOSSARY.md
+  i18n/index.ts, i18n/text.ts      getI18n() (locale from next/root-params, dictionary, locale-aware href); error and unit text
+  app/[lang]/layout.tsx            Root layout per language: <html lang>, fonts (latin + vietnamese subsets), Shell, API status
+  app/[lang]/page.tsx              Discover workspace
+  app/[lang]/companies/page.tsx    List with search, sector and exchange filters, pagination (GET form, no client JS needed)
+  app/[lang]/companies/[id]/page.tsx  Detail: facts, listings, financial statements, sources
+  app/[lang]/sectors/...           Taxonomy with company counts; sector with its companies
+  app/[lang]/not-found.tsx, [...missing]  Localized not-found (unknown URLs return HTTP 404)
+  app/[lang]/**/loading.tsx        Loading states (Suspense boundaries)
+  lib/api-core.ts                  Pure API client and types; errors are kinds, not text; formatDecimal/formatDate per language (unit-tested)
+  lib/api.ts                       Server-only wrapper: connection() + API_URL
+  components/                      shell (nav, language switch), states, company list, filters, pagination
+scripts/check-routes.mjs           Route check against a running build: lang, key text per language, status codes, backend up/down
 ```
 
+- **Vietnamese first (A-4, WS2).** Vietnamese is the default at today's URLs; English is under
+  `/en`. The language is never guessed from the browser. The switch keeps the current page and
+  query. Data stays as stored: company and source names and taxonomy descriptions (English-only in
+  v1.0.0) are shown as data, marked with `lang` where the language differs.
 - Every data request runs server-side at request time. If the API is unreachable, each page shows
-  an inline error panel and the shell and navigation keep working. A `404` from the API renders
-  Next's not-found page.
-- Sample records always show a "Sample data" badge, and a banner on the detail page.
-- Financial values are shown from the API's decimal strings with digit grouping only. They are
-  never parsed to floats. Timestamps are shown in Vietnam time (UTC+7).
-- Cache Components: the nav's active-link highlight reads `usePathname()` inside its own
-  `<Suspense>`, so dynamic routes still prerender a static shell.
+  an inline error panel in the page's language and the shell keeps working. A `404` from the API
+  renders the localized not-found page.
+- Sample records always show a "Sample data" / "Dữ liệu mẫu" badge, and a banner on the detail page.
+- Financial values are shown from the API's decimal strings with digit grouping only
+  (`1.234.567,89` in Vietnamese, `1,234,567.89` in English). They are never parsed to floats.
+  Metric labels in Vietnamese come from the metric dictionary via the API (`metric_name_vi`).
+  Timestamps are shown in Vietnam time (UTC+7).
+- Cache Components: the nav highlight and the language switch read `usePathname()` /
+  `useSearchParams()` inside their own `<Suspense>`, so routes still prerender a static shell per
+  language.
 
 ## Decisions
 

@@ -4,6 +4,7 @@ import { CompanyList } from "@/components/company-list";
 import { EmptyState, PageHeader } from "@/components/empty-state";
 import { Pagination } from "@/components/pagination";
 import { ApiErrorState } from "@/components/states";
+import { errorText, getI18n } from "@/i18n";
 import {
   apiGet,
   cleanParam,
@@ -16,12 +17,15 @@ import {
   type Sector,
 } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Companies" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.meta.titles.companies };
+}
 
 const PAGE_SIZE = 20;
 
-export default async function CompaniesPage({ searchParams }: PageProps<"/companies">) {
-  const sp = await searchParams;
+export default async function CompaniesPage({ searchParams }: PageProps<"/[lang]/companies">) {
+  const [sp, { t }] = await Promise.all([searchParams, getI18n()]);
   const q = cleanParam(sp.q);
   const sector = cleanParam(sp.sector, SECTOR_CODE);
   const exchange = cleanParam(sp.exchange, EXCHANGE_CODE);
@@ -42,10 +46,7 @@ export default async function CompaniesPage({ searchParams }: PageProps<"/compan
 
   return (
     <>
-      <PageHeader
-        title="Companies"
-        intro="Browse listed companies on HOSE, HNX and UPCoM and see what they do."
-      />
+      <PageHeader title={t.companies.title} intro={t.companies.intro} />
       {sectors.ok && exchanges.ok && (
         <CompanyFilters
           q={q}
@@ -57,24 +58,21 @@ export default async function CompaniesPage({ searchParams }: PageProps<"/compan
       )}
 
       {!companies.ok ? (
-        <ApiErrorState title="Couldn't load companies" message={companies.message} />
+        <ApiErrorState title={t.companies.loadError} message={errorText(t, companies)} />
       ) : companies.data.items.length === 0 ? (
         filtered ? (
-          <EmptyState title="No companies match">
-            <p>Try a different ticker or name, or clear the sector and exchange filters.</p>
+          <EmptyState title={t.companies.noMatchTitle}>
+            <p>{t.companies.noMatchBody}</p>
           </EmptyState>
         ) : (
-          <EmptyState title="No companies yet">
-            <p>
-              Company profiles appear here once they are imported from a verified source. See
-              the data import guide in docs/DEVELOPMENT.md.
-            </p>
+          <EmptyState title={t.companies.noneTitle}>
+            <p>{t.companies.noneBody}</p>
           </EmptyState>
         )
       ) : (
         <>
           <p className="mt-6 text-sm text-muted" aria-live="polite">
-            {companies.data.total} {companies.data.total === 1 ? "company" : "companies"}
+            {t.companies.count(companies.data.total)}
           </p>
           <CompanyList companies={companies.data.items} />
           <Pagination
