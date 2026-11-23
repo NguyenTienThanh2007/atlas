@@ -72,6 +72,9 @@ host:
 cd backend
 uv run python -m app.ingestion reference
 uv run python -m app.ingestion import ../data/seed/sample_companies.json   # FICTIONAL sample data
+uv run python -m app.ingestion review <evidence-id> --from unverified --decision verified \
+  --curator "<curator>" --reviewer "<independent reviewer>" --checked-against "<document, page>"
+uv run python -m app.ingestion reviews <evidence-id>   # review history (see docs/VERIFICATION_WORKFLOW.md)
 ```
 
 The sample fixture shows up in the UI with a "Sample data" badge. Bundle format, import rules,

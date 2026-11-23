@@ -1,0 +1,356 @@
+# Phase 2 checklist: verified company discovery
+
+The single source of truth for Phase 2 progress. Every status must match the codebase and the
+evidence recorded here.
+
+## Progress summary
+
+| | |
+| --- | --- |
+| **Phase objective** | Turn the Phase 1 foundation into a usable discovery product backed by **at least 5 verified Vietnamese listed companies (stretch target 20–30)** across the 4 approved sectors, with evidence-backed financials and validation by real users |
+| **Current status** | **IN PROGRESS: planning complete.** All product decisions A-1 to A-11 **approved** on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)). A private 5-company pilot can start; **public display of real data waits on gate G1** (legal opinion), reported under Track B. Phase 1 capabilities re-verified. **Execution: CONDITIONAL GO (EX-1).** Workstream 1 (verification workflow, figure provenance, period and unit validation) implemented and verified (E-WS1); uncommitted. |
+| **Last verified** | 2026-11-23, against `main` @ `3660e5f` (tree identical to Phase 1 commit `d858fbc`); planning items updated 2026-11-23 from PRODUCT_STRATEGY.md |
+| **Overall completion** | **26 / 83 items PASS (31.3%)**. BLOCKED and FAIL never count as complete |
+| **Completed (PASS)** | 26 |
+| **In progress** | 26 |
+| **Not started** | 21 |
+| **Blocked** | 10 |
+| **Failed** | 0 |
+
+| Section | Items | PASS | IN PROGRESS | NOT STARTED | BLOCKED | FAIL |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1. Product scope and planning | 5 | 3 | 2 | 0 | 0 | 0 |
+| 2. Data governance and provenance | 8 | 7 | 0 | 0 | 1 | 0 |
+| 3. Verified company dataset | 9 | 0 | 1 | 8 | 0 | 0 |
+| 4. Company discovery experience | 13 | 7 | 5 | 1 | 0 | 0 |
+| 5. Financial intelligence and presentation | 17 | 0 | 3 | 5 | 9 | 0 |
+| 6. Data quality and testing | 12 | 7 | 4 | 1 | 0 | 0 |
+| 7. Product validation | 7 | 2 | 1 | 4 | 0 | 0 |
+| 8. Engineering and release readiness | 12 | 0 | 10 | 2 | 0 | 0 |
+| **Total** | **83** | **26** | **26** | **21** | **10** | **0** |
+
+Scope changes: 2026-11-23, +2 items (P2-4.12, P2-4.13) added for the MVP scope approved in
+A-3 and A-4. The total went from 81 to 83; no items were removed.
+
+Percent complete = PASS ÷ total items. Counts are tallied from the item lines below. Re-count after
+every update; don't estimate.
+
+**Critical remaining work**
+
+1. **Gate G1: legal opinion (B-1).** Commission the Vietnamese legal opinion on publicly
+   displaying figures from mandatory disclosures (questions in
+   [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) Q-1). It blocks all public display of real data
+   (P2-2.3, P2-5.2 to P2-5.10).
+2. **Gate G2: private 5-company pilot.** Choose the companies with the approved sectors (A-7) and
+   selection criteria (A-11), curate them from their own audited annual reports, and measure hours per company.
+   Needs a named second reviewer (Q-3).
+3. **Open questions for the owner.** Q-3 (second reviewer) and Q-7 (hosting and budget) in
+   [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md). All product decisions are approved. **Q-9 resolved
+   2026-11-23:** round-1 threshold scaled to n = 10 (amendment AM-1 to A-9). **Q-4 resolved
+   2026-11-23:** recruiting plan confirmed. **Q-2 resolved 2026-11-23:
+   commercial intent.** G1 must therefore assess commercial
+   use, storage, processing, display and redistribution rights per data source (PRODUCT_DECISIONS
+   §4a).
+4. **Verification workflow (P2-2.1, P2-2.5): done in WS1** ([VERIFICATION_WORKFLOW.md](VERIFICATION_WORKFLOW.md)). Applying it needs the Q-3 reviewer.
+5. **Calculated metrics (P2-5.11, P2-5.12, P2-5.17).** ROE and ROA formulas, and a clear split
+   between reported and calculated values.
+6. **Product validation with real users (section 7).**
+
+**Related documents:** [README](../README.md) ·
+[Architecture](ARCHITECTURE.md) · [Development](DEVELOPMENT.md) ·
+[Product strategy](PRODUCT_STRATEGY.md) · [Product decisions](PRODUCT_DECISIONS.md) ·
+[Pilot selection criteria](PILOT_SELECTION_CRITERIA.md) ·
+[Phase 0 checklist](PHASE_0_CHECKLIST.md) · [Phase 1 checklist](PHASE_1_CHECKLIST.md) ·
+[Data rules, taxonomy, metric dictionary](../data/README.md) · [Data sources](../data/SOURCES.md)
+
+## Status convention
+
+| Status | Meaning |
+| --- | --- |
+| `NOT STARTED` | No work done for Phase 2 |
+| `IN PROGRESS` | Partly done; the item says what is done and what remains |
+| `PASS` | Done **and** verified. Evidence is recorded on the item |
+| `BLOCKED` | Can't proceed; the item names the blocker (B-n) |
+| `FAIL` | Was verified and does not meet the requirement; must be fixed |
+
+Format: `- [ ] **[STATUS]** P2-x.y Description` followed by indented `Evidence:` / `Remaining:` /
+`Blocked by:` lines. The checkbox is ticked (`[x]`) **only** for `PASS`.
+
+**What counts as evidence for PASS:** a test command and its result, a source document plus a
+verification record, an API response, a browser verification note, a reviewed implementation, or
+written licensing confirmation. Code existing is not enough. Evidence carried over from Phase 1
+is valid only when the code is unchanged (checked here: `git diff d858fbc 3660e5f` is empty) and
+the tests are re-run.
+
+**Evidence baseline used below (2026-11-23):**
+- **E-B** (backend, `main` @ `3660e5f` from a `git archive` export): `uv run pytest` gave
+  **87 passed**; `ruff check`, `ruff format --check` and `mypy` (strict) were clean;
+  `alembic check` reported "No new upgrade operations detected".
+- **E-F** (frontend, same export): `npm run lint` (0 issues), `npm run typecheck`, `npm test`
+  (**8/8**) and `npm run build` all passed.
+- **E-CI**: GitHub Actions on PR #2 head `d858fbc` passed for
+  [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45037564694),
+  [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45037564678) and
+  [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45037564765).
+- **E-WS1** (2026-11-23, Phase 2 workstream 1, approved EX-2): clean copy of the working tree (no `.venv`, `node_modules`, `.next`), fresh PostgreSQL 17: `uv sync --frozen`; `ruff check`, `ruff format --check`, `mypy` clean; `pytest` **170 passed**; `alembic upgrade head` → `check` ("No new upgrade operations detected") → `downgrade base` → `upgrade head` (`31b1317163eb`); `pip-audit` clean. Frontend `npm ci`, lint, typecheck, `npm test` 8/8, build, `npm audit` 0. Docker fresh volume: migrations to `31b1317163eb`, health 200, frontend 200, sample import OK, review of sample evidence refused, restart keeps data. Compatibility: upgrade/downgrade on a database holding Phase 1-era data left it unchanged; downgrade refused once a review existed. Not yet run on GitHub Actions (nothing pushed).
+- **E-BR**: browser verification recorded in [PHASE_1_CHECKLIST.md](PHASE_1_CHECKLIST.md)
+  sections 11–12 (2026-11-22, code `d858fbc`, identical to `main`).
+
+---
+
+## 1. Product scope and planning
+
+- [x] **[PASS]** P2-1.1 Define target users (e.g. Vietnamese retail investors, foreign investors researching Vietnam, analysts), with the primary segment chosen.
+  - Evidence: six segments analysed and ranked in [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md) §4. Primary segment **C (Vietnamese investors learning to research listed companies)**, with E (foreign, English) second, **approved by the project owner Tiến Thành on 2026-11-23** ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-1).
+- [ ] **[IN PROGRESS]** P2-1.2 Define the main investment discovery problems ATLAS solves, each grounded in user evidence or explicitly marked as an assumption.
+  - Done: primary problem stated and labelled as a hypothesis (H1), with competitor facts cited ([PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md) §3, §5).
+  - Done: positioning approved by the project owner on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-2).
+  - Remaining: the problem itself (H1) is still a hypothesis; needs user evidence from round 1 interviews (P2-7.3).
+- [ ] **[IN PROGRESS]** P2-1.3 Define core user journeys (e.g. find a company → understand its business → check its financials → see the sources).
+  - Done: journeys J1–J4 with intent, steps, screens, data, success condition and friction ([PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md) §7).
+  - Remaining: owner approval; validation in round 2 usability tests.
+- [x] **[PASS]** P2-1.4 Define MVP scope and non-goals (non-goals already implied: no 3D world, no prices or trading, no investment advice).
+  - Evidence: 17 features classified MUST / SHOULD / LATER / OUT OF SCOPE; MUSTs M1–M5 with problem, data, complexity, dependencies and acceptance criteria ([PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md) §6). **MVP = M1–M5, with price charts, news, portfolio, AI, relationships and 3D outside the MVP, approved by the project owner Tiến Thành on 2026-11-23** ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-3); Vietnamese-first UI approved the same day (A-4).
+  - Note: A-5 (deferring 3D in the long-term vision) and the SHOULD features are separate decisions, not part of this item.
+- [x] **[PASS]** P2-1.5 Define Phase 2 acceptance criteria and get the project owner's sign-off.
+  - Evidence: acceptance criteria **approved by the project owner Tiến Thành on 2026-11-23** ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2a, A-10). Track A (product completion, AC-1 to AC-8): ≥5 verified companies (defined via A-11; stretch 20–30), figure-to-page traceability, reproducible data-quality checks, both research rounds documented whatever the outcome, journeys J1–J3, release gates, docs. Track B (public-launch readiness, LR-1 to LR-5) is reported separately below.
+
+## 2. Data governance and provenance
+
+- [x] **[PASS]** P2-2.1 Define the company data verification workflow: who reviews, what they check against which document, how the decision is recorded, and the two-person rule (if any).
+  - Evidence: [VERIFICATION_WORKFLOW.md](VERIFICATION_WORKFLOW.md) §1–5. Roles curator and independent reviewer; decisions recorded in append-only `verification_reviews`; two-person rule enforced by PostgreSQL (`curator ≠ reviewer`, reviewer not a system name, `checked_against` required). Tests `test_reviewer_must_be_another_person[*]`, `test_raw_sql_review_is_held_to_the_same_rules`, `test_review_cli`. Phase 2 WS1 (approved EX-2, migration `31b1317163eb`), verified 2026-11-23 on a clean copy of the working tree: `pytest` **170 passed** (new `tests/test_verification.py`), ruff/mypy clean, migration up → check → down → up, Docker fresh start (E-WS1).
+  - Note: the reviewer **person** is still open (**Q-3**); until appointed nothing can be verified.
+- [x] **[PASS]** P2-2.2 Define source credibility tiers and evidence requirements per field (identity, ticker, sector, description, financials).
+  - Evidence: tiers T1–T4 and the minimum tier per field in [VERIFICATION_WORKFLOW.md](VERIFICATION_WORKFLOW.md) §2 (T4/aggregators never accepted, A-6). Evidence is mandatory for every company and statement (`test_invalid_record_is_reported_and_others_still_import`), and every real figure needs its page (`test_real_figures_need_a_source_page_on_import`, `test_real_figures_need_page_and_reported_value`). Tier per field is applied by the reviewer, not checked automatically.
+- [ ] **[BLOCKED]** P2-2.3 Document storage, display and redistribution permissions for every data source used.
+  - Done: the state of knowledge is recorded in [data/SOURCES.md](../data/SOURCES.md); every source is `unknown`. Path approved: Vietnamese legal opinion = **gate G1** ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-6, questions in Q-1).
+  - Blocked by: **B-1** until G1 returns.
+- [x] **[PASS]** P2-2.4 Record source URL, document title, publication date and retrieval timestamp for every evidence item.
+  - Evidence: `evidence` table columns `source_url`, `document_title`, `published_at`, `retrieved_at` (NOT NULL, `timestamptz`), plus `content_hash` (`backend/app/models.py`). Importer requires timezone-aware `retrieved_at` and rejects `published_at` later than `retrieved_at` (`backend/app/ingestion/schemas.py`). Tests `test_valid_import_creates_records_with_provenance` and `test_company_evidence_includes_provenance` pass (E-B). Exposed by `GET /api/v1/companies/{id}/evidence`.
+- [x] **[PASS]** P2-2.5 Define verified, unverified, rejected and sample data states.
+  - Evidence: states `unverified`, `verified`, `disputed`, `rejected` (new), `superseded`, `sample` and the allowed transitions in [VERIFICATION_WORKFLOW.md](VERIFICATION_WORKFLOW.md) §3, enforced by a database trigger. `test_transition_matrix[*]` covers all 25 (state, decision) pairs; `test_sample_evidence_can_never_be_reviewed[*]`, `test_evidence_cannot_be_inserted_in_a_reviewed_state[*]`, `test_status_and_content_cannot_be_updated_directly`, `test_stale_from_status_is_refused`, `test_imports_cannot_set_a_reviewed_state[*]`. Phase 2 WS1 (approved EX-2, migration `31b1317163eb`), verified 2026-11-23 on a clean copy of the working tree: `pytest` **170 passed** (new `tests/test_verification.py`), ruff/mypy clean, migration up → check → down → up, Docker fresh start (E-WS1).
+- [x] **[PASS]** P2-2.6 Real and fictional records cannot be confused.
+  - Evidence: `companies.is_sample`; sample sources may only use `verification_status = sample` and real sources may not; statements can't cross between sample and real companies. Tests `test_sample_and_real_data_never_mix`, `test_statement_for_sample_company_from_real_source_is_rejected` and `test_sample_fixture_imports_flagged_and_idempotently` pass (E-B). UI shows a "Sample data" badge in lists and a banner on the detail page (E-BR).
+- [x] **[PASS]** P2-2.7 Support financial statement revisions and restatements.
+  - Evidence: `revision` plus `supersedes_id` with CHECK `(revision = 1) = (supersedes_id IS NULL)`; append-only triggers on `financial_statements` and `financial_metrics` (migration `981ec5176312`). Tests `test_financial_history_is_append_only`, `test_statement_identity_and_revision_rules`, `test_restatement_is_a_new_revision_and_history_is_kept`, `test_changed_figures_are_a_conflict_not_an_overwrite` and `test_financial_statements_latest_revision_and_exact_values` pass (E-B).
+- [x] **[PASS]** P2-2.8 Document data correction and review procedures, including how to correct company master data (today an import can only report a conflict; see Phase 1 L-3).
+  - Evidence: [VERIFICATION_WORKFLOW.md](VERIFICATION_WORKFLOW.md) §8 (curation errors, restatements, replaced documents, master data, wrong review decisions). History preservation tested: `test_reviews_are_append_only_and_history_is_kept`, `test_financial_history_is_append_only`. A *tooled* master-data update path is still future work (R-3).
+
+## 3. Verified company dataset
+
+Rule: if evidence or usage permission is unavailable, the item is **BLOCKED**. Never invent data
+or claim verification without evidence. Under A-6, private curation for internal testing is
+permitted; **publishing** real data waits on gate G1. Primary source is the company's own published
+audited annual report; aggregators are never a source.
+
+- [ ] **[IN PROGRESS]** P2-3.1 Establish the pilot target: choose 20–30 real listed companies across 3–4 sectors, with the selection criteria written down.
+  - Done: **sectors and size approved** by the project owner on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-7): Banking & Financial Services, Consumer & Retail, Technology, Materials & Construction; 20–30 companies; first 5 = private pilot (gate G2).
+  - Done: **selection criteria approved** by the project owner on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-11): [PILOT_SELECTION_CRITERIA.md](PILOT_SELECTION_CRITERIA.md) (eligibility E1–E8, ordering, composition rules, curation scope, audit-trail template).
+  - Remaining: the long-list (checked against E1–E8 with evidence by a person) and the first-5 list confirmed by the owner. No company is named yet, by design.
+  - G2 progress (2026-11-23, no names, per A-11 §5): candidate universe built from the official HOSE July-2026 VN30/VN100 constituent announcement (100 candidates). 7 priority candidates preliminarily assessed (56 criterion cells: 44 PASS, 0 FAIL, 3 UNKNOWN, 9 NOT REVIEWED; 5 candidates pass E1–E8 on a first, unreviewed check). A 5-company shortlist, confirmed by the owner on 2026-11-23, is held in the private workspace outside the repo. 0 companies verified (independent reviewer, Q-3, not appointed).
+- [ ] **[NOT STARTED]** P2-3.2 Verify each company's legal identity and name against an authoritative source.
+  - Unblocked for the **private 5-company pilot** by [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-6 (2026-11-23); public display waits on gate G1 (B-1).
+- [ ] **[NOT STARTED]** P2-3.3 Verify ticker and exchange for each pilot company.
+  - Unblocked for the **private 5-company pilot** by [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-6 (2026-11-23); public display waits on gate G1 (B-1). Exchange sites unreachable from our automated environment (B-3) can be checked manually by a person.
+- [ ] **[NOT STARTED]** P2-3.4 Verify sector classification per the ATLAS taxonomy methodology (`data/README.md`), with evidence.
+  - Unblocked for the **private 5-company pilot** by [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-6 (2026-11-23); public display waits on gate G1 (B-1).
+- [ ] **[NOT STARTED]** P2-3.5 Collect business descriptions, each with evidence.
+  - Unblocked for the **private 5-company pilot** by [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-6 (2026-11-23); public display waits on gate G1 (B-1). Descriptions are written in ATLAS's own words; no copied report text.
+- [ ] **[NOT STARTED]** P2-3.6 Collect annual and quarterly financial statements where permitted.
+  - Unblocked for the **private 5-company pilot** by [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-6 (2026-11-23); public display waits on gate G1 (B-1). Annual audited statements first (≥3 fiscal years, MVP M2); quarterly later. Two-person check on figures (D-6). Hours per company measured for gate G2.
+- [ ] **[NOT STARTED]** P2-3.7 Validate reporting period, currency and unit for every imported statement.
+  - Done (tooling): the importer validates period order, quarter range, currency format and metric units (E-B).
+  - Unblocked for the **private 5-company pilot** by [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-6 (2026-11-23); public display waits on gate G1 (B-1).
+- [ ] **[NOT STARTED]** P2-3.8 Track missing fields and missing reporting periods per company.
+- [ ] **[NOT STARTED]** P2-3.9 Produce a data coverage report (companies × fields × periods; verified vs unverified).
+
+**Dataset status:** 0 real companies, 0 verified. The only data is the fictional fixture
+`data/seed/sample_companies.json` (3 companies, flagged as sample).
+
+## 4. Company discovery experience
+
+- [x] **[PASS]** P2-4.1 Company listing page.
+  - Evidence: `frontend/src/app/companies/page.tsx` renders `GET /api/v1/companies` (E-BR). Build passes (E-F).
+- [x] **[PASS]** P2-4.2 Search by company name and ticker.
+  - Evidence: `test_search_and_filters` (13 cases, covering name, English name, ticker, and literal `%` and `_`) passes (E-B). Browser search for `sample2p` returned 1 result (E-BR).
+- [x] **[PASS]** P2-4.3 Sector and exchange filters.
+  - Evidence: `test_search_and_filters` sector and exchange cases (delisted listings excluded) pass (E-B). Browser sector filter verified (E-BR).
+- [x] **[PASS]** P2-4.4 Pagination and stable sorting.
+  - Evidence: `test_pagination_is_stable_and_complete` passes (E-B); `Pagination` component in `frontend/src/components/pagination.tsx`.
+- [x] **[PASS]** P2-4.5 Company detail page.
+  - Evidence: `frontend/src/app/companies/[id]/page.tsx`; `test_company_detail` passes (E-B); browser verified (E-BR).
+- [ ] **[IN PROGRESS]** P2-4.6 Business overview.
+  - Done: the `description` field is shown on the detail page.
+  - Remaining: link each description to its evidence; real descriptions (blocked by P2-3.5).
+- [x] **[PASS]** P2-4.7 Securities and exchange information.
+  - Evidence: Listings table (ticker, exchange, type, status, listed and delisted dates); `GET /api/v1/securities/{id}`; tests `test_security_detail` and `test_list_item_shape_hides_internal_fields` pass (E-B). Two listings on two exchanges shown in the browser (E-BR).
+- [ ] **[IN PROGRESS]** P2-4.8 Financial statement section.
+  - Done: statements render with exact values, unit, period, source and verification status, and show a "restated (revision N)" label (E-BR, fictional data in an isolated database). API test `test_financial_statements_latest_revision_and_exact_values` passes (E-B).
+  - Remaining: the section shows unverified statements too, labelled. Section 5 requires showing only verified-supported metrics, and that rule must be decided and implemented.
+- [x] **[PASS]** P2-4.9 Source and evidence display.
+  - Evidence: "Sources" section with data-source name, retrieval date (Vietnam time), verification status and usage rights; only http(s) URLs are links. Tests `test_company_evidence_includes_provenance` (E-B) and `formatDate` (E-F); browser verified (E-BR).
+- [ ] **[IN PROGRESS]** P2-4.10 Loading, empty, error and not-found states.
+  - Done: all four render (E-BR: skeleton during navigation, "No companies yet", per-page error panel with the backend stopped, not-found page for unknown ids).
+  - Remaining: the **HTTP status** of not-found responses on streamed dynamic routes is unverified (Phase 1 L-4).
+- [ ] **[IN PROGRESS]** P2-4.11 Responsive desktop and mobile experience.
+  - Done: companies list at 375×812 with no horizontal scroll; desktop layouts (E-BR).
+  - Remaining: company detail, sectors and sector detail pages not checked at mobile width.
+- [ ] **[NOT STARTED]** P2-4.12 Vietnamese-first UI with English as second language (MVP M5, approved [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-4): all UI copy in Vietnamese, `lang` set correctly, the display font's `vietnamese` subset loaded (D-7).
+- [ ] **[IN PROGRESS]** P2-4.13 Per-figure source links (MVP M2, approved A-3): every displayed financial figure reaches its source document in ≤2 clicks (D-3). Today sources are shown per statement and per company, not per figure.
+  - Done (WS1): storage. Each figure keeps `source_page`, required for real figures by the importer and a DB trigger, and links to its document through the statement's evidence (`test_real_figures_need_page_and_reported_value`).
+  - Remaining (WS3): expose page and document per figure in the API and UI.
+
+## 5. Financial intelligence and presentation
+
+Rule: only show metrics supported by verified source data, and always distinguish **reported**
+values from **calculated** ones.
+
+- [ ] **[IN PROGRESS]** P2-5.1 Define metric definitions and calculation formulas.
+  - Done: 16 reported metrics defined, with Vietnamese names, statement type and unit, in `backend/app/reference/metric_dictionary.json` (documented in `data/README.md`).
+  - Remaining: formulas for calculated metrics (ROE, ROA, growth), averaging conventions, and sign conventions.
+- [ ] **[BLOCKED]** P2-5.2 Revenue (`net_revenue`).
+  - Done: defined, importable, displayable.
+  - Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
+- [ ] **[BLOCKED]** P2-5.3 Gross profit (`gross_profit`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
+- [ ] **[BLOCKED]** P2-5.4 Operating profit (`operating_profit`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
+- [ ] **[BLOCKED]** P2-5.5 Net profit (`net_profit`, `net_profit_parent`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
+- [ ] **[BLOCKED]** P2-5.6 Total assets (`total_assets`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
+- [ ] **[BLOCKED]** P2-5.7 Total liabilities (`total_liabilities`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
+- [ ] **[BLOCKED]** P2-5.8 Equity (`total_equity`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
+- [ ] **[BLOCKED]** P2-5.9 Operating cash flow (`operating_cash_flow`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
+- [ ] **[BLOCKED]** P2-5.10 EPS (`eps_basic`, unit `VND/share`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
+- [ ] **[NOT STARTED]** P2-5.11 ROE: formula (e.g. net profit to parent ÷ average equity), calculation and tests. Not stored; derived at read time per `data/README.md`.
+- [ ] **[NOT STARTED]** P2-5.12 ROA: formula, calculation and tests.
+- [ ] **[NOT STARTED]** P2-5.13 Financial period comparisons (year over year, quarter over quarter), only between comparable periods and scopes.
+- [ ] **[IN PROGRESS]** P2-5.14 Currency and unit formatting.
+  - Done: exact digit grouping from decimal strings, never floats (`formatDecimal`, unit test in E-F); unit shown next to each value.
+  - Remaining: compact Vietnamese scales (tỷ / triệu), a locale decision, and negative-value styling.
+- [ ] **[NOT STARTED]** P2-5.15 Missing data handling (show "not reported", never zero; exclude from calculations).
+- [ ] **[IN PROGRESS]** P2-5.16 Revision and restatement presentation.
+  - Done: the latest revision is shown by default with a "restated" label; API `include_superseded=true` returns history (E-B, E-BR).
+  - Remaining: a UI view of revision history and what changed.
+- [ ] **[NOT STARTED]** P2-5.17 Clearly distinguish reported values from calculated values in the API and UI (labels, formula disclosure, source).
+
+## 6. Data quality and testing
+
+- [x] **[PASS]** P2-6.1 Schema validation.
+  - Evidence: Pydantic input models with `extra="forbid"`; tests `test_invalid_record_is_reported_and_others_still_import`, `test_unreadable_bundle_fails_and_is_recorded[*]` and `test_invalid_metrics_are_rejected[*]` pass (E-B).
+- [x] **[PASS]** P2-6.2 Data provenance validation.
+  - Evidence: evidence required per record; `verified` must cite http(s); sample rules; data-source terms can't change through an import. Tests `test_sample_and_real_data_never_mix` and `test_changed_data_source_terms_fail_the_run` pass (E-B).
+- [x] **[PASS]** P2-6.3 Duplicate detection.
+  - Evidence: `test_duplicate_in_bundle_is_flagged` and `test_sample_fixture_imports_flagged_and_idempotently` (evidence not duplicated) pass (E-B).
+- [x] **[PASS]** P2-6.4 Financial period validation.
+  - Evidence: fiscal year named by its end year (non-calendar supported), quarter 80–100 days, year 360–371 days, balance sheet at one date, overlap rejected within the same company/type/scope/granularity while annual + quarterly and revisions coexist ([VERIFICATION_WORKFLOW.md](VERIFICATION_WORKFLOW.md) §7, boundaries documented). Tests `test_period_rules[*]`, `test_valid_periods_including_non_calendar_and_leap_years`, `test_overlap_rules`. Phase 2 WS1 (approved EX-2, migration `31b1317163eb`), verified 2026-11-23 on a clean copy of the working tree: `pytest` **170 passed** (new `tests/test_verification.py`), ruff/mypy clean, migration up → check → down → up, Docker fresh start (E-WS1).
+  - Known limits: transitional fiscal periods rejected; quarter number not checked against months; overlap is importer-enforced (not a DB constraint).
+- [x] **[PASS]** P2-6.5 Currency and unit validation.
+  - Evidence: statement currency must be VND; required `amount_scale` ∈ dong / nghin_dong / trieu_dong, anything else rejected; exact conversion (60-digit context, raises on rounding) with `reported_value`, `reported_scale`, `source_page` kept and `value = reported_value × reported_scale` enforced by a DB CHECK; overflow rejected. Tests `test_amount_scales_convert_exactly[*]` (incl. 32-digit boundary and 0.000001 triệu), `test_per_share_and_share_counts_are_not_scaled`, `test_unsupported_scale_or_currency_is_rejected[*]`, `test_overflow_after_scaling_is_rejected`, `test_conversion_provenance_is_consistent[*]`. Phase 2 WS1 (approved EX-2, migration `31b1317163eb`), verified 2026-11-23 on a clean copy of the working tree: `pytest` **170 passed** (new `tests/test_verification.py`), ruff/mypy clean, migration up → check → down → up, Docker fresh start (E-WS1).
+- [x] **[PASS]** P2-6.6 Decimal precision.
+  - Evidence: `test_metric_values_round_trip_exactly[*]` (38 digits, −0.000001, 0.1+0.2, 10^15), `test_json_numbers_are_parsed_as_decimals_not_floats` and the API decimal-string assertion pass (E-B); `formatDecimal` unit test passes (E-F).
+- [x] **[PASS]** P2-6.7 Restatement integrity.
+  - Evidence: append-only triggers plus revision chain; `test_financial_history_is_append_only`, `test_restatement_is_a_new_revision_and_history_is_kept` and `test_revision_gap_and_unknown_company_are_reported` pass (E-B).
+- [ ] **[IN PROGRESS]** P2-6.8 API tests.
+  - Done: 34 API tests for the Phase 1 endpoints (`backend/tests/test_api.py`, E-B).
+  - Remaining: tests for Phase 2 endpoints (calculated metrics, comparisons, coverage) as they are built.
+- [ ] **[IN PROGRESS]** P2-6.9 Frontend tests.
+  - Done: 8 unit tests for the API client and formatting (E-F).
+  - Remaining: page and component tests for states, search and filters.
+- [ ] **[IN PROGRESS]** P2-6.10 Integration tests.
+  - Done: the Docker workflow boots the full stack and checks health and frontend routes (E-CI).
+  - Remaining: automated end-to-end browser tests of the core journeys.
+- [ ] **[IN PROGRESS]** P2-6.11 Regression tests.
+  - Done: full suites run on every PR (E-CI).
+  - Remaining: a regression test for each Phase 2 bug fixed, and a pinned real-data fixture once permitted.
+- [ ] **[NOT STARTED]** P2-6.12 Security review of Phase 2 changes (input handling, external links, dependency audit, secrets).
+
+## 7. Product validation
+
+Small pilots can't show product-market fit, and must not be reported as if they did.
+
+- [x] **[PASS]** P2-7.1 Define pilot user profiles.
+  - Evidence: pilot user profiles and recruiting plan **confirmed by the project owner Tiến Thành on 2026-11-23** ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) Q-4, §4b). Eligibility (interest in Vietnam's stock market, real need to evaluate listed companies, can describe their research process, adult and Vietnamese-speaking); profile categories (beginner or learning, at least 6 of 10; active; experienced where available); exclusions; channels and allocation (investor communities 5, RMIT 3, acquaintances 2; targets, not quotas); safeguards. Approved segment A-1.
+  - Note: this plan supersedes PRODUCT_STRATEGY §10's recruitment criteria for round 1. Recruitment itself has **not started** (P2-7.3). The round-1 threshold at n = 10 was resolved via Q-9 (AM-1: ≥6 of 10 meets, ≤3 of 10 clearly below).
+- [ ] **[IN PROGRESS]** P2-7.2 Define usability testing scenarios mapped to the core journeys (P2-1.3).
+  - Done: scenarios S1–S4 mapped to J1–J4, plus round-1 interview guide ([PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md) §10).
+  - Remaining: pilot company names in scenarios (after P2-3.1); dry run.
+- [ ] **[NOT STARTED]** P2-7.3 Conduct interviews or usability sessions with real users (record the count and dates; no names without consent).
+- [ ] **[NOT STARTED]** P2-7.4 Record feedback in a structured log.
+- [ ] **[NOT STARTED]** P2-7.5 Identify and prioritise usability problems.
+- [x] **[PASS]** P2-7.6 Define product success metrics, with how each is measured.
+  - Evidence: metrics and qualitative pilot decision thresholds **approved by the project owner on 2026-11-23** ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2a, A-9): PB, TC, CF, CS, DS, UF, SUS (reference only), SV, RT (gated by G1), WTP (informational), each with how it's observed, plus Continue / Iterate / Pivot rules.
+  - Note: measuring them happens under P2-7.3; RT waits on G1 and appropriate data access. Amended 2026-11-23 by AM-1: round-1 PB at n = 10 is ≥6 of 10 meets, ≤3 of 10 clearly below ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2b).
+- [ ] **[NOT STARTED]** P2-7.7 Document product decisions and the evidence behind each.
+
+## 8. Engineering and release readiness
+
+These are release gates. They pass on the current baseline but must be re-verified on the Phase 2
+release candidate, so they stay IN PROGRESS until then.
+
+- [ ] **[IN PROGRESS]** P2-8.1 Backend lint and strict type checks. Baseline: clean (E-B).
+- [ ] **[IN PROGRESS]** P2-8.2 Backend tests. Baseline: 87 passed (E-B); after WS1: 170 passed (E-WS1).
+- [ ] **[IN PROGRESS]** P2-8.3 Frontend lint and type checks. Baseline: pass (E-F).
+- [ ] **[IN PROGRESS]** P2-8.4 Frontend unit tests. Baseline: 8/8 (E-F).
+- [ ] **[IN PROGRESS]** P2-8.5 Production build. Baseline: `next build` passes (E-F).
+- [ ] **[IN PROGRESS]** P2-8.6 Docker clean build. Baseline: Docker workflow passed on `d858fbc` (E-CI).
+- [ ] **[IN PROGRESS]** P2-8.7 Fresh database migration. Baseline: fresh volume migrated and seeded (Phase 1 checklist, section 2).
+- [ ] **[IN PROGRESS]** P2-8.8 Migration upgrade and downgrade tests. Baseline: `test_migrations_upgrade_downgrade_roundtrip` passes (E-B).
+- [ ] **[IN PROGRESS]** P2-8.9 GitHub Actions. Baseline: Backend, Frontend and Docker all passed on PR #2 (E-CI).
+- [ ] **[IN PROGRESS]** P2-8.10 Documentation. Done: this checklist, the README Phase 2 section, PRODUCT_STRATEGY.md and PRODUCT_DECISIONS.md. Remaining: docs for each Phase 2 feature.
+- [ ] **[NOT STARTED]** P2-8.11 Pull request review of the Phase 2 changes.
+- [ ] **[NOT STARTED]** P2-8.12 Release readiness review (all gates re-verified, blockers reported separately).
+
+---
+
+## Blockers
+
+| ID | Blocker | Blocks | What unblocks it |
+| --- | --- | --- | --- |
+| B-1 | No confirmed permission to **publicly display** or redistribute company data and financials | P2-2.3, P2-5.2 to P2-5.10 (public display only; the private pilot is permitted under A-6) | **Gate G1:** a favourable Vietnamese legal opinion (A-6, Q-1), recorded in `data_sources` (`commercial_usage_status`, `terms_url`) |
+| B-2 | No provider access: SSI FastConnect needs an SSI trading account and API keys | Only the later licensed-provider step (A-6 step 4); no longer blocks the pilot | Account, credentials and display rights, kept only in env vars or a secret manager |
+| B-3 | Official portals unreachable from our automated environment (SSC portal: DNS failure; HNX: TLS error) | Automated checks only; the pilot uses manual retrieval by a person | Retry from another network, or manual retrieval |
+
+## Gates (G1 and G2 approved under A-6; G3 under A-5)
+
+| Gate | What | Passes when | Unlocks |
+| --- | --- | --- | --- |
+| G1 | Vietnamese legal opinion on storing and publicly displaying figures from mandatory disclosures (questions in [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) Q-1) | Written opinion is favourable and its conditions are recorded | Public display of real data (B-1); P2-2.3 |
+| G2 | Private pilot: first 5 companies curated end to end from their own audited annual reports | 5 companies verified with two-person checks on figures, and hours per company recorded | Decision to scale to 20–30 companies (P2-3.1) |
+| G3 | **Post-Phase 2.** Prerequisite for any 3D implementation (A-5) | (1) verified company relationship data exists; (2) a 2D relationship visualisation has shipped; (3) a 3D prototype shows measurable improvement over 2D for a specific user task; (4) an accessible 2D alternative stays available | 3D Discovery World implementation (long-term vision) |
+
+## Track B: public-launch readiness (reported separately; not part of the completion count)
+
+Approved under A-10. Phase 2 can complete as a **private pilot** while Track B is BLOCKED. Track B
+statuses are never faked to make Phase 2 look complete, and they don't count toward the percentage
+above.
+
+| ID | Criterion | Status | Note |
+| --- | --- | --- | --- |
+| LR-1 | G1 passed: favourable written Vietnamese legal opinion, conditions recorded | BLOCKED | B-1; legal opinion not yet commissioned (Q-1). Scope is commercial use per Q-2 (resolved 2026-11-23) |
+| LR-2 | Each data source's `commercial_usage_status` and terms recorded in `data_sources`, consistent with G1 | BLOCKED | Depends on LR-1 |
+| LR-3 | Only data the opinion permits is displayed, with the attribution and linking it requires | BLOCKED | Depends on LR-1 |
+| LR-4 | Public build contains no sample data (DS safeguards in place) | NOT STARTED | Verified by the AC-4 checks plus a build check |
+| LR-5 | Hosting and budget decided (Q-7); privacy notice in place if analytics are used (D-9) | NOT STARTED | Owner decision |
+
+**Track B summary:** 0 of 5 complete; 3 BLOCKED, 2 NOT STARTED.
+
+## Risks
+
+| ID | Risk | Mitigation |
+| --- | --- | --- |
+| R-1 | **The repo sits in an iCloud-synced `~/Documents`.** iCloud created conflict copies such as `frontend/src/app 2`, `.github/workflows 2`, `.git/index 2` and `.next/types/routes.d 2.ts`. The last one broke `npm run typecheck` in the working tree. **2026-11-23:** the copies were checked (empty folders, byte-identical files, a stale `.git/index` copy, build output) and removed. After that, `git fsck` was clean and lint, typecheck, `npm test` (8/8), build, ruff, mypy and pytest (87) all passed in the working tree. **Sync is still active, so copies can come back** | Move the repo out of iCloud-synced folders, or exclude it from sync. Before trusting a local check, run `find . -name '* [0-9]*'` outside `node_modules` and `.venv` |
+| R-2 | Evidence is polymorphic and has no FK on `entity_id` (Phase 1 L-2) | Importer-enforced; add a periodic orphan check |
+| R-3 | No reviewed path to correct company master data (Phase 1 L-3) | P2-2.8 |
+| R-4 | HTTP status of not-found on streamed routes unverified (Phase 1 L-4) | P2-4.10 |
+| R-5 | Unverified statements are currently displayed (labelled) | Decide under P2-4.8 and P2-5.x |
+
+## Maintenance rules
+
+1. Update an item whenever its task is implemented, tested or blocked, and record the evidence
+   or blocker on the item.
+2. Re-count the progress tables from the item lines after every meaningful change, and update
+   **Last verified**.
+3. Never mark PASS without evidence that meets the bar above, and never mark an existing feature
+   PASS just because it exists.
+4. Record new blockers (B-n) and risks (R-n) as they are found.
+5. Don't delete unfinished items to raise the percentage. Descope only by a recorded product
+   decision (P2-7.7) and keep the item marked as descoped.
+6. Keep statuses consistent with the codebase. If a regression breaks a PASS item, set it to FAIL.

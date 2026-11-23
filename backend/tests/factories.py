@@ -76,10 +76,11 @@ def statement(
         "statement_type": "income_statement",
         "scope": "consolidated",
         "currency": "VND",
+        "amount_scale": "dong",
         "revision": revision,
         "evidence": evidence("https://example.test/fs-2025.pdf"),
         "metrics": [
-            {"code": k, "value": v}
+            {"code": k, "value": v, "source_page": 7}
             for k, v in (
                 metrics or {"net_revenue": "1000000000.50", "net_profit": "-25.000001"}
             ).items()

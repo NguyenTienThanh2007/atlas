@@ -53,9 +53,10 @@ run is stored in `ingestion_runs` with input SHA-256, counts and issues.
     "reporting_period_start": "2025-01-01", "reporting_period_end": "2025-12-31",
     "fiscal_year": 2025, "fiscal_quarter": null,
     "statement_type": "income_statement", "scope": "consolidated", "currency": "VND",
+    "amount_scale": "trieu_dong",        // how the document prints amounts: dong | nghin_dong | trieu_dong
     "publication_date": "2026-03-30", "revision": 1,
     "evidence": { "source_url": "https://…", "retrieved_at": "…", "verification_status": "unverified" },
-    "metrics": [{ "code": "net_revenue", "value": "123456789000" }]   // string or JSON number, exact
+    "metrics": [{ "code": "net_revenue", "value": "123456.789", "source_page": 7 }]   // as printed; exact
   }]
 }
 ```
@@ -68,8 +69,14 @@ run is stored in `ingestion_runs` with input SHA-256, counts and issues.
   exchange and currency codes upper-cased; tax codes stripped of spaces and dots. JSON numbers are
   parsed as exact decimals, never floats.
 - **Evidence is mandatory.** A company needs at least one evidence item, and a statement needs one.
-- **`verified` evidence must cite an http(s) URL.** Sample-fixture sources must use
-  `verification_status: "sample"`, and nothing else may.
+- **Imports never verify.** Real sources must use `verification_status: "unverified"`;
+  sample-fixture sources must use `"sample"`, and nothing else may. Verification is a two-person
+  review recorded locally ([docs/VERIFICATION_WORKFLOW.md](../docs/VERIFICATION_WORKFLOW.md)).
+- **Figures are stored in full units, exactly.** `value` is multiplied by the statement's required
+  `amount_scale` (currency amounts only; per-share figures and share counts stay as printed). The
+  as-printed value, scale and `source_page` are kept. Real figures need `source_page`.
+- **Reporting periods are checked.** Statement currency must be VND; fiscal year, period length,
+  balance-sheet date and overlaps follow [VERIFICATION_WORKFLOW.md §7](../docs/VERIFICATION_WORKFLOW.md#7-reporting-periods-p2-64).
 - **Idempotent.** Re-importing the same bundle changes nothing. Evidence is de-duplicated by
   (source, entity, URL, retrieved_at).
 - **No silent overwrites.** A company, security or statement that differs from what's stored is a
@@ -113,4 +120,6 @@ units of the statement currency (not thousands or millions). The stored `unit` i
 | Balance sheet | `total_assets`, `total_liabilities`, `total_equity`, `cash_and_equivalents`, `shares_outstanding` |
 | Cash flow | `operating_cash_flow`, `investing_cash_flow`, `financing_cash_flow` |
 
-Each metric's Vietnamese name and description are in `metric_dictionary.json`.
+Each metric's English and Vietnamese names, statement type and unit are in
+`metric_dictionary.json`. Per-metric definitions and bank applicability ("not applicable" vs "not
+reported") are **not written yet** (Phase 1 exit audit F-1, F-2).

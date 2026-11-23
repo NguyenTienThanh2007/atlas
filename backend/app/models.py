@@ -8,6 +8,9 @@ Key decisions (details in docs/ARCHITECTURE.md):
   (enforced by database triggers); restatements are new revisions that point at the row
   they supersede.
 - Foreign keys never cascade deletes.
+- Verification is a two-person decision recorded in append-only `verification_reviews`; only a
+  review may change `evidence.verification_status` (enforced by database triggers, see
+  docs/VERIFICATION_WORKFLOW.md).
 """
 
 import enum
@@ -128,8 +131,23 @@ class VerificationStatus(enum.StrEnum):
     UNVERIFIED = "unverified"
     VERIFIED = "verified"
     DISPUTED = "disputed"
+    REJECTED = "rejected"
     SUPERSEDED = "superseded"
     SAMPLE = "sample"  # fictional fixture data; never real
+
+
+class ReviewDecision(enum.StrEnum):
+    """Target state of a review. `sample` is never a decision: sample data is never reviewed."""
+
+    VERIFIED = "verified"
+    REJECTED = "rejected"
+    DISPUTED = "disputed"
+    UNVERIFIED = "unverified"  # reopen a rejected or disputed record
+    SUPERSEDED = "superseded"
+
+
+# Scale a document's amounts are printed in; the stored `value` is always in full units.
+AMOUNT_SCALES = (1, 1_000, 1_000_000)
 
 
 class StatementType(enum.StrEnum):
@@ -385,6 +403,17 @@ class FinancialMetric(Base):
     __table_args__ = (
         CheckConstraint("metric_code ~ '^[a-z][a-z0-9_]{1,63}$'", name="metric_code_format"),
         UniqueConstraint("financial_statement_id", "metric_code", name="uq_metric_per_statement"),
+        CheckConstraint("source_page >= 1", name="source_page_positive"),
+        CheckConstraint("reported_scale IN (1, 1000, 1000000)", name="reported_scale_allowed"),
+        # Conversion provenance: both present or both absent (rows from before WS1), and the
+        # stored value is exactly the reported value times the declared scale.
+        CheckConstraint(
+            "(reported_value IS NULL) = (reported_scale IS NULL)", name="reported_pair"
+        ),
+        CheckConstraint(
+            "reported_value IS NULL OR value = reported_value * reported_scale",
+            name="value_is_reported_times_scale",
+        ),
     )
 
     id: Mapped[uuid.UUID] = _pk()
@@ -393,7 +422,50 @@ class FinancialMetric(Base):
     metric_name: Mapped[str] = mapped_column(String(200), nullable=False)
     value: Mapped[Decimal] = mapped_column(MONEY, nullable=False)
     unit: Mapped[str] = mapped_column(String(32), nullable=False)
+    # Page of the source document (the statement's evidence) the figure is printed on.
+    # Required for real figures (trigger); optional for the fictional sample fixture.
+    source_page: Mapped[int | None] = mapped_column(Integer)
+    reported_value: Mapped[Decimal | None] = mapped_column(MONEY)
+    reported_scale: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = _created()
+
+
+class VerificationReview(Base):
+    """One review decision on one evidence row. Append-only (trigger); a changed decision is a
+    new row whose `from_status` is the state it moves away from."""
+
+    __tablename__ = "verification_reviews"
+    __table_args__ = (
+        CheckConstraint("btrim(curator) <> '' AND btrim(reviewer) <> ''", name="names_present"),
+        # The two-person rule: the reviewer is never the curator.
+        CheckConstraint(
+            "lower(btrim(curator)) <> lower(btrim(reviewer))", name="curator_is_not_reviewer"
+        ),
+        # A reviewer is a person: names the system uses for itself are refused.
+        CheckConstraint(
+            "lower(btrim(reviewer)) !~ '^(system|atlas|auto|automated|automatic|bot|import|"
+            "importer|ingestion|claude|ai)$'",
+            name="reviewer_is_a_person",
+        ),
+        CheckConstraint("btrim(checked_against) <> ''", name="checked_against_present"),
+        Index("ix_verification_reviews_evidence", "evidence_id", "reviewed_at"),
+    )
+
+    id: Mapped[uuid.UUID] = _pk()
+    evidence_id: Mapped[uuid.UUID] = _fk("evidence.id", index=False)
+    from_status: Mapped[VerificationStatus] = mapped_column(
+        _enum(VerificationStatus, "review_from_status"), nullable=False
+    )
+    decision: Mapped[ReviewDecision] = mapped_column(
+        _enum(ReviewDecision, "review_decision"), nullable=False
+    )
+    curator: Mapped[str] = mapped_column(String(120), nullable=False)
+    reviewer: Mapped[str] = mapped_column(String(120), nullable=False)
+    checked_against: Mapped[str] = mapped_column(Text, nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text)
+    reviewed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.clock_timestamp(), nullable=False
+    )
 
 
 class IngestionRun(Base):

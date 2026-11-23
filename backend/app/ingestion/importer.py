@@ -7,14 +7,19 @@ Rules:
   Restated financials must arrive as revision N+1 of an existing revision N.
 - Re-running the same bundle changes nothing (idempotent).
 - Sample-fixture data and real data never mix.
+- Imports never verify anything: real evidence arrives `unverified`, fixture evidence `sample`.
+  Only a two-person review (`python -m app.ingestion review`) changes that.
+- Figures are stored in full units: value = reported value x the statement's amount_scale,
+  exactly; the as-reported value, scale and source page are kept with each figure.
 """
 
 import uuid
 from dataclasses import dataclass
+from decimal import Context, Decimal, Inexact
 from typing import Any
 
 from pydantic import ValidationError
-from sqlalchemy import or_, select
+from sqlalchemy import and_, not_, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -22,6 +27,7 @@ from app.ingestion.connectors import InputError, RawInput, parse_json
 from app.ingestion.reference import metric_dictionary
 from app.ingestion.runs import RunRecorder
 from app.ingestion.schemas import (
+    AMOUNT_SCALES,
     BundleIn,
     CompanyIn,
     DataSourceIn,
@@ -157,18 +163,14 @@ def _resolve_source(session: Session, src: DataSourceIn, rec: RunRecorder) -> Da
 
 
 def _check_evidence(ctx: _Ctx, items: list[EvidenceIn]) -> None:
+    expected = VerificationStatus.SAMPLE if ctx.is_sample else VerificationStatus.UNVERIFIED
     for ev in items:
-        is_sample_status = ev.verification_status is VerificationStatus.SAMPLE
-        if ctx.is_sample != is_sample_status:
+        if ev.verification_status is not expected:
             raise _Rejected(
                 "invalid",
-                "sample-fixture sources must use verification_status "
-                "'sample', and only they may use it",
+                f"imported evidence must be '{expected}' (sample-fixture sources use 'sample', "
+                "real sources 'unverified'); verification happens only through a review",
             )
-        if ev.verification_status is VerificationStatus.VERIFIED and not ev.source_url.startswith(
-            ("http://", "https://")
-        ):
-            raise _Rejected("invalid", "verified evidence must cite a retrievable http(s) URL")
 
 
 def _add_evidence(
@@ -195,13 +197,6 @@ def _add_evidence(
     ctx.session.add(row)
     ctx.rec.counts["evidence.created"] += 1
     return row
-
-
-def _latest_verified(items: list[EvidenceIn]) -> Any:
-    verified = [
-        e.retrieved_at for e in items if e.verification_status is VerificationStatus.VERIFIED
-    ]
-    return max(verified, default=None)
 
 
 # ---------------------------------------------------------------- companies
@@ -248,14 +243,12 @@ def _apply_company(ctx: _Ctx, c: CompanyIn) -> str:
     if len(candidate_ids) > 1:
         raise _Rejected("conflict", "tax code and tickers match different stored companies")
 
-    verified_at = _latest_verified(c.evidence)
     company_fields = {k: getattr(c, k) for k in _COMPANY_FIELDS}
 
     if not candidate_ids:
         company = Company(
             sector_id=sector.id,
             is_sample=ctx.is_sample,
-            last_verified_at=verified_at,
             **company_fields,
         )
         ctx.session.add(company)
@@ -270,10 +263,6 @@ def _apply_company(ctx: _Ctx, c: CompanyIn) -> str:
             problems.append("sample and real data cannot be merged")
         if problems:
             raise _Rejected("conflict", "; ".join(problems))
-        if verified_at and (
-            company.last_verified_at is None or verified_at > company.last_verified_at
-        ):
-            company.last_verified_at = verified_at
         outcome = "unchanged"
 
     for s in c.securities:
@@ -286,7 +275,6 @@ def _apply_company(ctx: _Ctx, c: CompanyIn) -> str:
                     company_id=company.id,
                     exchange_id=exchange.id,
                     ticker=s.ticker,
-                    last_verified_at=verified_at,
                     **sec_fields,
                 )
             )
@@ -304,16 +292,83 @@ def _apply_company(ctx: _Ctx, c: CompanyIn) -> str:
 
 # ---------------------------------------------------------------- financial statements
 
+# NUMERIC(38,6) holds at most 32 integer digits.
+_MAX_ABS_VALUE = Decimal(10) ** 32
+# Python's default decimal context keeps 28 digits and would round; this one is wide enough
+# for 38-digit values times 10^6 and raises instead of rounding.
+_EXACT = Context(prec=60, traps=[Inexact])
 
-def _apply_statement(ctx: _Ctx, s: FinancialStatementIn) -> str:
-    _check_evidence(ctx, [s.evidence])
+
+@dataclass(frozen=True)
+class _Figure:
+    code: str
+    value: Decimal  # full units
+    reported_value: Decimal
+    reported_scale: int
+    source_page: int | None
+
+
+def _figures(ctx: _Ctx, s: FinancialStatementIn) -> list[_Figure]:
+    """Validate metrics and convert to full units. Only currency amounts are scaled: per-share
+    figures and share counts are printed in units in Vietnamese statements."""
     dictionary = metric_dictionary()
+    scale = AMOUNT_SCALES[s.amount_scale]
+    out = []
     for m in s.metrics:
         definition = dictionary.get(m.code)
         if definition is None:
             raise _Rejected("invalid", f"metric {m.code} is not in the metric dictionary")
         if definition.statement_type is not s.statement_type:
             raise _Rejected("invalid", f"metric {m.code} belongs to {definition.statement_type}")
+        if m.source_page is None and not ctx.is_sample:
+            raise _Rejected("invalid", f"metric {m.code}: real figures need a source_page")
+        figure_scale = scale if definition.unit == "currency" else 1
+        value = _EXACT.multiply(m.value, figure_scale)
+        if value.copy_abs() >= _MAX_ABS_VALUE:  # abs() would round to 28 digits
+            raise _Rejected("invalid", f"metric {m.code}: {value} is too large to store exactly")
+        out.append(_Figure(m.code, value, m.value, figure_scale, m.source_page))
+    return out
+
+
+def _overlapping(ctx: _Ctx, company_id: uuid.UUID, s: FinancialStatementIn) -> str | None:
+    """A different statement of the same company, type, scope and granularity (annual vs
+    quarterly) whose period overlaps this one. Revisions of the same statement don't count, and
+    annual and quarterly statements may cover the same months."""
+    granularity = (
+        FinancialStatement.fiscal_quarter.is_(None)
+        if s.fiscal_quarter is None
+        else FinancialStatement.fiscal_quarter.is_not(None)
+    )
+    same_statement = and_(
+        FinancialStatement.fiscal_year == s.fiscal_year,
+        FinancialStatement.fiscal_quarter.is_not_distinct_from(s.fiscal_quarter),
+        FinancialStatement.reporting_period_end == s.reporting_period_end,
+    )
+    other = ctx.session.scalar(
+        select(FinancialStatement).where(
+            FinancialStatement.company_id == company_id,
+            FinancialStatement.statement_type == s.statement_type,
+            FinancialStatement.scope == s.scope,
+            granularity,
+            FinancialStatement.reporting_period_start <= s.reporting_period_end,
+            FinancialStatement.reporting_period_end >= s.reporting_period_start,
+            not_(same_statement),
+        )
+    )
+    if other is None:
+        return None
+    q = f"Q{other.fiscal_quarter}" if other.fiscal_quarter else "FY"
+    return (
+        f"period {s.reporting_period_start}..{s.reporting_period_end} overlaps the stored "
+        f"{other.fiscal_year}{q} statement {other.reporting_period_start}.."
+        f"{other.reporting_period_end}"
+    )
+
+
+def _apply_statement(ctx: _Ctx, s: FinancialStatementIn) -> str:
+    _check_evidence(ctx, [s.evidence])
+    figures = _figures(ctx, s)
+    dictionary = metric_dictionary()
 
     exchange = ctx.exchanges.get(s.company.exchange_code)
     company = None
@@ -348,9 +403,14 @@ def _apply_statement(ctx: _Ctx, s: FinancialStatementIn) -> str:
     existing = ctx.session.scalar(
         identity(s.revision).options(selectinload(FinancialStatement.metrics))
     )
-    incoming_values = {m.code: m.value for m in s.metrics}
+    incoming_values = {
+        f.code: (f.value, f.reported_value, f.reported_scale, f.source_page) for f in figures
+    }
     if existing is not None:
-        stored_values = {m.metric_code: m.value for m in existing.metrics}
+        stored_values = {
+            m.metric_code: (m.value, m.reported_value, m.reported_scale, m.source_page)
+            for m in existing.metrics
+        }
         same = (
             stored_values == incoming_values
             and existing.reporting_period_start == s.reporting_period_start
@@ -364,6 +424,10 @@ def _apply_statement(ctx: _Ctx, s: FinancialStatementIn) -> str:
                 f"values; submit a restatement as revision {s.revision + 1}",
             )
         return "unchanged"
+
+    overlap = _overlapping(ctx, company.id, s)
+    if overlap:
+        raise _Rejected("conflict", overlap)
 
     previous = None
     if s.revision > 1:
@@ -405,12 +469,15 @@ def _apply_statement(ctx: _Ctx, s: FinancialStatementIn) -> str:
     ctx.session.add_all(
         FinancialMetric(
             financial_statement_id=statement_id,
-            metric_code=m.code,
-            metric_name=dictionary[m.code].name,
-            value=m.value,
-            unit=units[dictionary[m.code].unit],
+            metric_code=f.code,
+            metric_name=dictionary[f.code].name,
+            value=f.value,
+            unit=units[dictionary[f.code].unit],
+            source_page=f.source_page,
+            reported_value=f.reported_value,
+            reported_scale=f.reported_scale,
         )
-        for m in s.metrics
+        for f in figures
     )
     ctx.session.flush()
     return "created"

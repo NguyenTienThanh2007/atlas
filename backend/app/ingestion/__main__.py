@@ -1,20 +1,35 @@
-"""CLI: `python -m app.ingestion reference` | `python -m app.ingestion import <bundle.json>`.
+"""CLI:
+  python -m app.ingestion reference
+  python -m app.ingestion import <bundle.json>
+  python -m app.ingestion review <evidence-id> --from S --decision D --curator C --reviewer R
+                                 --checked-against "document, page" [--notes N]
+  python -m app.ingestion reviews <evidence-id>
 
-Exit codes: 0 succeeded, 2 partial (some records rejected or conflicting), 1 failed.
+Exit codes: 0 succeeded, 2 partial (some records rejected or conflicting), 1 failed or refused.
 """
 
 import argparse
 import json
 import logging
 import sys
+import uuid
 from pathlib import Path
+
+from sqlalchemy.exc import IntegrityError
 
 from app.config import get_settings
 from app.db import _sessionmaker
 from app.ingestion.connectors import InputError, read_local_file
 from app.ingestion.importer import import_bundle
 from app.ingestion.reference import seed_reference
-from app.models import IngestionRun, IngestionStatus
+from app.ingestion.review import history, record_review
+from app.models import (
+    IngestionRun,
+    IngestionStatus,
+    ReviewDecision,
+    VerificationReview,
+    VerificationStatus,
+)
 
 _EXIT = {IngestionStatus.SUCCEEDED: 0, IngestionStatus.PARTIAL: 2, IngestionStatus.FAILED: 1}
 
@@ -29,16 +44,70 @@ def _summary(run: IngestionRun) -> dict[str, object]:
     }
 
 
+def _review_summary(r: VerificationReview) -> dict[str, object]:
+    return {
+        "review_id": str(r.id),
+        "evidence_id": str(r.evidence_id),
+        "from_status": r.from_status.value,
+        "decision": r.decision.value,
+        "curator": r.curator,
+        "reviewer": r.reviewer,
+        "checked_against": r.checked_against,
+        "notes": r.notes,
+        "reviewed_at": r.reviewed_at.isoformat(),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.ingestion")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("reference", help="seed exchanges and the sector taxonomy (idempotent)")
     imp = sub.add_parser("import", help="import a company/financials bundle (idempotent)")
     imp.add_argument("path", type=Path)
+    rev = sub.add_parser("review", help="record a two-person verification decision")
+    rev.add_argument("evidence_id", type=uuid.UUID)
+    rev.add_argument("--from", dest="from_status", required=True, type=VerificationStatus)
+    rev.add_argument("--decision", required=True, type=ReviewDecision)
+    rev.add_argument("--curator", required=True, help="person who prepared the record")
+    rev.add_argument("--reviewer", required=True, help="independent person who checked it")
+    rev.add_argument("--checked-against", required=True, help="document and page(s) checked")
+    rev.add_argument("--notes")
+    hist = sub.add_parser("reviews", help="show the review history of one evidence record")
+    hist.add_argument("evidence_id", type=uuid.UUID)
     args = parser.parse_args(argv)
     logging.basicConfig(level=get_settings().log_level.upper())
 
     with _sessionmaker()() as session:
+        if args.command == "reviews":
+            print(
+                json.dumps(
+                    [_review_summary(r) for r in history(session, args.evidence_id)],
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
+            return 0
+        if args.command == "review":
+            try:
+                with session.begin_nested():  # a refusal undoes only this review
+                    review = record_review(
+                        session,
+                        evidence_id=args.evidence_id,
+                        from_status=args.from_status,
+                        decision=args.decision,
+                        curator=args.curator,
+                        reviewer=args.reviewer,
+                        checked_against=args.checked_against,
+                        notes=args.notes,
+                    )
+            except IntegrityError as exc:
+                detail = getattr(getattr(exc.orig, "diag", None), "message_primary", None)
+                constraint = getattr(getattr(exc.orig, "diag", None), "constraint_name", None)
+                print(f"refused: {constraint or detail or 'database constraint'}", file=sys.stderr)
+                return 1
+            session.commit()
+            print(json.dumps(_review_summary(review), indent=2, ensure_ascii=False))
+            return 0
         if args.command == "reference":
             runs = seed_reference(session)
         else:

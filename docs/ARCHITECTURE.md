@@ -40,6 +40,8 @@ backend/
 sectors ◄── companies ◄── securities ──► exchanges
   (self-parent)   │  ▲
                   │  └── evidence (entity_type, entity_id) ──► data_sources
+                  │          ▲
+                  │          └── verification_reviews (append-only, two-person)
                   ▼
         financial_statements ──► evidence (source)        ingestion_runs ──► data_sources
            │   └─ supersedes_id ─► financial_statements
@@ -54,9 +56,10 @@ sectors ◄── companies ◄── securities ──► exchanges
 | `companies` | Legal entity | `tax_code` unique when present (10 or 10+3 digits); `website` must be http(s); `is_sample`; `last_verified_at` |
 | `securities` | A tradable instrument on one exchange | Ticker and ISIN format; `(exchange, ticker)` unique among **non-delisted** rows; `delisted_at` set exactly when status is `delisted`; `delisted_at ≥ listed_at` |
 | `data_sources` | Where data comes from | `commercial_usage_status` ∈ unknown, personal_only, licensed, public_official, restricted (default `unknown`) |
-| `evidence` | Provenance for any entity | `retrieved_at` required; effective range ordered; SHA-256 format; unique (source, entity, URL, retrieved_at) |
+| `evidence` | Provenance for any entity | `retrieved_at` required; effective range ordered; SHA-256 format; unique (source, entity, URL, retrieved_at). Inserted only as `unverified`/`sample`; immutable; status changes only through a review (triggers) |
+| `verification_reviews` | Two-person review decisions (Phase 2 WS1) | Append-only; curator ≠ reviewer; reviewer not a system name; allowed transitions only; `from_status` must match. See [VERIFICATION_WORKFLOW.md](VERIFICATION_WORKFLOW.md) |
 | `financial_statements` | One reported statement | Belongs to the **company**; period ordered; quarter 1–4; identity unique (`NULLS NOT DISTINCT`) including `revision`; revision > 1 ⇔ `supersedes_id` set; `source_evidence_id` required |
-| `financial_metrics` | One line item | `NUMERIC(38,6)`; code format; unique per statement |
+| `financial_metrics` | One line item | `NUMERIC(38,6)`; code format; unique per statement; `source_page`, `reported_value`, `reported_scale` with `value = reported_value × reported_scale`; page and as-reported value required for real figures (trigger) |
 | `ingestion_runs` | Audit of every import | status, input SHA-256, counts, issues (JSONB) |
 
 Design decisions:
