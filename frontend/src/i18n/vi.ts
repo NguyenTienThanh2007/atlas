@@ -112,6 +112,18 @@ export const vi = {
     noSources: "Chưa có bằng chứng nguồn nào được ghi nhận cho doanh nghiệp này.",
     retrieved: (date: string) => `truy xuất ${date}`,
     usageRights: "quyền sử dụng",
+    figure: {
+      source: "Nguồn",
+      page: (page: number) => `Trang ${page}`,
+      noPage: "Chưa có số trang nguồn",
+      noLink: "Liên kết nguồn không khả dụng",
+      untitled: "Tài liệu không có tiêu đề",
+      open: (metric: string, title: string, page: number | null) =>
+        `Mở tài liệu gốc cho chỉ tiêu ${metric}: ${title}${page === null ? " (chưa có số trang)" : `, trang ${page}`} (mở trong thẻ mới)`,
+      reported: (value: string, scale: string) => `Giá trị báo cáo: ${value} ${scale}`,
+      scale: (factor: number, currency: string) =>
+        `${factor === 1000 ? "nghìn" : factor === 1000000 ? "triệu" : `× ${factor}`} ${unit(currency)}`,
+    },
   },
   sectors: {
     title: "Ngành",

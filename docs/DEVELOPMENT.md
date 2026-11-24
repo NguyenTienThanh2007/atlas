@@ -104,6 +104,11 @@ cd frontend
 npm run lint
 npm run typecheck
 npm test          # unit tests (node --test, no extra dependencies)
+# Against a running build (Docker or `npm start`); no extra dependencies:
+BASE_URL=http://localhost:3000 npm run test:routes                      # lang, key text, status codes
+BASE_URL=http://localhost:3000 EXPECT=offline npm run test:routes       # with the backend stopped
+BASE_URL=http://localhost:3000 API_URL=http://localhost:8000 PROVENANCE_COMPANY_ID=<uuid> npm run test:routes
+                  # WS3: each figure's rendered link and page match the API, in vi and en
 npm run build
 ```
 

@@ -119,7 +119,7 @@ CLI) commits data and the run record together. The rules are listed in `data/REA
 | `GET /companies/{id}` | With sector and all securities |
 | `GET /securities/{id}` | With exchange and company |
 | `GET /companies/{id}/evidence` | Evidence for the company and its securities, newest first, with data source and usage status |
-| `GET /companies/{id}/financial-statements` | Latest revisions by default; `include_superseded`, `fiscal_year`, `statement_type`, `scope` |
+| `GET /companies/{id}/financial-statements` | Latest revisions by default; `include_superseded`, `fiscal_year`, `statement_type`, `scope`. Each metric carries `reported_value`, `reported_scale` and a per-figure `source` (`evidence_id`, `document_title`, `document_url` only when it is a safe http(s) link, `link_status`, `page` or `null`, `verification_status`). See [WS3_CHECKLIST.md](WS3_CHECKLIST.md#response-contract-b-01) |
 
 - Lists return `{items, total, limit, offset}` with a deterministic order (ties broken by `id`).
 - Relationships are declared `lazy="raise"`, so any accidental lazy load fails loudly. Lists

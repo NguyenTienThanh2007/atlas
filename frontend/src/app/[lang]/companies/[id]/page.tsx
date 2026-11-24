@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { ApiErrorState, BackLink, SampleBadge } from "@/components/states";
-import { errorText, getI18n, unitText } from "@/i18n";
+import { errorText, getI18n, unitText, type Dictionary } from "@/i18n";
+import { figureHref, safeHref, type FigureSource } from "@/lib/provenance";
 import {
   apiGet,
   formatDate,
@@ -25,6 +26,7 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
   if (!UUID.test(id)) notFound();
   const date = (value: string | null) => formatDate(value, locale);
   const tc = t.company;
+  const tf = tc.figure;
   const g = t.glossary;
 
   const [company, evidence, statements] = await Promise.all([
@@ -134,22 +136,36 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
                 </h3>
                 <p className="mt-1 text-xs text-muted">
                   {tc.range(date(s.reporting_period_start), date(s.reporting_period_end))} · {s.currency} ·{" "}
-                  {tc.source}: <SourceLink evidence={s.source_evidence} /> (
+                  {tc.source}: <SourceLink evidence={s.source_evidence} untitled={tf.untitled} /> (
                   {g.verification[s.source_evidence.verification_status]})
                 </p>
                 <table className="mt-3 w-full text-sm">
                   <tbody className="divide-y divide-line">
-                    {s.metrics.map((m) => (
-                      <tr key={m.metric_code}>
-                        <td className="py-1.5 pr-4 text-muted">
-                          {locale === "vi" ? (m.metric_name_vi ?? m.metric_name) : m.metric_name}
-                        </td>
-                        <td className="py-1.5 text-right font-medium text-mist tabular-nums">
-                          {formatDecimal(m.value, locale)}{" "}
-                          <span className="text-xs text-muted">{unitText(t, m.unit)}</span>
-                        </td>
-                      </tr>
-                    ))}
+                    {s.metrics.map((m) => {
+                      const name = locale === "vi" ? (m.metric_name_vi ?? m.metric_name) : m.metric_name;
+                      return (
+                        <tr key={m.metric_code} className="align-top">
+                          <th scope="row" className="py-2 pr-4 text-left font-normal text-muted">
+                            {name}
+                          </th>
+                          <td className="py-2 text-right">
+                            <span className="font-medium text-mist tabular-nums">
+                              {formatDecimal(m.value, locale)}{" "}
+                              <span className="text-xs text-muted">{unitText(t, m.unit)}</span>
+                            </span>
+                            {m.reported_value !== null && m.reported_scale !== null && m.reported_scale > 1 && (
+                              <span className="block text-xs text-muted tabular-nums">
+                                {tf.reported(
+                                  formatDecimal(m.reported_value, locale),
+                                  tf.scale(m.reported_scale, s.currency),
+                                )}
+                              </span>
+                            )}
+                            <FigureSourceLine metric={name} source={m.source} labels={tf} />
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -168,7 +184,7 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
             {evidence.data.items.map((e) => (
               <li key={e.id} className="border-l border-line pl-4">
                 <p className="text-mist">
-                  <SourceLink evidence={e} />
+                  <SourceLink evidence={e} untitled={tf.untitled} />
                 </p>
                 <p className="text-xs text-muted">
                   {e.data_source.name} · {tc.retrieved(date(e.retrieved_at))} ·{" "}
@@ -185,11 +201,49 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
   );
 }
 
-// Only http(s) sources are linkable; fixture:// and file:// references are shown as text.
-function SourceLink({ evidence }: { evidence: Evidence }) {
-  const label = evidence.document_title ?? evidence.data_source.name;
-  return /^https?:\/\//.test(evidence.source_url) ? (
-    <a href={evidence.source_url} rel="noopener noreferrer" target="_blank" className="hover:text-mist hover:underline">
+/** WS3: the document and page one figure comes from. Missing pages and non-linkable documents are
+ * stated, never guessed; the link opens the document at the figure's page. */
+function FigureSourceLine({
+  metric,
+  source,
+  labels,
+}: {
+  metric: string;
+  source: FigureSource;
+  labels: Dictionary["company"]["figure"];
+}) {
+  const title = source.document_title ?? labels.untitled;
+  const href = figureHref(source);
+  const page = source.page === null ? labels.noPage : labels.page(source.page);
+  return (
+    <span className="mt-0.5 block text-xs leading-snug break-words text-muted">
+      {labels.source}:{" "}
+      {href ? (
+        <a
+          href={href}
+          rel="noopener noreferrer"
+          target="_blank"
+          aria-label={labels.open(metric, title, source.page)}
+          className="text-mist underline decoration-line underline-offset-2 hover:decoration-mist"
+        >
+          {title} · {page}
+        </a>
+      ) : (
+        <>
+          {title} · {page} · <span className="text-brass">{labels.noLink}</span>
+        </>
+      )}
+    </span>
+  );
+}
+
+// Only safe http(s) sources are linkable; fixture:// and file:// references are shown as text.
+// A missing title is said as such; the data source's name is not a document title.
+function SourceLink({ evidence, untitled }: { evidence: Evidence; untitled: string }) {
+  const label = evidence.document_title ?? untitled;
+  const href = safeHref(evidence.source_url);
+  return href ? (
+    <a href={href} rel="noopener noreferrer" target="_blank" className="hover:text-mist hover:underline">
       {label}
     </a>
   ) : (

@@ -9,10 +9,10 @@ evidence recorded here.
 | --- | --- |
 | **Phase objective** | Turn the Phase 1 foundation into a usable discovery product backed by **at least 5 verified Vietnamese listed companies (stretch target 20–30)** across the 4 approved sectors, with evidence-backed financials and validation by real users |
 | **Current status** | **IN PROGRESS: planning complete.** All product decisions A-1 to A-11 **approved** on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)). A private 5-company pilot can start; **public display of real data waits on gate G1** (legal opinion), reported under Track B. Phase 1 capabilities re-verified. **Execution: CONDITIONAL GO (EX-1).** Workstream 1 (verification workflow, figure provenance, period and unit validation) implemented and verified (E-WS1); uncommitted. |
-| **Last verified** | 2026-11-23, against `main` @ `3660e5f` (tree identical to Phase 1 commit `d858fbc`); planning items updated 2026-11-23 from PRODUCT_STRATEGY.md |
-| **Overall completion** | **27 / 83 items PASS (32.5%)**. BLOCKED and FAIL never count as complete |
-| **Completed (PASS)** | 27 |
-| **In progress** | 26 |
+| **Last verified** | 2026-11-24, WS3 on `feat/ws3-per-figure-sources` (from `main` @ `78cf577`, E-WS3). Earlier evidence: E-B/E-F (2026-11-23, `3660e5f`), E-WS1, E-WS2 |
+| **Overall completion** | **28 / 83 items PASS (33.7%)**. BLOCKED and FAIL never count as complete |
+| **Completed (PASS)** | 28 |
+| **In progress** | 25 |
 | **Not started** | 20 |
 | **Blocked** | 10 |
 | **Failed** | 0 |
@@ -22,12 +22,12 @@ evidence recorded here.
 | 1. Product scope and planning | 5 | 3 | 2 | 0 | 0 | 0 |
 | 2. Data governance and provenance | 8 | 7 | 0 | 0 | 1 | 0 |
 | 3. Verified company dataset | 9 | 0 | 1 | 8 | 0 | 0 |
-| 4. Company discovery experience | 13 | 8 | 5 | 0 | 0 | 0 |
+| 4. Company discovery experience | 13 | 9 | 4 | 0 | 0 | 0 |
 | 5. Financial intelligence and presentation | 17 | 0 | 3 | 5 | 9 | 0 |
 | 6. Data quality and testing | 12 | 7 | 4 | 1 | 0 | 0 |
 | 7. Product validation | 7 | 2 | 1 | 4 | 0 | 0 |
 | 8. Engineering and release readiness | 12 | 0 | 10 | 2 | 0 | 0 |
-| **Total** | **83** | **27** | **26** | **20** | **10** | **0** |
+| **Total** | **83** | **28** | **25** | **20** | **10** | **0** |
 
 Scope changes: 2026-11-23, +2 items (P2-4.12, P2-4.13) added for the MVP scope approved in
 A-3 and A-4. The total went from 81 to 83; no items were removed.
@@ -93,6 +93,7 @@ the tests are re-run.
   [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45037564678) and
   [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45037564765).
 - **E-WS1** (2026-11-23, Phase 2 workstream 1, approved EX-2): clean copy of the working tree (no `.venv`, `node_modules`, `.next`), fresh PostgreSQL 17: `uv sync --frozen`; `ruff check`, `ruff format --check`, `mypy` clean; `pytest` **170 passed**; `alembic upgrade head` → `check` ("No new upgrade operations detected") → `downgrade base` → `upgrade head` (`31b1317163eb`); `pip-audit` clean. Frontend `npm ci`, lint, typecheck, `npm test` 8/8, build, `npm audit` 0. Docker fresh volume: migrations to `31b1317163eb`, health 200, frontend 200, sample import OK, review of sample evidence refused, restart keeps data. Compatibility: upgrade/downgrade on a database holding Phase 1-era data left it unchanged; downgrade refused once a review existed. Not yet run on GitHub Actions (nothing pushed).
+- **E-WS3** (2026-11-24, workstream 3, branch `feat/ws3-per-figure-sources` from `main` @ `78cf577`): clean copy of the working tree: backend ruff/format/mypy clean, `pytest` **201 passed** (+31 in `tests/test_provenance.py`), `alembic check` clean (no migration), `pip-audit` clean; frontend `npm ci`, lint, typecheck, `npm test` **24/24**, build, `npm audit` 0. Isolated Docker stack (`atlasws3`, new volume, ports 5463/8063/3063) with fictional fixtures: route check online and offline, per-figure API-to-UI check in vi and en; browser pass desktop and 375×812. Not yet run on GitHub Actions.
 - **E-WS2** (2026-11-23, workstream 2, approved by the owner): clean copy of the working tree: frontend `npm ci`, lint, typecheck, `npm test` **17/17**, production build (both languages partially prerendered, proxy registered); backend `pytest` **170 passed**, ruff/mypy clean, `alembic check` clean (no schema change). Isolated Docker stack: `scripts/check-routes.mjs` passed with the backend up and stopped; browser pass in both languages at desktop and 375×812 (layout, keyboard focus on the language switch, no console errors). Not yet run on GitHub Actions.
 - **E-BR**: browser verification recorded in [PHASE_1_CHECKLIST.md](PHASE_1_CHECKLIST.md)
   sections 11–12 (2026-11-22, code `d858fbc`, identical to `main`).
@@ -199,9 +200,9 @@ audited annual report; aggregators are never a source.
 - [ ] **[IN PROGRESS]** P2-4.12 Vietnamese-first UI with English as second language (MVP M5, approved [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) A-4): all UI copy in Vietnamese, `lang` set correctly, the display font's `vietnamese` subset loaded (D-7).
   - Done (E-WS2): Vietnamese is the default at today's URLs (`<html lang="vi">`), English under `/en` (`lang="en"`); all UI copy, statuses, errors, empty/loading/not-found states and page titles in both languages; Fraunces and IBM Plex Sans load the `vietnamese` subset (browser: Fraunces Vietnamese ranges loaded); Vietnamese number and date formats; Vietnamese metric labels from the dictionary (`metric_name_vi`); language switch keeps page and query. Tests: `src/i18n/i18n.test.ts` (key parity, glossary coverage, no English UI copy in vi, units, error text, routing), `scripts/check-routes.mjs` (backend up and down). Glossary: [GLOSSARY.md](GLOSSARY.md).
   - Remaining: **native-speaker review of the glossary** (owner). Taxonomy descriptions exist only in English (shown as data with `lang="en"`); Vietnamese descriptions would need a taxonomy version bump.
-- [ ] **[IN PROGRESS]** P2-4.13 Per-figure source links (MVP M2, approved A-3): every displayed financial figure reaches its source document in ≤2 clicks (D-3). Today sources are shown per statement and per company, not per figure.
-  - Done (WS1): storage. Each figure keeps `source_page`, required for real figures by the importer and a DB trigger, and links to its document through the statement's evidence (`test_real_figures_need_page_and_reported_value`).
-  - Remaining (WS3): expose page and document per figure in the API and UI.
+- [x] **[PASS]** P2-4.13 Per-figure source links (MVP M2, approved A-3): every displayed financial figure reaches its source document in ≤2 clicks (D-3).
+  - Evidence (E-WS3): API gives every metric a `source` (statement evidence + the figure's own `source_page`; `document_url` only for safe http(s) links) plus `reported_value`/`reported_scale` (`backend/tests/test_provenance.py`, 31 tests). The company page shows per figure "Nguồn: <document> · Trang N" linking to the document at `#page=N` in **one click**; unknown page ("Chưa có số trang nguồn") and non-linkable documents ("Liên kết nguồn không khả dụng") are stated, never invented (`frontend/src/lib/provenance.test.ts`). `scripts/check-routes.mjs` with `PROVENANCE_COMPANY_ID` matched every figure's rendered link and page to the API in vi and en for a fictional linkable company and the sample company. Browser: desktop and 375×812, keyboard focus and descriptive link labels, no console errors. Details: [WS3_CHECKLIST.md](WS3_CHECKLIST.md).
+  - Limits: `#page=N` is honoured by browser PDF viewers, not by every document type; figures are only as verified as their evidence (Q-3 open, nothing verified).
 
 ## 5. Financial intelligence and presentation
 

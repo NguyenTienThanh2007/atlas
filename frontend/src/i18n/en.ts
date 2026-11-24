@@ -103,6 +103,18 @@ export const en: Dictionary = {
     noSources: "No source evidence is recorded for this company.",
     retrieved: (date) => `retrieved ${date}`,
     usageRights: "usage rights",
+    figure: {
+      source: "Source",
+      page: (page) => `Page ${page}`,
+      noPage: "Source page not recorded",
+      noLink: "Source link not available",
+      untitled: "Untitled document",
+      open: (metric, title, page) =>
+        `Open the source document for ${metric}: ${title}${page === null ? " (page not recorded)" : `, page ${page}`} (opens in a new tab)`,
+      reported: (value, scale) => `As reported: ${value} ${scale}`,
+      scale: (factor, currency) =>
+        `${factor === 1000 ? "thousand" : factor === 1000000 ? "million" : `× ${factor}`} ${currency}`,
+    },
   },
   sectors: {
     title: "Sectors",

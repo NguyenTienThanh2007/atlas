@@ -85,6 +85,49 @@ if (!OFFLINE) {
   check(text(filtered.html).includes("Dữ liệu mẫu"), "/companies: sample badge not localized");
 }
 
+// WS3 (optional): every figure's source in the API is what the page renders, figure by figure.
+//   PROVENANCE_COMPANY_ID=<uuid> API_URL=http://localhost:8000 node scripts/check-routes.mjs
+const companyId = process.env.PROVENANCE_COMPANY_ID;
+if (companyId && !OFFLINE) {
+  const api = process.env.API_URL ?? "http://localhost:8000";
+  const body = await (await fetch(`${api}/api/v1/companies/${companyId}/financial-statements`)).json();
+  for (const lang of ["vi", "en"]) {
+    const url = `${lang === "vi" ? "" : "/en"}/companies/${companyId}`;
+    const { html } = await get(url);
+    const anchors = [...html.matchAll(/<a [^>]*href="([^"]*)"[^>]*aria-label="([^"]*)"/g)].map((m) => ({
+      href: m[1].replace(/&amp;/g, "&"),
+      label: m[2],
+    }));
+    let figures = 0;
+    for (const st of body.items) {
+      for (const m of st.metrics) {
+        figures++;
+        const s = m.source;
+        const name = lang === "vi" ? (m.metric_name_vi ?? m.metric_name) : m.metric_name;
+        const mine = anchors.filter((a) => a.label.includes(name) && a.href.startsWith(s.document_url ?? "\u0000"));
+        if (s.link_status === "linkable") {
+          const expected = s.page === null ? s.document_url : `${s.document_url}#page=${s.page}`;
+          check(mine.some((a) => a.href === expected), `${url}: ${m.metric_code} should link to ${expected}`);
+        } else {
+          check(mine.length === 0, `${url}: ${m.metric_code} must not be a link`);
+          const noLink = lang === "vi" ? "Liên kết nguồn không khả dụng" : "Source link not available";
+          check(text(html).includes(noLink), `${url}: expected "${noLink}"`);
+        }
+        if (s.page === null) {
+          const noPage = lang === "vi" ? "Chưa có số trang nguồn" : "Source page not recorded";
+          check(text(html).includes(noPage), `${url}: ${m.metric_code} expected "${noPage}"`);
+        }
+      }
+    }
+    // Every external figure link opens safely in a new tab.
+    for (const tag of html.match(/<a [^>]*target="_blank"[^>]*>/g) ?? []) {
+      check(/rel="noopener noreferrer"/.test(tag), `${url}: external link without rel=noopener noreferrer`);
+      check(/href="https?:\/\//.test(tag), `${url}: non-http(s) external link ${tag}`);
+    }
+    check(figures > 0, `${url}: no figures to check`);
+  }
+}
+
 if (failures.length) {
   console.error(`route check FAILED (${failures.length}):\n- ${failures.join("\n- ")}`);
   process.exit(1);
