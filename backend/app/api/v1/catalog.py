@@ -17,6 +17,8 @@ from app.api.v1.schemas import (
     EvidenceOut,
     ExchangeOut,
     FinancialStatementOut,
+    MetricOut,
+    MetricSourceOut,
     Page,
     SectorOut,
     SecurityDetailOut,
@@ -292,7 +294,18 @@ def list_financial_statements(
             supersedes_id=s.supersedes_id,
             is_superseded=flag,
             source_evidence=EvidenceOut.model_validate(s.source_evidence),
-            metrics=s.metrics,
+            metrics=[
+                MetricOut(
+                    metric_code=m.metric_code,
+                    metric_name=m.metric_name,
+                    value=m.value,
+                    unit=m.unit,
+                    reported_value=m.reported_value,
+                    reported_scale=m.reported_scale,
+                    source=MetricSourceOut.for_figure(s.source_evidence, m.source_page),
+                )
+                for m in s.metrics
+            ],
         )
         for s, flag in rows
     ]

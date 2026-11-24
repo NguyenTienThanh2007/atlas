@@ -1,4 +1,5 @@
 // Pure API helpers (no Next.js imports) so they can be unit-tested with `node --test`.
+import type { FigureSource } from "./provenance.ts";
 
 export type Page<T> = { items: T[]; total: number; limit: number; offset: number };
 
@@ -82,8 +83,11 @@ export type FinancialStatement = {
     metric_code: string;
     metric_name: string;
     metric_name_vi: string | null;
-    value: string;
+    value: string; // full units
     unit: string;
+    reported_value: string | null; // as printed in the document (null for rows from before WS1)
+    reported_scale: number | null; // 1, 1000 or 1000000
+    source: FigureSource; // WS3: the document and page this figure comes from
   }[];
 };
 

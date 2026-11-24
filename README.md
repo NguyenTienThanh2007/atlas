@@ -21,8 +21,8 @@ real, verified listed companies (stretch target 20–30) across the 4 approved s
 validation by real users.
 
 **Current status:** planning complete; all product decisions (A-1 to A-11) approved on 2026-11-23.
-Execution started under a **conditional go** (2026-11-23). 27 of 83 checklist items PASS
-(32.5%). Workstream 1 added a two-person verification workflow, per-figure source pages and
+Execution started under a **conditional go** (2026-11-23). 28 of 83 checklist items PASS
+(33.7%). Workstream 3 (on its branch) shows each financial figure's source document and page. Workstream 1 added a two-person verification workflow, per-figure source pages and
 stricter period and unit checks ([docs/VERIFICATION_WORKFLOW.md](docs/VERIFICATION_WORKFLOW.md)).
 Workstream 2 made the interface **Vietnamese-first**, with English at `/en`
 ([docs/GLOSSARY.md](docs/GLOSSARY.md); terms await a native-speaker review).
@@ -98,7 +98,7 @@ docker-compose.yml
 | GET | `/api/v1/companies/{id}` | Company with sector and securities |
 | GET | `/api/v1/securities/{id}` | Security with exchange and company |
 | GET | `/api/v1/companies/{id}/evidence` | Source evidence with data source and usage status |
-| GET | `/api/v1/companies/{id}/financial-statements` | Latest revisions by default; values as exact decimal strings |
+| GET | `/api/v1/companies/{id}/financial-statements` | Latest revisions by default; values as exact decimal strings; each figure names its source document and page |
 
 Full parameters and design notes: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#api-apiv1). OpenAPI
 docs are at `/docs` on the backend.
