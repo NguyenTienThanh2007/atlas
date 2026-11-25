@@ -1,23 +1,228 @@
 {
   "dictionary": "atlas-financial-metrics",
-  "version": "1.0.0",
-  "notes": "Reported line items only; ratios are derived at read time, never stored. Values are exact decimals in the statement currency (VND unless stated) at full units, not thousands or millions. Units: 'currency' = the statement's currency; 'currency_per_share'; 'shares'.",
+  "version": "1.1.0",
+  "notes": "Reported line items only; ratios are derived at read time, never stored. Values are exact decimals in the statement currency (VND unless stated) at full units, not thousands or millions. Units: 'currency' = the statement's currency; 'currency_per_share'; 'shares'. Since 1.1.0 (owner decision WS4-D10: G-1, G-2, G-4): each metric has definition_vi / definition_en and explicit applicability per company kind ('non_bank', 'bank'), each 'applicable', 'not_applicable' or 'unclassified'. 'unclassified' means no approved classification yet; it never means not applicable. Applicability describes the metric, never a missing value. Bank values other than 'unclassified' are set only where an approved decision supports them: net_revenue and gross_profit not applicable (WS4-D5); net_interest_income applicable (WS4-D4); net_profit, net_profit_parent, total_assets, total_equity and equity_parent applicable because they are inputs of the approved bank ROE and ROA (WS4-D1, D2, D4).",
   "metrics": [
-    { "code": "net_revenue", "name": "Net revenue", "name_vi": "Doanh thu thuần", "statement_type": "income_statement", "unit": "currency" },
-    { "code": "net_interest_income", "name": "Net interest income", "name_vi": "Thu nhập lãi thuần", "statement_type": "income_statement", "unit": "currency" },
-    { "code": "gross_profit", "name": "Gross profit", "name_vi": "Lợi nhuận gộp", "statement_type": "income_statement", "unit": "currency" },
-    { "code": "operating_profit", "name": "Operating profit", "name_vi": "Lợi nhuận thuần từ hoạt động kinh doanh", "statement_type": "income_statement", "unit": "currency" },
-    { "code": "profit_before_tax", "name": "Profit before tax", "name_vi": "Lợi nhuận trước thuế", "statement_type": "income_statement", "unit": "currency" },
-    { "code": "net_profit", "name": "Net profit after tax", "name_vi": "Lợi nhuận sau thuế", "statement_type": "income_statement", "unit": "currency" },
-    { "code": "net_profit_parent", "name": "Net profit attributable to parent", "name_vi": "Lợi nhuận sau thuế của cổ đông công ty mẹ", "statement_type": "income_statement", "unit": "currency" },
-    { "code": "eps_basic", "name": "Basic earnings per share", "name_vi": "Lãi cơ bản trên cổ phiếu", "statement_type": "income_statement", "unit": "currency_per_share" },
-    { "code": "total_assets", "name": "Total assets", "name_vi": "Tổng tài sản", "statement_type": "balance_sheet", "unit": "currency" },
-    { "code": "total_liabilities", "name": "Total liabilities", "name_vi": "Tổng nợ phải trả", "statement_type": "balance_sheet", "unit": "currency" },
-    { "code": "total_equity", "name": "Total owners' equity", "name_vi": "Vốn chủ sở hữu", "statement_type": "balance_sheet", "unit": "currency" },
-    { "code": "cash_and_equivalents", "name": "Cash and cash equivalents", "name_vi": "Tiền và các khoản tương đương tiền", "statement_type": "balance_sheet", "unit": "currency" },
-    { "code": "shares_outstanding", "name": "Shares outstanding", "name_vi": "Số lượng cổ phiếu đang lưu hành", "statement_type": "balance_sheet", "unit": "shares" },
-    { "code": "operating_cash_flow", "name": "Net cash from operating activities", "name_vi": "Lưu chuyển tiền thuần từ hoạt động kinh doanh", "statement_type": "cash_flow", "unit": "currency" },
-    { "code": "investing_cash_flow", "name": "Net cash from investing activities", "name_vi": "Lưu chuyển tiền thuần từ hoạt động đầu tư", "statement_type": "cash_flow", "unit": "currency" },
-    { "code": "financing_cash_flow", "name": "Net cash from financing activities", "name_vi": "Lưu chuyển tiền thuần từ hoạt động tài chính", "statement_type": "cash_flow", "unit": "currency" }
+    {
+      "code": "net_revenue",
+      "name": "Net revenue",
+      "name_vi": "Doanh thu thuần",
+      "statement_type": "income_statement",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "not_applicable"
+      },
+      "definition_vi": "Doanh thu thuần về bán hàng và cung cấp dịch vụ trình bày trên báo cáo kết quả kinh doanh: doanh thu sau các khoản giảm trừ doanh thu (chiết khấu thương mại, giảm giá hàng bán, hàng bán bị trả lại).",
+      "definition_en": "Net revenue from sales of goods and rendering of services as presented in the income statement: revenue after revenue deductions (trade discounts, sales allowances, sales returns)."
+    },
+    {
+      "code": "net_interest_income",
+      "name": "Net interest income",
+      "name_vi": "Thu nhập lãi thuần",
+      "statement_type": "income_statement",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "unclassified",
+        "bank": "applicable"
+      },
+      "definition_vi": "Thu nhập lãi thuần trình bày trên báo cáo kết quả kinh doanh của tổ chức tín dụng: thu nhập lãi và các khoản thu nhập tương tự sau khi trừ chi phí lãi và các chi phí tương tự.",
+      "definition_en": "Net interest income as presented in a credit institution's income statement: interest and similar income less interest and similar expenses."
+    },
+    {
+      "code": "gross_profit",
+      "name": "Gross profit",
+      "name_vi": "Lợi nhuận gộp",
+      "statement_type": "income_statement",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "not_applicable"
+      },
+      "definition_vi": "Lợi nhuận gộp về bán hàng và cung cấp dịch vụ trình bày trên báo cáo kết quả kinh doanh: doanh thu thuần sau khi trừ giá vốn hàng bán.",
+      "definition_en": "Gross profit from sales of goods and rendering of services as presented in the income statement: net revenue less cost of goods sold."
+    },
+    {
+      "code": "operating_profit",
+      "name": "Operating profit",
+      "name_vi": "Lợi nhuận thuần từ hoạt động kinh doanh",
+      "statement_type": "income_statement",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "unclassified"
+      },
+      "definition_vi": "Lợi nhuận thuần từ hoạt động kinh doanh trình bày trên báo cáo kết quả kinh doanh, trước thu nhập khác, chi phí khác và thuế thu nhập doanh nghiệp.",
+      "definition_en": "Net operating profit as presented in the income statement, before other income, other expenses and corporate income tax."
+    },
+    {
+      "code": "profit_before_tax",
+      "name": "Profit before tax",
+      "name_vi": "Lợi nhuận trước thuế",
+      "statement_type": "income_statement",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "unclassified"
+      },
+      "definition_vi": "Tổng lợi nhuận kế toán trước thuế thu nhập doanh nghiệp trình bày trên báo cáo kết quả kinh doanh.",
+      "definition_en": "Total accounting profit before corporate income tax as presented in the income statement."
+    },
+    {
+      "code": "net_profit",
+      "name": "Net profit after tax",
+      "name_vi": "Lợi nhuận sau thuế",
+      "statement_type": "income_statement",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "applicable"
+      },
+      "definition_vi": "Lợi nhuận sau thuế thu nhập doanh nghiệp trình bày trên báo cáo kết quả kinh doanh. Trên báo cáo hợp nhất, chỉ tiêu này gồm cả phần thuộc cổ đông không kiểm soát.",
+      "definition_en": "Profit after corporate income tax as presented in the income statement. In consolidated statements it includes the share attributable to non-controlling interests."
+    },
+    {
+      "code": "net_profit_parent",
+      "name": "Net profit attributable to parent",
+      "name_vi": "Lợi nhuận sau thuế của cổ đông công ty mẹ",
+      "statement_type": "income_statement",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "applicable"
+      },
+      "definition_vi": "Phần lợi nhuận sau thuế thuộc về cổ đông của công ty mẹ, trình bày trên báo cáo kết quả kinh doanh hợp nhất; không gồm phần thuộc cổ đông không kiểm soát.",
+      "definition_en": "The part of profit after tax attributable to owners of the parent, as presented in the consolidated income statement; excludes the share of non-controlling interests."
+    },
+    {
+      "code": "eps_basic",
+      "name": "Basic earnings per share",
+      "name_vi": "Lãi cơ bản trên cổ phiếu",
+      "statement_type": "income_statement",
+      "unit": "currency_per_share",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "unclassified"
+      },
+      "definition_vi": "Lãi cơ bản trên cổ phiếu do doanh nghiệp công bố trên báo cáo kết quả kinh doanh, tính bằng đồng/cổ phiếu. ATLAS ghi đúng số công bố và không tự tính lại.",
+      "definition_en": "Basic earnings per share as disclosed by the company in the income statement, in VND/share. ATLAS records the disclosed figure and does not recompute it."
+    },
+    {
+      "code": "total_assets",
+      "name": "Total assets",
+      "name_vi": "Tổng tài sản",
+      "statement_type": "balance_sheet",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "applicable"
+      },
+      "definition_vi": "Tổng tài sản trình bày trên bảng cân đối kế toán tại ngày kết thúc kỳ báo cáo.",
+      "definition_en": "Total assets as presented in the balance sheet at the reporting date."
+    },
+    {
+      "code": "total_liabilities",
+      "name": "Total liabilities",
+      "name_vi": "Tổng nợ phải trả",
+      "statement_type": "balance_sheet",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "unclassified"
+      },
+      "definition_vi": "Tổng nợ phải trả trình bày trên bảng cân đối kế toán tại ngày kết thúc kỳ báo cáo.",
+      "definition_en": "Total liabilities as presented in the balance sheet at the reporting date."
+    },
+    {
+      "code": "total_equity",
+      "name": "Total equity",
+      "name_vi": "Vốn chủ sở hữu",
+      "statement_type": "balance_sheet",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "applicable"
+      },
+      "definition_vi": "Tổng vốn chủ sở hữu trình bày trên bảng cân đối kế toán tại ngày kết thúc kỳ báo cáo, theo dòng tổng của báo cáo. Trên báo cáo hợp nhất theo biểu mẫu doanh nghiệp, chỉ tiêu này gồm cả lợi ích cổ đông không kiểm soát, nên khác với vốn chủ sở hữu của cổ đông công ty mẹ.",
+      "definition_en": "Total equity as presented in the balance sheet at the reporting date, taken from the statement's total line. In consolidated statements on the corporate forms it includes non-controlling interests, so it differs from equity attributable to owners of the parent."
+    },
+    {
+      "code": "equity_parent",
+      "name": "Equity attributable to owners of the parent",
+      "name_vi": "Vốn chủ sở hữu của cổ đông công ty mẹ",
+      "statement_type": "balance_sheet",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "applicable"
+      },
+      "definition_vi": "Phần vốn chủ sở hữu thuộc về cổ đông của công ty mẹ, không gồm lợi ích cổ đông không kiểm soát, theo số liệu trình bày trên bảng cân đối kế toán hợp nhất tại ngày kết thúc kỳ báo cáo. ATLAS chỉ ghi khi báo cáo trình bày riêng chỉ tiêu này; không tính bằng vốn chủ sở hữu trừ lợi ích cổ đông không kiểm soát và không thay bằng tổng vốn chủ sở hữu.",
+      "definition_en": "Equity attributable to owners of the parent, excluding non-controlling interests, as presented in the consolidated balance sheet at the reporting date. ATLAS records it only when the statement presents this line explicitly; it is never derived as total equity minus non-controlling interests and never replaced by total equity."
+    },
+    {
+      "code": "cash_and_equivalents",
+      "name": "Cash and cash equivalents",
+      "name_vi": "Tiền và các khoản tương đương tiền",
+      "statement_type": "balance_sheet",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "unclassified"
+      },
+      "definition_vi": "Tiền và các khoản tương đương tiền trình bày trên bảng cân đối kế toán tại ngày kết thúc kỳ báo cáo. Tiền gồm tiền tại quỹ, tiền đang chuyển và tiền gửi không kỳ hạn; các khoản tương đương tiền là các khoản đầu tư ngắn hạn có thời hạn thu hồi không quá 3 tháng kể từ ngày đầu tư, có khả năng chuyển đổi dễ dàng thành một lượng tiền xác định và không có nhiều rủi ro trong chuyển đổi thành tiền.",
+      "definition_en": "Cash and cash equivalents as presented in the balance sheet at the reporting date. Cash comprises cash on hand, cash in transit and demand deposits; cash equivalents are short-term investments with a maturity of no more than 3 months from the date of investment that are readily convertible into a known amount of cash and carry no significant risk of conversion into cash."
+    },
+    {
+      "code": "shares_outstanding",
+      "name": "Shares outstanding",
+      "name_vi": "Số lượng cổ phiếu đang lưu hành",
+      "statement_type": "balance_sheet",
+      "unit": "shares",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "unclassified"
+      },
+      "definition_vi": "Số lượng cổ phiếu đang lưu hành tại ngày kết thúc kỳ báo cáo theo số liệu doanh nghiệp công bố (thường trong thuyết minh về vốn chủ sở hữu đi kèm bảng cân đối kế toán), không gồm cổ phiếu quỹ.",
+      "definition_en": "Number of shares outstanding at the reporting date as disclosed by the company (usually in the equity notes to the balance sheet), excluding treasury shares."
+    },
+    {
+      "code": "operating_cash_flow",
+      "name": "Net cash from operating activities",
+      "name_vi": "Lưu chuyển tiền thuần từ hoạt động kinh doanh",
+      "statement_type": "cash_flow",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "unclassified"
+      },
+      "definition_vi": "Lưu chuyển tiền thuần từ hoạt động kinh doanh trong kỳ, trình bày trên báo cáo lưu chuyển tiền tệ.",
+      "definition_en": "Net cash flow from operating activities for the period, as presented in the cash flow statement."
+    },
+    {
+      "code": "investing_cash_flow",
+      "name": "Net cash from investing activities",
+      "name_vi": "Lưu chuyển tiền thuần từ hoạt động đầu tư",
+      "statement_type": "cash_flow",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "unclassified"
+      },
+      "definition_vi": "Lưu chuyển tiền thuần từ hoạt động đầu tư trong kỳ, trình bày trên báo cáo lưu chuyển tiền tệ.",
+      "definition_en": "Net cash flow from investing activities for the period, as presented in the cash flow statement."
+    },
+    {
+      "code": "financing_cash_flow",
+      "name": "Net cash from financing activities",
+      "name_vi": "Lưu chuyển tiền thuần từ hoạt động tài chính",
+      "statement_type": "cash_flow",
+      "unit": "currency",
+      "applicability": {
+        "non_bank": "applicable",
+        "bank": "unclassified"
+      },
+      "definition_vi": "Lưu chuyển tiền thuần từ hoạt động tài chính trong kỳ, trình bày trên báo cáo lưu chuyển tiền tệ.",
+      "definition_en": "Net cash flow from financing activities for the period, as presented in the cash flow statement."
+    }
   ]
 }

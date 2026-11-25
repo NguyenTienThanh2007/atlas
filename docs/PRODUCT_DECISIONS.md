@@ -313,6 +313,44 @@ traced to the owner's approval.
 | EX-2 | 2026-11-23 | **Workstream 1 approved**, including its Alembic migration: curation-ready verification and validation | Append-only reviews; curator ≠ reviewer in the database; no verification without an independent review; transitions defined and tested; local-only review tool with no public API; overlap rules per granularity; exact unit conversion with provenance; `source_page` required for real figures only; one migration, tested up/down/up; no changes to F-1/F-2, real data, private evidence, A-11 or hosting. Implemented as migration `31b1317163eb` ([VERIFICATION_WORKFLOW.md](VERIFICATION_WORKFLOW.md)) |
 | EX-3 | 2026-11-23 | **Workstream 2 approved**: Vietnamese-first interface (P2-4.12) after WS1 closure | Vietnamese default at existing URLs, English under `/en`; maintainable dictionaries; read-only `metric_name_vi` from the existing metric dictionary (no dictionary or schema change); tests for language rendering and existing behaviour. No changes to F-1/F-2, real data, private evidence, A-11, hosting; no commit/push/merge/deploy without authorization |
 
+## 2d. Financial intelligence decisions (WS4)
+
+New records only; no earlier decision is changed. Decided by the project owner on 2026-11-24 after
+reviewing [WS4_FINANCIAL_INTELLIGENCE_PLAN.md](WS4_FINANCIAL_INTELLIGENCE_PLAN.md) §12, each
+choosing the plan's recommended option except where stated. **These approve specifications, not
+implementation:** no code, dictionary, schema or API change is made by recording them, and
+implementation still needs the owner's go-ahead (EX-1 rules).
+
+| ID | Decision | Approved option | Notes |
+| --- | --- | --- | --- |
+| WS4-D1 | ROE default | Consolidated: `net_profit_parent` ÷ average equity attributable to the parent (`equity_parent`). Separate: `net_profit` ÷ average `total_equity`. Annual statements only | The mixed form `net_profit_parent` ÷ `total_equity` is rejected. Formula id `roe_parent_avg_equity` / `roe_separate_avg_equity`, version 1 |
+| WS4-D2 | ROA default | `net_profit` ÷ average `total_assets`, same scope, annual only, banks and non-banks | No pre-tax variant for now |
+| WS4-D3 | Averaging | (opening + closing) ÷ 2 from the FY *t*−1 and FY *t* year-end balance sheets | Missing opening balance → not computable; no fallback to closing |
+| WS4-D4 | Bank metric scope (**resolves Q-5**) | Minimal: `net_interest_income`, ROE, ROA for banks | NPL, provisions, credit growth, CAR and the optional bank lines stay future scope, to be revisited after the first bank is curated |
+| WS4-D5 | Gross profit and net revenue for banks | **Not applicable** | Needs dictionary applicability (G-2, approved under D10) |
+| WS4-D6 | Missing-data states | The seven-state vocabulary, implemented as **Phase A** only (no schema change) | Phase B (explicit "not reported" / "unavailable" records, a migration) not approved; to be decided separately |
+| WS4-D7 | Verification of calculated values | No status of their own; never VERIFIED; `input_verification` label; not computed if any input is disputed or rejected | — |
+| WS4-D8 | Display and rounding | Tỷ đồng (VND bn) with 2 decimals, triệu đồng below 1 tỷ; ratios as % with 2 decimals; half-up rounding on decimal strings; minus sign `−`; exact and as-reported values kept available | — |
+| WS4-D9 | Period comparison | Strict rules of plan §8 (incompatible pairs refused, cross-company period differences warned); growth = (current − prior) ÷ \|prior\|; prior 0 or sign change → no percentage | — |
+| WS4-D10 | Metric dictionary changes (exit audit F-1, F-2) | **Approved:** G-1 (vi/en definitions), G-2 (bank / non-bank applicability), G-4 (new reported metric `equity_parent`, Vốn chủ sở hữu của cổ đông công ty mẹ). **Not approved:** G-3 (sign convention field) and G-5 to G-9 | G-4 was added on the owner's confirmation after the conflict with D1 was pointed out; G-2 was added together with D4/D5. F-1 and F-2 stay OPEN until the dictionary version is actually changed and the definition text has been checked by the owner or a delegate |
+| WS4-D11 | Calculated values from unverified inputs | Shown with the "Tính từ số liệu chưa kiểm chứng" label in the **private pilot only**; never public before G1 | — |
+| WS4-D12 | `equity_parent` source rule (owner review of WS4-1, 2026-11-24) | Recorded **only** when the statement explicitly reports the line. Never derived as total equity minus non-controlling interests; `total_equity` is never substituted. If it is missing, consolidated ROE is not calculable (missing input); source page and reported value are kept as for every figure | The owner accepts that many Vietnamese consolidated statements may not present the line, so consolidated ROE may often be not calculable |
+
+**Bank applicability as implemented in dictionary 1.1.0** (owner review of WS4-1, 2026-11-24).
+This is not a separate decision; every value follows from the decisions above:
+
+| Bank value | Metrics | Follows from |
+| --- | --- | --- |
+| `not_applicable` | `net_revenue`, `gross_profit` | WS4-D5 |
+| `applicable` | `net_interest_income` | WS4-D4 |
+| `applicable` | `net_profit`, `total_assets` | Inputs of bank ROA (WS4-D2: banks and non-banks; WS4-D4) |
+| `applicable` | `net_profit_parent`, `equity_parent` | Inputs of consolidated bank ROE (WS4-D1, WS4-D4) |
+| `applicable` | `net_profit`, `total_equity` | Inputs of separate-statement bank ROE (WS4-D1, WS4-D4) |
+| `unclassified` | All other metrics | No approved decision. Never inferred from accounting practice or from the planning document alone; never read as "not applicable" |
+
+The owner also approved, in the same review, the English name **"Total equity"** for `total_equity`
+(was "Total owners' equity"), to avoid confusion with equity attributable to owners of the parent.
+
 ## 3. Rejected alternatives
 
 | Alternative | Why rejected |
@@ -335,7 +373,7 @@ traced to the owner's approval.
 | Q-2 | Is ATLAS intended as a commercial product or a personal / portfolio project in the next 6 months? This changes the licensing needs and the legal questions under G1 | ✅ **RESOLVED 2026-11-23: COMMERCIAL INTENT.** Decided by the project owner Tiến Thành; details in §4a |
 | Q-3 | What are the realistic verification hours per company, including the business overview? Who is the second reviewer for financial figures (D-6)? | Measured at gate G2; reviewer named by owner |
 | Q-4 | Can the owner recruit 10–15 interviewees matching the §10 criteria, and through which channels? | ✅ **RESOLVED 2026-11-23: recruiting plan confirmed by the project owner Tiến Thành** (§4b). C-1 split out as Q-9 |
-| Q-5 | Should banks get their own metric set (net interest income, NPL ratio) in the MVP, given Banking is a proposed pilot sector? | Owner, after the first 5-company pilot |
+| Q-5 | Should banks get their own metric set (net interest income, NPL ratio) in the MVP, given Banking is a proposed pilot sector? | ✅ **RESOLVED 2026-11-24: minimal bank scope** (net interest income, ROE, ROA; gross profit and net revenue not applicable; NPL and other bank metrics later). Decided by the project owner; recorded as WS4-D4 and WS4-D5 (§2d) |
 | Q-6 | Should English (segment E) launch together with Vietnamese, or later? | Owner, after round 1 |
 | Q-7 | Which hosting setup for a public pilot, and what is the budget? | Owner |
 | Q-8 | Move the repository out of the iCloud-synced `~/Documents` folder? (Phase 2 risk R-1) | Owner |

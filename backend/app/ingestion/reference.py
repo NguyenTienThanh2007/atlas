@@ -6,7 +6,14 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    ValidationError,
+    model_validator,
+)
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -23,19 +30,40 @@ class _Ref(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
+# "unclassified" = no approved classification yet. It never means "not applicable", and
+# applicability describes the metric, never a missing value (WS4-D6, WS4-D10).
+Applicability = Literal["applicable", "not_applicable", "unclassified"]
+
+
+class MetricApplicability(_Ref):
+    # Both required, no defaults: a metric is never "not applicable" by omission.
+    non_bank: Applicability
+    bank: Applicability
+
+
 class MetricDef(_Ref):
     code: Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_]{1,63}$")]
     name: Text200
     name_vi: Text200
     statement_type: StatementType
     unit: Literal["currency", "currency_per_share", "shares"]
+    applicability: MetricApplicability
+    definition_vi: LongText
+    definition_en: LongText
 
 
-class _MetricDictionary(_Ref):
+class MetricDictionary(_Ref):
     dictionary: str
     version: SemVer
     notes: LongText
     metrics: list[MetricDef] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _unique_codes(self) -> "MetricDictionary":
+        codes = [m.code for m in self.metrics]
+        if len(codes) != len(set(codes)):
+            raise ValueError("duplicate metric code")
+        return self
 
 
 class _SectorIn(_Ref):
@@ -66,10 +94,14 @@ class _Exchanges(_Ref):
 
 
 @lru_cache
-def metric_dictionary() -> dict[str, MetricDef]:
+def metric_dictionary_document() -> MetricDictionary:
     raw = read_local_file(REFERENCE_DIR / "metric_dictionary.json")
-    parsed = _MetricDictionary.model_validate(parse_json(raw))
-    return {m.code: m for m in parsed.metrics}
+    return MetricDictionary.model_validate(parse_json(raw))
+
+
+@lru_cache
+def metric_dictionary() -> dict[str, MetricDef]:
+    return {m.code: m for m in metric_dictionary_document().metrics}
 
 
 def _semver(v: str) -> tuple[int, ...]:

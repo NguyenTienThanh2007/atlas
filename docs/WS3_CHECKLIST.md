@@ -209,3 +209,11 @@ Statuses and evidence are filled in as work completes (see the final table below
 ### Final decision
 
 **READY WITH DOCUMENTED LIMITATIONS.** Every acceptance criterion for P2-4.13 is met and evidenced; the open items are E09 (re-observe one unchanged loading state), one pre-existing low-severity API exposure, and the non-engineering gates Q-3 and G1.
+
+### Post-merge note (2026-11-24)
+
+Added after the fact; the record above is unchanged. PR #5 was merged as `4be30b7` on 2026-11-24.
+GitHub Actions on that merge commit: Backend success (`201 passed`), Frontend success (24/24),
+Docker success ([runs](https://github.com/NguyenTienThanh2007/atlas/actions?query=branch%3Amain)).
+The PR's own checks (test, build, compose) also passed. So the line "GitHub Actions has not run on
+this branch" is no longer current. E09 and the low-severity credential-URL finding remain open.

@@ -1,5 +1,28 @@
 # Phase 2 readiness
 
+## Status update (2026-11-24, verified on `main` @ `4be30b7`)
+
+Execution started on 2026-11-23 under the owner's **CONDITIONAL GO** (EX-1,
+[PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2c). The assessment below is kept as written on
+2026-11-23; this section records what changed since.
+
+| Workstream | PR | Merge commit | CI on the merge commit (Backend / Frontend / Docker) | Checklist effect |
+| --- | --- | --- | --- | --- |
+| WS1 verification workflow and figure provenance (EX-2) | #3 | `45ef0ca` | [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45180859560) and [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45180859516) success; Frontend not triggered (path filter, no `frontend/` change) | P2-2.1, P2-2.2, P2-2.5, P2-2.8, P2-6.4, P2-6.5 PASS |
+| WS2 Vietnamese-first UI (EX-3) | #4 | `78cf577` | [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45185760407), [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45185760378), [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45185760569) success | P2-4.11 PASS; P2-4.12 IN PROGRESS (glossary review) |
+| WS3 per-figure source transparency | #5 | `4be30b7` | [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45318642634) (201 passed), [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45318642611) (24/24), [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45318642530) success | P2-4.13 PASS |
+| WS4 financial intelligence | none | none | n/a (documents only) | Specification written ([WS4 plan](WS4_FINANCIAL_INTELLIGENCE_PLAN.md)); owner decisions WS4-D1 to D11 recorded 2026-11-24; **nothing implemented** |
+
+The three PRs were opened and merged by the owner's account; GitHub records no separate review
+(P2-8.11 stays NOT STARTED). Checklist: **28 / 83 PASS** (recounted from item lines).
+
+**Unchanged blockers:** Q-3 (no independent reviewer, so nothing can be VERIFIED), G1 (no legal
+opinion, so nothing real can be published), Q-7 (hosting and budget), Q-8
+(repo in iCloud, R-1), glossary native-speaker review (P2-4.12). Engineering completion is not
+permission to launch. Q-5 (bank metrics) was resolved on 2026-11-24 by WS4-D4 and D5.
+
+## Assessment of 2026-11-23 (before execution)
+
 Date: 2026-11-23. Assessed after the [Phase 1 exit audit](PHASE_1_EXIT_AUDIT.md) (CONDITIONAL PASS).
 The detailed plan, gates, Track B and risks live in [PHASE_2_CHECKLIST.md](PHASE_2_CHECKLIST.md).
 This page only judges whether execution can start.
@@ -48,3 +71,4 @@ until the Q-3 reviewer is appointed, and **nothing can be published** until G1.
 4. **Q-7** hosting/budget, and **Q-8** moving the repo out of iCloud (R-1).
 
 Phase 2 is not complete and has not been started. Execution waits on explicit owner approval.
+(Superseded the same day by EX-1, the owner's conditional go; see the status update above.)

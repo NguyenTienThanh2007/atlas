@@ -24,6 +24,7 @@ from app.api.v1.schemas import (
     SecurityDetailOut,
 )
 from app.db import get_session
+from app.ingestion.reference import MetricDictionary, metric_dictionary_document
 from app.models import (
     Company,
     EntityType,
@@ -67,6 +68,13 @@ def _company_or_404(db: Session, company_id: uuid.UUID) -> None:
 
 
 # ---------------------------------------------------------------- exchanges & sectors
+
+
+@router.get("/metric-dictionary", response_model=MetricDictionary, tags=["reference"])
+def get_metric_dictionary() -> MetricDictionary:
+    """The versioned metric dictionary: names, definitions (vi/en), statement type, unit and
+    bank / non-bank applicability. A small fixed reference document, so not paginated."""
+    return metric_dictionary_document()
 
 
 @router.get("/exchanges", response_model=Page[ExchangeOut], tags=["reference"])

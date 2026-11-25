@@ -6,6 +6,7 @@ import {
   fetchJson,
   formatDate,
   formatDecimal,
+  metricLabel,
   pageNumber,
   SECTOR_CODE,
 } from "./api-core.ts";
@@ -84,4 +85,13 @@ test("formatDate shows timestamps in Vietnam time and never shifts plain dates",
   assert.equal(formatDate("2024-06-28", "vi"), "28/06/2024");
   assert.equal(formatDate(null, "vi"), "—");
   assert.equal(formatDate("garbage", "vi"), "garbage");
+});
+
+test("metric labels use the current dictionary name, never a stale stored one", () => {
+  const legacy = { metric_name: "Total owners' equity", metric_name_vi: "Vốn chủ sở hữu", metric_name_en: "Total equity" };
+  assert.equal(metricLabel(legacy, "en"), "Total equity");
+  assert.equal(metricLabel(legacy, "vi"), "Vốn chủ sở hữu");
+  const unknown = { metric_name: "Legacy metric", metric_name_vi: null, metric_name_en: null };
+  assert.equal(metricLabel(unknown, "en"), "Legacy metric");
+  assert.equal(metricLabel(unknown, "vi"), "Legacy metric");
 });

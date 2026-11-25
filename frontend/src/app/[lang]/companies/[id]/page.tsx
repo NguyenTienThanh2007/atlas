@@ -9,6 +9,7 @@ import {
   apiGet,
   formatDate,
   formatDecimal,
+  metricLabel,
   UUID,
   type Company,
   type Evidence,
@@ -142,7 +143,7 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
                 <table className="mt-3 w-full text-sm">
                   <tbody className="divide-y divide-line">
                     {s.metrics.map((m) => {
-                      const name = locale === "vi" ? (m.metric_name_vi ?? m.metric_name) : m.metric_name;
+                      const name = metricLabel(m, locale);
                       return (
                         <tr key={m.metric_code} className="align-top">
                           <th scope="row" className="py-2 pr-4 text-left font-normal text-muted">

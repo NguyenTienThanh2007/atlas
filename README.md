@@ -3,7 +3,7 @@
 Vietnam Investment Discovery World: a platform for exploring Vietnam's listed economy by sector,
 company and region.
 
-**Status (2026-11-23):** Phase 0 complete. Phase 1 software complete; its exit audit is a
+**Status (2026-11-24, `main` @ `4be30b7`):** Phase 0 complete. Phase 1 software complete; its exit audit is a
 **conditional pass** because non-software data blockers remain ([exit audit](docs/PHASE_1_EXIT_AUDIT.md)).
 Phase 2 planning complete; **Phase 2 execution in progress under a conditional go** (see
 [readiness](docs/PHASE_2_READINESS.md) and [roadmap](docs/ROADMAP.md)). 0 companies verified. The domain model (companies,
@@ -22,11 +22,14 @@ validation by real users.
 
 **Current status:** planning complete; all product decisions (A-1 to A-11) approved on 2026-11-23.
 Execution started under a **conditional go** (2026-11-23). 28 of 83 checklist items PASS
-(33.7%). Workstream 3 (on its branch) shows each financial figure's source document and page. Workstream 1 added a two-person verification workflow, per-figure source pages and
+(33.7%). Workstreams 1–3 are merged to `main` (PRs #3–#5, CI green). Workstream 3 shows each financial figure's source document and page. Workstream 1 added a two-person verification workflow, per-figure source pages and
 stricter period and unit checks ([docs/VERIFICATION_WORKFLOW.md](docs/VERIFICATION_WORKFLOW.md)).
 Workstream 2 made the interface **Vietnamese-first**, with English at `/en`
 ([docs/GLOSSARY.md](docs/GLOSSARY.md); terms await a native-speaker review).
 10 items are **blocked**, mostly on the legal opinion (G1). No real data is loaded.
+Workstream 4 (ROE, ROA, missing data, period comparison, bank metrics) is specified, with the
+owner's decisions recorded on 2026-11-24 ([docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md](docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md));
+no calculated metric is implemented yet.
 
 **Product direction (approved 2026-11-23):** start with Vietnamese investors learning to research
 listed companies, with a Vietnamese-first interface; offer plain-language profiles where every
@@ -93,6 +96,7 @@ docker-compose.yml
 | --- | --- | --- |
 | GET | `/api/v1/health` | `200` when the API and database are reachable; `503` with the same body shape when the database check fails |
 | GET | `/api/v1/exchanges` | Exchanges (HOSE, HNX, UPCOM) |
+| GET | `/api/v1/metric-dictionary` | Metric dictionary (v1.1.0): names, vi/en definitions, unit, bank / non-bank applicability |
 | GET | `/api/v1/sectors`, `/api/v1/sectors/{id}` | ATLAS sector taxonomy with company counts |
 | GET | `/api/v1/companies` | Search (`q`: name or ticker), filter (`sector`, `exchange` codes), paginate (`limit`, `offset`) |
 | GET | `/api/v1/companies/{id}` | Company with sector and securities |
@@ -123,6 +127,10 @@ Example response:
 - [docs/PHASE_0_CHECKLIST.md](docs/PHASE_0_CHECKLIST.md),
   [docs/PHASE_1_CHECKLIST.md](docs/PHASE_1_CHECKLIST.md): verification evidence
 - [docs/PHASE_2_CHECKLIST.md](docs/PHASE_2_CHECKLIST.md): Phase 2 plan, progress and evidence
+- [docs/WS3_CHECKLIST.md](docs/WS3_CHECKLIST.md): per-figure source transparency acceptance record
+- [docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md](docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md),
+  [docs/WS4_CHECKLIST.md](docs/WS4_CHECKLIST.md): proposed ROE/ROA, missing-data and comparison
+  rules, with the owner's decisions (2026-11-24)
 - [docs/PRODUCT_STRATEGY.md](docs/PRODUCT_STRATEGY.md),
   [docs/PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md): product strategy and decision log
 - [docs/PILOT_SELECTION_CRITERIA.md](docs/PILOT_SELECTION_CRITERIA.md): how pilot companies are
