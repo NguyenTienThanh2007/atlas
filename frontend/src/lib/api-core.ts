@@ -210,13 +210,22 @@ export function metricLabel(
 }
 
 /** Format a fixed-point string keeping every decimal it has ("18.30" → "18,30"): no rounding,
- * no parsing to a number. For values the API has already rounded (percentages). */
+ * no parsing to a number. For values the API has already rounded (percentages). Negative values
+ * use the minus sign U+2212, as WS4-D8 requires ("-5.00" → "−5,00"). */
 export function formatFixed(value: string, locale: DisplayLocale): string {
   const match = /^(-?)(\d+)\.(\d+)$/.exec(value.trim());
   if (!match) return value;
   const [, sign, int, frac] = match;
   const { group, decimal } = SEPARATORS[locale];
-  return `${sign}${int.replace(/\B(?=(\d{3})+(?!\d))/g, group)}${decimal}${frac}`;
+  return `${sign ? "\u2212" : ""}${int.replace(/\B(?=(\d{3})+(?!\d))/g, group)}${decimal}${frac}`;
+}
+
+/** Which input-verification label a calculated value shows: only a computed value has one, since
+ * "calculated from …" is untrue when nothing was calculated (audit AU-1). */
+export function calculationLabel(
+  r: Pick<CalculatedMetric, "status" | "input_verification">,
+): CalculatedMetric["input_verification"] {
+  return r.status === "computed" ? r.input_verification : null;
 }
 
 export function formatDecimal(value: string, locale: DisplayLocale): string {

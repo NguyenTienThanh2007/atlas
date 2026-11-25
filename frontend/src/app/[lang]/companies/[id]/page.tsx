@@ -7,6 +7,7 @@ import { errorText, getI18n, unitText, type Dictionary, type Locale } from "@/i1
 import { figureHref, safeHref, type FigureSource } from "@/lib/provenance";
 import {
   apiGet,
+  calculationLabel,
   formatDate,
   formatDecimal,
   formatFixed,
@@ -228,6 +229,7 @@ function CalculatedRow({ result: r, locale, t }: { result: CalculatedMetric; loc
   const vi = locale === "vi";
   const label = (x: { metric_code: string; metric_name_vi: string | null; metric_name_en: string | null }) =>
     (vi ? x.metric_name_vi : x.metric_name_en) ?? x.metric_code;
+  const verification = calculationLabel(r);
   const first = r.issues[0];
   const reason = first
     ? first.code === "missing_input"
@@ -250,9 +252,7 @@ function CalculatedRow({ result: r, locale, t }: { result: CalculatedMetric; loc
           <span className="text-sm text-brass">{reason}</span>
         )}
       </div>
-      {r.input_verification && (
-        <p className="mt-1 text-xs text-muted">{k.verification[r.input_verification]}</p>
-      )}
+      {verification && <p className="mt-1 text-xs text-muted">{k.verification[verification]}</p>}
       <details className="mt-2 text-xs text-muted">
         <summary className="cursor-pointer text-mist underline decoration-line underline-offset-2">{k.howTo}</summary>
         <p className="mt-2">{vi ? r.formula_text_vi : r.formula_text_en}</p>
