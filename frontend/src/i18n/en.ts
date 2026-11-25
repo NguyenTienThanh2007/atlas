@@ -75,6 +75,8 @@ export const en: Dictionary = {
     previous: "Previous",
     next: "Next",
     pageOf: (page, pages) => `Page ${page} of ${pages}`,
+    range: (from, to, total) => `Showing ${from}–${to} of ${total}`,
+    beyond: (page, total) => `Page ${page} has no items (${total} in total)`,
   },
   company: {
     back: "Companies",
@@ -94,6 +96,7 @@ export const en: Dictionary = {
     status: "Status",
     listed: "Listed",
     statements: "Financial statements",
+    statementsPages: "Financial statements pages",
     noStatements: "No financial statements have been imported for this company.",
     period: (year, quarter) => (quarter ? `FY${year} Q${quarter}` : `FY${year}`),
     restated: (revision) => `restated (revision ${revision})`,
@@ -117,6 +120,7 @@ export const en: Dictionary = {
     },
     calculated: {
       title: "Calculated ratios (computed by ATLAS)",
+      pages: "Calculated ratios pages",
       note: "ATLAS computes these ratios when you view them, from the annual reported figures above. They are not figures published by the company and are not stored.",
       none: "No annual income statement to calculate ratios from yet.",
       verification: {
@@ -128,6 +132,7 @@ export const en: Dictionary = {
       role: { numerator: "Numerator", denominator_closing: "Closing", denominator_opening: "Opening" },
       average: (value) => `Average denominator: ${value}`,
       reason: {
+        mixed_sample_and_real: "Not calculable: sample and real data are mixed",
         missing_input: (metric) => `Not calculable: missing input (${metric})`,
         missing_opening_balance: "Not calculable: opening balance missing",
         ambiguous_opening_balance: "Not calculable: more than one possible opening balance",

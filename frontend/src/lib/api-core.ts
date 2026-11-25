@@ -96,6 +96,7 @@ export type FinancialStatement = {
 // browser only formats them and never does arithmetic.
 export type CalculationRole = "numerator" | "denominator_closing" | "denominator_opening";
 export type CalculationReason =
+  | "mixed_sample_and_real"
   | "missing_input"
   | "missing_opening_balance"
   | "ambiguous_opening_balance"
@@ -218,6 +219,21 @@ export function formatFixed(value: string, locale: DisplayLocale): string {
   const [, sign, int, frac] = match;
   const { group, decimal } = SEPARATORS[locale];
   return `${sign ? "\u2212" : ""}${int.replace(/\B(?=(\d{3})+(?!\d))/g, group)}${decimal}${frac}`;
+}
+
+/** Unit of a ratio's average denominator, from its denominator inputs (audit AU-4). Null unless
+ * those inputs name exactly one unit: a currency is never guessed or defaulted. */
+export function denominatorUnit(r: Pick<CalculatedMetric, "inputs">): string | null {
+  const units = new Set(r.inputs.filter((i) => i.role !== "numerator").map((i) => i.unit).filter(Boolean));
+  return units.size === 1 ? [...units][0] : null;
+}
+
+/** Position of one page in a server-paginated list (audit AU-5): the 1-based item range shown,
+ * the page count, and whether the requested page lies past the end. */
+export function pageRange(page: number, pageSize: number, total: number) {
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const from = (page - 1) * pageSize + 1;
+  return { from, to: Math.min(page * pageSize, total), pages, beyond: total > 0 && page > pages };
 }
 
 /** Which input-verification label a calculated value shows: only a computed value has one, since

@@ -1,6 +1,6 @@
 # Phase 2 readiness
 
-## Status update (2026-11-25, verified on `main` @ `105869f`)
+## Status update (2026-11-25, verified on `main` @ `8007fe2`)
 
 Execution started on 2026-11-23 under the owner's **CONDITIONAL GO** (EX-1,
 [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2c). The assessment below is kept as written on
@@ -12,9 +12,12 @@ Execution started on 2026-11-23 under the owner's **CONDITIONAL GO** (EX-1,
 | WS2 Vietnamese-first UI (EX-3) | #4 | `78cf577` | [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45185760407), [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45185760378), [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45185760569) success | P2-4.11 PASS; P2-4.12 IN PROGRESS (glossary review) |
 | WS3 per-figure source transparency | #5 | `4be30b7` | [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45318642634) (201 passed), [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45318642611) (24/24), [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45318642530) success | P2-4.13 PASS |
 | WS4-1 metric dictionary 1.1.0 (WS4-D10, D12) | #6 | `105869f` | [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45532503338) (224 passed), [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45532503452) (25/25), [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45532503332) success | P2-5.1 progress; Phase 1 exit audit F-1, F-2 resolved |
-| WS4-2 ROE / ROA | none yet | none | local only (288 backend, 27 frontend; isolated Docker) | P2-5.11, 5.12, 5.17 PASS on branch `feat/ws4-2-roe-roa`, uncommitted ([WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md)) |
+| WS4-2 ROE / ROA | #7 | `2079101` | [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45538617789) (288 passed), [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45538617702) (27/27), [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45538617848) success | P2-5.11, 5.12, 5.17 PASS ([WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md)) |
+| WS4-2 audit fixes AU-1, AU-2 | #8 | `8007fe2` | [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45610139607) (28/28), [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45610139576) success; Backend not triggered (no backend change) | Display only ([WS4_2_AUDIT.md](WS4_2_AUDIT.md)); AU-3 to AU-6 open |
+| Audit fixes AU-3 (sample/real isolation, migration `8de09b58f4c2`), AU-4, AU-5 | not opened | none | local only: backend 314 passed, frontend 31/31, isolated Docker and browser ([WS4_2_AUDIT.md](WS4_2_AUDIT.md)) | Branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed; owner authorised |
+| WS4-3 period comparison | none | none | n/a (design only) | Decisions W3-D1 to W3-D10 approved 2026-11-25 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2e); implementation not authorised, not started |
 
-The four PRs were opened and merged by the owner's account; GitHub records no separate review
+PRs #3 to #8 were opened and merged by the owner's account; GitHub records no separate review
 (P2-8.11 stays NOT STARTED). Checklist: **31 / 83 PASS** (recounted from item lines).
 
 **Unchanged blockers:** Q-3 (no independent reviewer, so nothing can be VERIFIED), G1 (no legal

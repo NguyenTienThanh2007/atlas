@@ -105,6 +105,7 @@ test("proxy: rewrite Vietnamese, pass English, redirect /vi to the canonical URL
 
 test("every calculation reason and input label has text in both languages (WS4-2)", () => {
   const codes = [
+    "mixed_sample_and_real",
     "missing_input",
     "missing_opening_balance",
     "ambiguous_opening_balance",
@@ -124,4 +125,13 @@ test("every calculation reason and input label has text in both languages (WS4-2
   assert.equal(en.company.calculated.reason.missing_opening_balance, "Not calculable: opening balance missing");
   assert.equal(vi.company.calculated.verification.some_unverified, "Tính từ số liệu chưa kiểm chứng");
   assert.equal(en.company.calculated.verification.some_unverified, "Calculated from unverified figures");
+});
+
+test("pagination ranges and the mixed-data reason read naturally (AU-3, AU-5)", () => {
+  assert.equal(vi.pagination.range(1, 20, 85), "Đang hiển thị 1–20 / 85");
+  assert.equal(en.pagination.range(1, 20, 85), "Showing 1–20 of 85");
+  assert.match(vi.pagination.beyond(9, 85), /Trang 9 không có mục nào/);
+  assert.match(en.pagination.beyond(9, 85), /Page 9 has no items/);
+  assert.equal(vi.company.calculated.reason.mixed_sample_and_real, "Không tính được: dữ liệu mẫu và dữ liệu thật bị trộn lẫn");
+  assert.equal(en.company.calculated.reason.mixed_sample_and_real, "Not calculable: sample and real data are mixed");
 });

@@ -7,8 +7,10 @@ import {
   formatDate,
   formatDecimal,
   calculationLabel,
+  denominatorUnit,
   formatFixed,
   metricLabel,
+  pageRange,
   pageNumber,
   SECTOR_CODE,
 } from "./api-core.ts";
@@ -115,4 +117,27 @@ test("only a computed ratio shows an input-verification label (audit AU-1)", () 
   assert.equal(calculationLabel({ status: "computed", input_verification: "all_verified" }), "all_verified");
   assert.equal(calculationLabel({ status: "not_computable", input_verification: "some_unverified" }), null);
   assert.equal(calculationLabel({ status: "not_computable", input_verification: null }), null);
+});
+
+const input = (role: "numerator" | "denominator_closing" | "denominator_opening", unit: string) => ({ role, unit });
+
+test("the average's unit comes from the denominator inputs, never a default currency (AU-4)", () => {
+  // ROE and ROA alike: the numerator's unit is not the denominator's.
+  const roe = [input("numerator", "VND"), input("denominator_closing", "VND"), input("denominator_opening", "VND")];
+  assert.equal(denominatorUnit({ inputs: roe } as never), "VND");
+  const usd = [input("numerator", "USD"), input("denominator_closing", "USD"), input("denominator_opening", "USD")];
+  assert.equal(denominatorUnit({ inputs: usd } as never), "USD");
+  assert.equal(denominatorUnit({ inputs: [input("numerator", "VND")] } as never), null); // no denominator input
+  assert.equal(denominatorUnit({ inputs: [input("denominator_closing", "")] } as never), null); // no unit metadata
+  const mixed = [input("denominator_closing", "VND"), input("denominator_opening", "USD")];
+  assert.equal(denominatorUnit({ inputs: mixed } as never), null); // mismatch: no unit is claimed
+});
+
+test("page ranges for server-paginated lists (AU-5)", () => {
+  assert.deepEqual(pageRange(1, 20, 85), { from: 1, to: 20, pages: 5, beyond: false });
+  assert.deepEqual(pageRange(3, 20, 85), { from: 41, to: 60, pages: 5, beyond: false });
+  assert.deepEqual(pageRange(5, 20, 85), { from: 81, to: 85, pages: 5, beyond: false });
+  assert.deepEqual(pageRange(6, 20, 85), { from: 101, to: 85, pages: 5, beyond: true });
+  assert.deepEqual(pageRange(1, 20, 0), { from: 1, to: 0, pages: 1, beyond: false });
+  assert.deepEqual(pageRange(1, 20, 20), { from: 1, to: 20, pages: 1, beyond: false });
 });

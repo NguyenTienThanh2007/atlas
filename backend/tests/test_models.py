@@ -70,9 +70,11 @@ def new_security(db: Session, company: Company, ticker: str = "TST", **kw: objec
 
 
 def new_statement(db: Session, company: Company, **kw: object) -> FinancialStatement:
+    # Evidence matches the company's classification (sample/real isolation, AU-3).
+    sample = company.is_sample
     src = DataSource(
         name=f"src-{uuid.uuid4()}",
-        source_type=SourceType.COMPANY_DISCLOSURE,
+        source_type=SourceType.SAMPLE_FIXTURE if sample else SourceType.COMPANY_DISCLOSURE,
         description="test",
         access_method=AccessMethod.FILE_IMPORT,
     )
@@ -85,7 +87,7 @@ def new_statement(db: Session, company: Company, **kw: object) -> FinancialState
         entity_id=sid,
         source_url="https://example.test/fs.pdf",
         retrieved_at=datetime.now(UTC),
-        verification_status=VerificationStatus.UNVERIFIED,
+        verification_status=VerificationStatus.SAMPLE if sample else VerificationStatus.UNVERIFIED,
     )
     db.add(ev)
     db.flush()

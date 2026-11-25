@@ -83,6 +83,8 @@ export const vi = {
     previous: "Trang trước",
     next: "Trang sau",
     pageOf: (page: number, pages: number) => `Trang ${page}/${pages}`,
+    range: (from: number, to: number, total: number) => `Đang hiển thị ${from}–${to} / ${total}`,
+    beyond: (page: number, total: number) => `Trang ${page} không có mục nào (tổng cộng ${total} mục)`,
   },
   company: {
     back: "Doanh nghiệp",
@@ -102,6 +104,7 @@ export const vi = {
     status: "Trạng thái",
     listed: "Ngày niêm yết",
     statements: "Báo cáo tài chính",
+    statementsPages: "Phân trang báo cáo tài chính",
     noStatements: "Chưa có báo cáo tài chính nào được nhập cho doanh nghiệp này.",
     period: (year: number, quarter: number | null) =>
       quarter ? `Quý ${quarter}/${year}` : `Năm tài chính ${year}`,
@@ -126,6 +129,7 @@ export const vi = {
     },
     calculated: {
       title: "Chỉ số tính toán (do ATLAS tính)",
+      pages: "Phân trang chỉ số tính toán",
       note: "ATLAS tính các chỉ số này khi bạn xem, từ số liệu báo cáo năm ở trên. Đây không phải số liệu doanh nghiệp công bố và không được lưu lại.",
       none: "Chưa có báo cáo kết quả kinh doanh năm nào để tính chỉ số.",
       verification: {
@@ -137,6 +141,7 @@ export const vi = {
       role: { numerator: "Tử số", denominator_closing: "Cuối kỳ", denominator_opening: "Đầu kỳ" },
       average: (value: string) => `Bình quân mẫu số: ${value}`,
       reason: {
+        mixed_sample_and_real: "Không tính được: dữ liệu mẫu và dữ liệu thật bị trộn lẫn",
         missing_input: (metric: string) => `Không tính được: thiếu số liệu đầu vào (${metric})`,
         missing_opening_balance: "Không tính được: thiếu số dư đầu kỳ",
         ambiguous_opening_balance: "Không tính được: có nhiều hơn một số dư đầu kỳ phù hợp",

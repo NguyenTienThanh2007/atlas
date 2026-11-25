@@ -3,7 +3,7 @@
 Vietnam Investment Discovery World: a platform for exploring Vietnam's listed economy by sector,
 company and region.
 
-**Status (2026-11-25, `main` @ `105869f`):** Phase 0 complete. Phase 1 software complete; its exit audit is a
+**Status (2026-11-25, `main` @ `8007fe2`):** Phase 0 complete. Phase 1 software complete; its exit audit is a
 **conditional pass** because non-software data blockers remain ([exit audit](docs/PHASE_1_EXIT_AUDIT.md)).
 Phase 2 planning complete; **Phase 2 execution in progress under a conditional go** (see
 [readiness](docs/PHASE_2_READINESS.md) and [roadmap](docs/ROADMAP.md)). 0 companies verified. The domain model (companies,
@@ -29,8 +29,9 @@ Workstream 2 made the interface **Vietnamese-first**, with English at `/en`
 10 items are **blocked**, mostly on the legal opinion (G1). No real data is loaded.
 Workstream 4 (ROE, ROA, missing data, period comparison, bank metrics) is specified, with the
 owner's decisions recorded on 2026-11-24 ([docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md](docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md)).
-WS4-1 (metric dictionary 1.1.0) is merged (PR #6). WS4-2 (ROE, ROA) is implemented on a branch, not yet merged
-([docs/WS4_2_CHECKLIST.md](docs/WS4_2_CHECKLIST.md)).
+WS4-1 (metric dictionary 1.1.0) is merged (PR #6). WS4-2 (ROE, ROA) is merged (PR #7, with display
+fixes in PR #8; review in [docs/WS4_2_AUDIT.md](docs/WS4_2_AUDIT.md)). WS4-3 (period comparison) is
+a plan awaiting owner decisions ([docs/WS4_3_IMPLEMENTATION_PLAN.md](docs/WS4_3_IMPLEMENTATION_PLAN.md)).
 
 **Product direction (approved 2026-11-23):** start with Vietnamese investors learning to research
 listed companies, with a Vietnamese-first interface; offer plain-language profiles where every
@@ -146,7 +147,8 @@ Example response:
 - Metric definitions and bank / non-bank applicability exist (dictionary 1.1.0), but companies have
   no bank / non-bank type yet, so a figure can't be shown as "not applicable" per company.
 - ROE and ROA (WS4-2) are computed from unverified inputs until an independent reviewer exists (Q-3),
-  and are labelled so; growth and other ratios are not implemented.
+  and are labelled so; growth and other ratios are not implemented. Period comparison (WS4-3) is
+  designed and its decisions approved, but not built.
 - No authentication, and no price or market-event data.
 - The 3D world view is not implemented; the Discover page only reserves space for it.
 - `.env.example` credentials are for local development only. A production deployment needs
