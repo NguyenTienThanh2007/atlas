@@ -6,6 +6,7 @@ import {
   fetchJson,
   formatDate,
   formatDecimal,
+  calculationLabel,
   formatFixed,
   metricLabel,
   pageNumber,
@@ -100,9 +101,18 @@ test("metric labels use the current dictionary name, never a stale stored one", 
 test("fixed-point values keep their decimals and are never recomputed", () => {
   assert.equal(formatFixed("18.30", "vi"), "18,30");
   assert.equal(formatFixed("18.30", "en"), "18.30");
-  assert.equal(formatFixed("-5.00", "vi"), "-5,00");
+  assert.equal(formatFixed("-5.00", "vi"), "\u22125,00"); // minus sign U+2212 (WS4-D8)
+  assert.equal(formatFixed("-45.45", "en"), "\u221245.45");
+  assert.ok(!formatFixed("-1.00", "vi").includes("-"));
   assert.equal(formatFixed("0.00", "en"), "0.00");
   assert.equal(formatFixed("1234567.10", "vi"), "1.234.567,10");
   assert.equal(formatFixed("99999999999999999999999999999999.99", "en"), "99,999,999,999,999,999,999,999,999,999,999.99");
   assert.equal(formatFixed("1E-10", "vi"), "1E-10"); // not a fixed-point string: shown as is
+});
+
+test("only a computed ratio shows an input-verification label (audit AU-1)", () => {
+  assert.equal(calculationLabel({ status: "computed", input_verification: "some_unverified" }), "some_unverified");
+  assert.equal(calculationLabel({ status: "computed", input_verification: "all_verified" }), "all_verified");
+  assert.equal(calculationLabel({ status: "not_computable", input_verification: "some_unverified" }), null);
+  assert.equal(calculationLabel({ status: "not_computable", input_verification: null }), null);
 });

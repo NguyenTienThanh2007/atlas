@@ -134,6 +134,13 @@ if (companyId && !OFFLINE) {
     // WS4-2: each calculated ratio shows the API's percentage, or the reason it can't be computed.
     const page = text(html);
     const k = (lang === "vi" ? dictVi : dictEn).company.calculated;
+    // Audit AU-1: only computed ratios carry an input-verification label.
+    for (const [key, label] of Object.entries(k.verification)) {
+      if (key === "sample") continue; // same text as the page's sample badge
+      const expected = calculated.items.filter((r) => r.status === "computed" && r.input_verification === key).length;
+      const shown = page.split(label).length - 1;
+      check(shown === expected, `${url}: "${label}" shown ${shown} times, expected ${expected}`);
+    }
     for (const r of calculated.items) {
       check(page.includes(lang === "vi" ? r.name_vi : r.name_en), `${url}: ${r.formula_id} name missing`);
       if (r.percent !== null) {
