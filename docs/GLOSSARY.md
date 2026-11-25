@@ -71,6 +71,9 @@ label text (WS4-D7); the verification statuses above use "xác minh". The review
 | Calculated from verified / unverified figures | Tính từ số liệu đã kiểm chứng / chưa kiểm chứng | Calculated from verified / unverified figures |
 | Not calculable / not meaningful | Không tính được / Không có ý nghĩa | Not calculable / Not meaningful |
 | Opening balance | Số dư đầu kỳ | Opening balance |
+| Sample and real data mixed (audit AU-3) | Không tính được: dữ liệu mẫu và dữ liệu thật bị trộn lẫn | Not calculable: sample and real data are mixed |
+| Page range (audit AU-5) | Đang hiển thị 1–20 / 85 | Showing 1–20 of 85 |
+| Past the last page | Trang 9 không có mục nào (tổng cộng 85 mục) | Page 9 has no items (85 in total) |
 
 ## Navigation
 

@@ -5,6 +5,7 @@ from datetime import date
 from decimal import Decimal
 from fractions import Fraction
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -13,6 +14,7 @@ from app.calculations.ratios import (
     REGISTRY,
     Figure,
     Issue,
+    Outcome,
     Role,
     compute,
     formulas_for,
@@ -32,6 +34,11 @@ def fig(role: Role, value: str, status: VerificationStatus = U, unit: str = "VND
     return Figure(
         role, code, END if role != "denominator_opening" else OPEN, D(value), unit, "VND", status
     )
+
+
+def calc(formula: Any, figures: list[Figure], issues: list[Issue], sample: bool = False) -> Outcome:
+    """compute() for a real (or, with sample=True, a sample) company whose data isn't mixed."""
+    return compute(formula, figures, issues, company_is_sample=sample, company_mixed=False)
 
 
 def three(num: str, opening: str, closing: str, status: VerificationStatus = U) -> list[Figure]:
@@ -141,7 +148,7 @@ def test_a_non_positive_denominator_is_never_divided() -> None:
 
 
 def test_computed_ratio_average_and_percent() -> None:
-    out = compute(ROE_C, three("30", "180", "220"), [])
+    out = calc(ROE_C, three("30", "180", "220"), [])
     assert out.issues == () and out.reason is None
     assert (format(out.value, "f"), format(out.percent, "f"), format(out.average, "f")) == (
         "0.1500000000",
@@ -151,15 +158,15 @@ def test_computed_ratio_average_and_percent() -> None:
 
 
 def test_average_is_exact_never_rounded() -> None:
-    out = compute(ROE_C, three("1", "0.000001", "0.000002"), [])
+    out = calc(ROE_C, three("1", "0.000001", "0.000002"), [])
     assert format(out.average, "f") == "0.0000015"
     big = "99999999999999999999999999999999.999999"
-    out = compute(ROE_C, three("1", big, "99999999999999999999999999999999.999998"), [])
+    out = calc(ROE_C, three("1", big, "99999999999999999999999999999999.999998"), [])
     assert format(out.average, "f") == "99999999999999999999999999999999.9999985"
 
 
 def test_loss_gives_a_negative_ratio() -> None:
-    out = compute(ROE_C, three("-30", "180", "220"), [])
+    out = calc(ROE_C, three("-30", "180", "220"), [])
     assert (format(out.value, "f"), format(out.percent, "f")) == ("-0.1500000000", "-15.00")
 
 
@@ -175,13 +182,13 @@ def test_loss_gives_a_negative_ratio() -> None:
 def test_non_positive_equity_is_not_meaningful(
     opening: str, closing: str, roles: list[str]
 ) -> None:
-    out = compute(ROE_C, three("30", opening, closing), [])
+    out = calc(ROE_C, three("30", opening, closing), [])
     assert out.value is None and out.percent is None and out.average is None
     assert [(i.code, i.role) for i in out.issues] == [("equity_not_positive", r) for r in roles]
 
 
 def test_non_positive_assets_use_their_own_reason() -> None:
-    out = compute(ROA_C, three("30", "0", "100"), [])
+    out = calc(ROA_C, three("30", "0", "100"), [])
     assert out.reason == "assets_not_positive"
 
 
@@ -196,7 +203,7 @@ def test_non_positive_assets_use_their_own_reason() -> None:
 def test_refused_evidence_states(status: VerificationStatus, code: str) -> None:
     figures = three("30", "180", "220")
     figures[2] = fig("denominator_closing", "220", status)
-    out = compute(ROE_C, figures, [])
+    out = calc(ROE_C, figures, [])
     assert out.value is None and out.reason == code
     assert [(i.code, i.role) for i in out.issues] == [(code, "denominator_closing")]
 
@@ -204,7 +211,7 @@ def test_refused_evidence_states(status: VerificationStatus, code: str) -> None:
 def test_unit_mismatch_is_refused() -> None:
     figures = three("30", "180", "220")
     figures[0] = fig("numerator", "30", unit="VND/share")
-    assert compute(ROE_C, figures, []).reason == "unit_mismatch"
+    assert calc(ROE_C, figures, []).reason == "unit_mismatch"
 
 
 def test_simultaneous_issues_are_all_listed_in_precedence_order() -> None:
@@ -213,7 +220,7 @@ def test_simultaneous_issues_are_all_listed_in_precedence_order() -> None:
         fig("denominator_opening", "-1", VerificationStatus.REJECTED),
     ]
     missing = [Issue("missing_input", "numerator", "net_profit_parent", END)]
-    out = compute(ROE_C, figures, missing)
+    out = calc(ROE_C, figures, missing)
     assert [(i.code, i.role) for i in out.issues] == [
         ("missing_input", "numerator"),
         ("input_disputed_or_rejected", "denominator_opening"),
@@ -228,7 +235,7 @@ def test_issue_ties_are_ordered_by_role() -> None:
         Issue("missing_input", "denominator_closing", "equity_parent", END),
         Issue("missing_input", "numerator", "net_profit_parent", END),
     ]
-    out = compute(ROE_C, [], issues)
+    out = calc(ROE_C, [], issues)
     assert [(i.code, i.role) for i in out.issues] == [
         ("missing_input", "numerator"),
         ("missing_input", "denominator_closing"),
@@ -248,7 +255,7 @@ def test_issue_ties_are_ordered_by_role() -> None:
 def test_input_verification_label(statuses: list[VerificationStatus], label: str) -> None:
     figures = three("30", "180", "220")
     figures = [fig(f.role, str(f.value), s) for f, s in zip(figures, statuses, strict=True)]
-    out = compute(ROE_C, figures, [])
+    out = calc(ROE_C, figures, [], sample=label == "sample")
     assert out.input_verification == label and out.value is not None
 
 
@@ -256,3 +263,55 @@ def test_calculation_modules_never_use_float() -> None:
     package = Path(ratios.__file__).parent
     for path in package.glob("*.py"):
         assert "float" not in path.read_text(encoding="utf-8"), path.name
+
+
+# ---------------------------------------------------------------- sample/real isolation (AU-3)
+
+
+@pytest.mark.parametrize(
+    ("company_is_sample", "statuses", "mixed_roles"),
+    [
+        # real company, one sample input
+        (False, [U, VerificationStatus.SAMPLE, U], ["denominator_opening"]),
+        # sample company, one real input
+        (True, [VerificationStatus.SAMPLE, VerificationStatus.SAMPLE, U], ["denominator_closing"]),
+        # real company, all inputs sample: every one is refused
+        (
+            False,
+            [VerificationStatus.SAMPLE] * 3,
+            ["numerator", "denominator_closing", "denominator_opening"],
+        ),
+    ],
+)
+def test_mixed_sample_and_real_inputs_are_refused(
+    company_is_sample: bool, statuses: list[VerificationStatus], mixed_roles: list[str]
+) -> None:
+    figures = [
+        fig(f.role, str(f.value), st)
+        for f, st in zip(three("30", "180", "220"), statuses, strict=True)
+    ]
+    out = compute(ROE_C, figures, [], company_is_sample=company_is_sample, company_mixed=False)
+    assert (out.value, out.percent, out.average) == (None, None, None)
+    assert out.reason == "mixed_sample_and_real"
+    assert [i.role for i in out.issues] == mixed_roles
+    assert out.input_verification is None  # no "sample" or "unverified" label hides the mix
+
+
+def test_company_level_mix_refuses_even_consistent_inputs() -> None:
+    out = compute(ROE_C, three("30", "180", "220"), [], company_is_sample=False, company_mixed=True)
+    assert out.reason == "mixed_sample_and_real" and out.value is None
+    assert len(out.issues) == 3 and out.input_verification is None
+
+
+def test_mixed_data_outranks_every_other_reason() -> None:
+    figures = [
+        fig("denominator_closing", "-1", VerificationStatus.REJECTED),
+        fig("denominator_opening", "180", VerificationStatus.SAMPLE),
+    ]
+    missing = [Issue("missing_input", "numerator", "net_profit_parent", END)]
+    out = compute(ROE_C, figures, missing, company_is_sample=False, company_mixed=False)
+    assert [(i.code, i.role) for i in out.issues] == [
+        ("mixed_sample_and_real", "denominator_opening"),
+        ("missing_input", "numerator"),
+        ("input_disputed_or_rejected", "denominator_closing"),
+    ]

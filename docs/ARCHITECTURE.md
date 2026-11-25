@@ -85,11 +85,20 @@ Design decisions:
 - **Evidence is polymorphic** (`entity_type`, `entity_id`) and has no foreign key on `entity_id`.
   Integrity is enforced by the importer, which creates evidence only for rows it just resolved
   or created.
+- **Sample and real data never mix** (audit AU-3, migration `8de09b58f4c2`). A company is sample
+  or real (`is_sample`); all of its evidence, including each statement's source evidence, must
+  carry the same classification (`verification_status = 'sample'` or not). Triggers on
+  `financial_statements`, `evidence`, `companies` and `securities` refuse any write that would
+  break this (`check_violation`), take `FOR SHARE` on the company row so concurrent writes
+  serialise, and evidence can never change between sample and real. The calculation engine checks
+  the same rule again and refuses mixed inputs (`mixed_sample_and_real`).
 - **Timestamps** are `timestamptz`. Business dates (listing dates, reporting periods) are `date`.
 - **Enums** are `VARCHAR` plus `CHECK` (not native PG enums), which keeps migrations simple and
   reversible.
 
-Migrations: `2fa53e542881` (baseline) → `981ec5176312` (domain model with append-only triggers).
+Migrations: `2fa53e542881` (baseline) → `981ec5176312` (domain model with append-only triggers)
+→ `31b1317163eb` (verification reviews and figure provenance, WS1) → `8de09b58f4c2` (sample/real
+isolation, audit AU-3; upgrade refuses existing mixed data and changes nothing).
 Both downgrade cleanly, and a test checks the round trip.
 
 ### Ingestion

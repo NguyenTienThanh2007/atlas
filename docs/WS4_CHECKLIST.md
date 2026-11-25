@@ -1,13 +1,13 @@
 # WS4 checklist: financial intelligence foundation
 
 Acceptance checklist for [WS4_FINANCIAL_INTELLIGENCE_PLAN.md](WS4_FINANCIAL_INTELLIGENCE_PLAN.md).
-WS4-1 (metric dictionary 1.1.0) is merged (PR #6). WS4-2 (ROE, ROA) is implemented on a branch,
-uncommitted. WS4-2 has its own
+WS4-1 (metric dictionary 1.1.0) is merged (PR #6). WS4-2 (ROE, ROA) is merged (PR #7, `2079101`),
+with display fixes AU-1 and AU-2 merged in PR #8 (`8007fe2`). WS4-2 has its own
 checklist: [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md).
 
 | | |
 | --- | --- |
-| Last verified | 2026-11-25: `main` @ `105869f`; WS4-2 on branch `feat/ws4-2-roe-roa`, uncommitted |
+| Last verified | 2026-11-25, `main` @ `8007fe2` (PRs #7 and #8 merged, CI green) |
 | Statuses | `NOT STARTED`, `IN PROGRESS`, `PASS`, `BLOCKED`, `FAIL` only |
 | Owner approval | "Yes" means the item can't pass until the project owner decides (decision ids WS4-D1 to D11 in the plan, §12) |
 
@@ -68,7 +68,7 @@ Phase B), which stay IN PROGRESS as open questions.
 | WS4-C4 | Missing-data rules written | PASS | Missing opening balance → not computable, no silent fallback | Plan §4.3, including WS4-D12: missing `equity_parent` → consolidated ROE not computable; never derived, never `total_equity` | None | No |
 | WS4-C5 | Edge cases written | PASS | Negative/zero equity, scope change, restatement, fiscal-year change, precision | Plan §4.3 | None | No |
 | WS4-C6 | Owner approval recorded before implementation | PASS | Decision recorded with formula id and version | WS4-D1, D3 and D10 (G-4) recorded, [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d; formula ids `roe_parent_avg_equity`, `roe_separate_avg_equity`, version 1 | WS4-D1, D3, D10 | Yes |
-| WS4-C7 | ROE implemented and tested | PASS | Matches the approved formula; tests in §11 pass | Registry entries `roe_parent_avg_equity` and `roe_separate_avg_equity` v1; WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | WS4-C6 | Yes |
+| WS4-C7 | ROE implemented and tested | PASS | Matches the approved formula; tests in §11 pass | Registry entries `roe_parent_avg_equity` and `roe_separate_avg_equity` v1; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | WS4-C6 | Yes |
 
 ## D. ROA
 
@@ -80,7 +80,7 @@ Phase B), which stay IN PROGRESS as open questions.
 | WS4-D-4 | Missing-data rules written | PASS | Missing opening assets → not computable | Plan §5.3, §4.3 | None | No |
 | WS4-D-5 | Edge cases written | PASS | Zero/negative assets, consolidated vs separate, restatements | Plan §5.3 | None | No |
 | WS4-D-6 | Owner approval recorded before implementation | PASS | Decision recorded with formula id and version | WS4-D2, D3 recorded, [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d | WS4-D2, D3 | Yes |
-| WS4-D-7 | ROA implemented and tested | PASS | Matches the approved formula; tests in §11 pass | Registry entry `roa_avg_assets` v1 per scope; WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | WS4-D-6 | Yes |
+| WS4-D-7 | ROA implemented and tested | PASS | Matches the approved formula; tests in §11 pass | Registry entry `roa_avg_assets` v1 per scope; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | WS4-D-6 | Yes |
 
 (Group D item ids carry a hyphen, `WS4-D-n`, so they can't be confused with decisions `WS4-Dn`.)
 
@@ -133,30 +133,30 @@ Phase B), which stay IN PROGRESS as open questions.
 | WS4-H6 | Verification semantics proposal | PASS | Calculated values have no own status and are never VERIFIED | Plan §9.3 | None | No |
 | WS4-H7 | Display and rounding proposal | PASS | Scales, decimals, rounding mode, negatives, exact value kept | Plan §10 | None | No |
 | WS4-H8 | Owner approval | PASS | Verification semantics, display rules and pilot display of unverified inputs approved | WS4-D7, D8, D11 recorded, [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d | WS4-D7, D8, D11 | Yes |
-| WS4-H9 | Implemented and tested | PASS | API and UI tests in plan §11 pass | `GET /api/v1/companies/{id}/calculated-metrics` and the company-page section; WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | WS4-H8 | Yes |
+| WS4-H9 | Implemented and tested | PASS | API and UI tests in plan §11 pass | `GET /api/v1/companies/{id}/calculated-metrics` and the company-page section; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | WS4-H8 | Yes |
 
 ## I. Testing strategy
 
 | ID | Item | Status | Acceptance criteria | Evidence | Dependencies | Owner approval |
 | --- | --- | --- | --- | --- | --- | --- |
 | WS4-I1 | Test strategy documented | PASS | Each layer and case family listed | Plan §11 | None | No |
-| WS4-I2 | Unit tests | PASS | Formulas with exact expected strings | `backend/tests/test_ratios.py` (37); WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | Implementation | No |
-| WS4-I3 | API tests | PASS | Shape, strings, reasons, OpenAPI | `backend/tests/test_calculated_metrics.py` (27) incl. OpenAPI; WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | Implementation | No |
-| WS4-I4 | Integration tests | PASS | Fixture → API → page in vi and en | Isolated Docker stack with a fictional bundle: route check compares API and page in vi and en (DK); WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | Implementation | No |
-| WS4-I5 | Decimal precision tests | PASS | 32-digit inputs; no float drift | Exact `Fraction` oracle, values near 10^32, fixed-point JSON checks; WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | Implementation | No |
-| WS4-I6 | Missing-data tests | IN PROGRESS | Absence never 0; N/A only via dictionary | Done: absence is never zero and stops the calculation (`missing_input`, `missing_opening_balance`), WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR). Remaining: showing the D6 states for reported figures in the UI (later WS4 step) | Implementation | No |
-| WS4-I7 | Period alignment tests | PASS | Valid and refused pairs | ±7-day window, non-calendar year, closing date, quarterly exclusion tests; WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | Implementation | No |
-| WS4-I8 | Restatement tests | PASS | Latest revision used and disclosed | `test_latest_revision_is_used_and_disclosed`, `test_bad_latest_revision_never_falls_back[*]`; WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | Implementation | No |
+| WS4-I2 | Unit tests | PASS | Formulas with exact expected strings | `backend/tests/test_ratios.py` (37); WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
+| WS4-I3 | API tests | PASS | Shape, strings, reasons, OpenAPI | `backend/tests/test_calculated_metrics.py` (27) incl. OpenAPI; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
+| WS4-I4 | Integration tests | PASS | Fixture → API → page in vi and en | Isolated Docker stack with a fictional bundle: route check compares API and page in vi and en (DK); WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
+| WS4-I5 | Decimal precision tests | PASS | 32-digit inputs; no float drift | Exact `Fraction` oracle, values near 10^32, fixed-point JSON checks; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
+| WS4-I6 | Missing-data tests | IN PROGRESS | Absence never 0; N/A only via dictionary | Done: absence is never zero and stops the calculation (`missing_input`, `missing_opening_balance`), WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101`. Remaining: showing the D6 states for reported figures in the UI (later WS4 step) | Implementation | No |
+| WS4-I7 | Period alignment tests | PASS | Valid and refused pairs | ±7-day window, non-calendar year, closing date, quarterly exclusion tests; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
+| WS4-I8 | Restatement tests | PASS | Latest revision used and disclosed | `test_latest_revision_is_used_and_disclosed`, `test_bad_latest_revision_never_falls_back[*]`; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
 | WS4-I9 | Bank / non-bank tests | NOT STARTED | Bank fixture N/A cases; non-bank unchanged | Test run | Implementation | No |
-| WS4-I10 | Regression tests | PASS | Existing backend (201) and frontend (24) suites green after WS4 | All earlier tests still pass: backend 288 (224 before WS4-2), frontend 27 (25 before); WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | Implementation | No |
+| WS4-I10 | Regression tests | PASS | Existing backend (201) and frontend (24) suites green after WS4 | All earlier tests still pass: backend 288 (224 before WS4-2), frontend 27 (25 before); WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
 
 ## J. Approval and implementation readiness
 
 | ID | Item | Status | Acceptance criteria | Evidence | Dependencies | Owner approval |
 | --- | --- | --- | --- | --- | --- | --- |
 | WS4-J1 | All owner decisions identified | PASS | Each has situation, options, recommendation, trade-offs, risks, effect if undecided | Plan §12 (WS4-D1 to D11) | None | No |
-| WS4-J2 | No unapproved formulas implemented | PASS | No ROE/ROA or other calculated metric in code | Only the approved formulas exist: the registry is pinned by `test_registry_is_exactly_the_approved_formulas` (WS4-D1, D2, D3); no growth or other ratio is implemented. WS4-2 on branch `feat/ws4-2-roe-roa` (2026-11-25, uncommitted; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) | None | No |
-| WS4-J3 | No unauthorized schema changes | PASS | No new migration or model change | `git diff 4be30b7 105869f -- backend/migrations backend/app/models.py` is empty; Backend CI on `105869f`: `alembic check` "No new upgrade operations detected" | None | No |
+| WS4-J2 | No unapproved formulas implemented | PASS | No ROE/ROA or other calculated metric in code | Only the approved formulas exist: the registry is pinned by `test_registry_is_exactly_the_approved_formulas` (WS4-D1, D2, D3); no growth or other ratio is implemented. WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | None | No |
+| WS4-J3 | No unauthorized schema changes | PASS | No new migration or model change | `git diff 4be30b7 105869f -- backend/migrations backend/app/models.py` is empty; Backend CI on `105869f`: `alembic check` "No new upgrade operations detected". 2026-11-25: the audit fix AU-3 adds migration `8de09b58f4c2` (triggers only, no table or column change), explicitly authorised by the owner (branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed) | None | No |
 | WS4-J4 | No real financial data added | PASS | No figures, company names or tickers of real companies in the repo changes | Diff adds no figures to `data/`; test values are fictional (`example.test`, `TST`) and exist only inside tests; pilot names absent (A-11 §5) | None | No |
 | WS4-J5 | WS4 implementation scope defined | PASS | Steps, dependencies, schema impact | Plan §13 | None | No |
 | WS4-J6 | Exit criteria documented | PASS | Measurable exit criteria | Plan §13 | None | No |

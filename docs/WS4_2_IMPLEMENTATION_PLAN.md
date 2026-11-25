@@ -1,7 +1,8 @@
 # WS4-2: ROE and ROA implementation plan
 
-**Status: DESIGN APPROVED and implementation authorised 2026-11-25. Implemented on branch
-`feat/ws4-2-roe-roa` (uncommitted);** evidence in [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md). No code, schema, migration or data change is
+**Status: DESIGN APPROVED and implementation authorised 2026-11-25. Merged as PR #7
+(`2079101`)** with display fixes in PR #8 (`8007fe2`); evidence in [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md),
+review in [WS4_2_AUDIT.md](WS4_2_AUDIT.md). No code, schema, migration or data change is
 part of this document. The formulas are already approved (WS4-D1, D2, D3, D7, D8, D11, D12 in
 [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d). This plan only says how to build them. It adds no
 new formula, metric or decision; the few design choices that need the owner are listed in §12.
@@ -132,7 +133,7 @@ taken as it is. **ATLAS never falls back to an older revision**, whatever the la
 | --- | --- | --- |
 | `verified` | Yes | Counts toward `all_verified` |
 | `unverified` | Yes | Result is `some_unverified` |
-| `sample` | Yes, only for a sample company | Result is `sample`. Database rules already stop sample and real records from mixing within one company, so a result can't combine them |
+| `sample` | Yes, only for a sample company | Result is `sample`. The importer (not the database) keeps sample and real records apart within one company; see audit AU-3 for the direct-write gap |
 | `disputed` | **No** | `input_disputed_or_rejected`; not computed |
 | `rejected` | **No** | `input_disputed_or_rejected`; not computed |
 | `superseded` | **No** | `input_superseded`; not computed. The older revision is not used instead |
@@ -264,7 +265,7 @@ All data fictional (`example.test`, `TST` tickers), created inside tests only.
 | Opening selection | Calendar FY; non-calendar FY (ends 31 March); opening dated within ±7 days → used; 8 days away → `missing_opening_balance`; two candidates in the window → `ambiguous_opening_balance`; a FY *t*−2 or FY *t* balance sheet near the date → never a candidate; quarterly balance sheet on the date → ignored; closing date differs from the income statement end → `missing_input` |
 | Scope | Consolidated and separate computed independently; a separate opening balance never pairs with a consolidated closing; separate ROE uses `total_equity` |
 | Revisions and evidence | Restated balance sheet → latest revision used and returned; each of `verified`, `unverified`, `sample` used with the right label; `disputed`, `rejected`, `superseded` on the latest revision → refused, and the older revision (with good evidence) is **not** used; reviews created through the WS1 path |
-| Sample isolation | Sample company → `input_verification = sample`; real company results never include sample inputs (database rules) |
+| Sample isolation | Sample company → `input_verification = sample`; real company results never include sample inputs through the importer (a direct database write can; audit AU-3) |
 | API | Shape and OpenAPI; 404 unknown company; filters; pagination; no private fields; no `verification_status`; nothing written (row counts unchanged); fixed query count |
 | Frontend | `formatFixed` keeps decimals (vi `18,30%`, en `18.30%`, `-5,00%`); every reason label in vi and en; key parity; no `Number()` or `parseFloat` on values; route check compares rendered percentages with the API strings |
 | Regression | All 224 backend and 25 frontend tests stay green; WS3 provenance tests unchanged |
@@ -293,7 +294,8 @@ All data fictional (`example.test`, `TST` tickers), created inside tests only.
 - No writes, no caches, no background jobs; nothing stored, so no stale calculated values.
 - Exact `Decimal` only; the response model types values as `Decimal`, serialised as strings.
 - Provenance reuses WS3's `linkable_url` checks; no new URL handling; no private evidence fields.
-- Sample and real data can't mix (existing database rules), and sample inputs are labelled `sample`.
+- Sample and real data are kept apart by the importer (not by a database constraint; audit AU-3), and
+  sample inputs are labelled `sample`.
 - Display stays private-pilot only: no deployment exists, and public display waits on G1.
 
 ## 12. Design points (approved by the owner 2026-11-25)

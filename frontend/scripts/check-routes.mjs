@@ -95,7 +95,7 @@ const companyId = process.env.PROVENANCE_COMPANY_ID;
 if (companyId && !OFFLINE) {
   const api = process.env.API_URL ?? "http://localhost:8000";
   const body = await (await fetch(`${api}/api/v1/companies/${companyId}/financial-statements`)).json();
-  const calculated = await (await fetch(`${api}/api/v1/companies/${companyId}/calculated-metrics?limit=100`)).json();
+  const calculated = await (await fetch(`${api}/api/v1/companies/${companyId}/calculated-metrics?limit=20`)).json(); // page 1, as rendered
   for (const lang of ["vi", "en"]) {
     const url = `${lang === "vi" ? "" : "/en"}/companies/${companyId}`;
     const { html } = await get(url);
@@ -153,6 +153,43 @@ if (companyId && !OFFLINE) {
         check(page.includes(reason), `${url}: ${r.formula_id} ${r.fiscal_year} should say "${reason}"`);
       }
     }
+  }
+}
+
+// AU-5: both lists are paginated on the server, each with its own page parameter, and the page
+// always says which items it shows. Needs PROVENANCE_COMPANY_ID like the block above.
+if (companyId && !OFFLINE) {
+  const api = process.env.API_URL ?? "http://localhost:8000";
+  const page = async (path, offset) =>
+    (await fetch(`${api}/api/v1/companies/${companyId}/${path}?limit=20&offset=${offset}`)).json();
+  const [st1, ra1] = await Promise.all([page("financial-statements", 0), page("calculated-metrics", 0)]);
+  const range = (dict, offset, total) => dict.pagination.range(offset + 1, Math.min(offset + 20, total), total);
+  for (const lang of ["vi", "en"]) {
+    const dict = lang === "vi" ? dictVi : dictEn;
+    const url = `${lang === "vi" ? "" : "/en"}/companies/${companyId}`;
+    const first = text((await get(url)).html);
+    if (st1.total > 0) check(first.includes(range(dict, 0, st1.total)), `${url}: statements range missing`);
+    if (ra1.total > 0) check(first.includes(range(dict, 0, ra1.total)), `${url}: ratios range missing`);
+
+    if (ra1.total > 20) {
+      const ra2 = await page("calculated-metrics", 20);
+      const second = await get(`${url}?ratios_page=2`);
+      const shown = text(second.html);
+      check(shown.includes(range(dict, 20, ra1.total)), `${url}?ratios_page=2: ratios range 21– missing`);
+      if (st1.total > 0) check(shown.includes(range(dict, 0, st1.total)), `${url}?ratios_page=2: statements page changed`);
+      for (const r of ra2.items.filter((x) => x.percent !== null)) {
+        check(shown.includes(`${formatFixed(r.percent, lang)}%`), `${url}?ratios_page=2: ${r.formula_id} ${r.fiscal_year} missing`);
+      }
+      if (st1.total > 20) {
+        const next = [...second.html.matchAll(/href="([^"]*statements_page=2[^"]*)"/g)].map((m) => m[1].replace(/&amp;/g, "&"));
+        check(next.some((h) => h.includes("ratios_page=2")), `${url}?ratios_page=2: statements next link drops ratios_page`);
+      }
+    }
+    const beyond = await get(`${url}?statements_page=999`);
+    check(beyond.status === 200, `${url}?statements_page=999: status ${beyond.status}`);
+    if (st1.total > 0) check(text(beyond.html).includes(dict.pagination.beyond(999, st1.total)), `${url}: beyond-last-page text missing`);
+    const invalid = text((await get(`${url}?statements_page=abc`)).html);
+    if (st1.total > 0) check(invalid.includes(range(dict, 0, st1.total)), `${url}?statements_page=abc: not treated as page 1`);
   }
 }
 

@@ -13,6 +13,7 @@ from app.models import StatementScope, VerificationStatus
 
 Role = Literal["numerator", "denominator_closing", "denominator_opening"]
 ReasonCode = Literal[
+    "mixed_sample_and_real",
     "missing_input",
     "missing_opening_balance",
     "ambiguous_opening_balance",
@@ -24,8 +25,10 @@ ReasonCode = Literal[
 ]
 InputVerification = Literal["all_verified", "some_unverified", "sample"]
 
-# Plan §8: lower rank first; within a rank, by role.
+# Plan §8: lower rank first; within a rank, by role. Rank 0 (audit AU-3): sample and real data
+# mixed in the company's figures; nothing else about such inputs can be trusted.
 RANK: dict[str, int] = {
+    "mixed_sample_and_real": 0,
     "missing_input": 1,
     "missing_opening_balance": 2,
     "ambiguous_opening_balance": 3,
@@ -202,18 +205,32 @@ def rounded_quotient(numerator: Decimal, denominator: Decimal, places: int, half
     return _EXACT.scaleb(signed, -places)
 
 
-def compute(formula: Formula, figures: list[Figure], issues: list[Issue]) -> Outcome:
+def compute(
+    formula: Formula,
+    figures: list[Figure],
+    issues: list[Issue],
+    *,
+    company_is_sample: bool,
+    company_mixed: bool,
+) -> Outcome:
     """`figures` are the inputs that were found; `issues` the missing or ambiguous ones (from the
-    caller, which knows the dates). Status, unit and sign checks happen here."""
+    caller, which knows the dates). Status, unit and sign checks happen here.
+
+    Sample/real isolation (audit AU-3), independent of the database triggers: every input must
+    have its company's classification, and the company's statements must not mix the two
+    (`company_mixed`). Otherwise nothing is computed and no verification label is given."""
     found = list(issues)
     for f in figures:
+        if company_mixed or (f.status is VerificationStatus.SAMPLE) != company_is_sample:
+            found.append(Issue("mixed_sample_and_real", f.role, f.metric_code, f.period_end))
         if f.status in (VerificationStatus.DISPUTED, VerificationStatus.REJECTED):
             found.append(Issue("input_disputed_or_rejected", f.role, f.metric_code, f.period_end))
         elif f.status is VerificationStatus.SUPERSEDED:
             found.append(Issue("input_superseded", f.role, f.metric_code, f.period_end))
         if f.unit != f.currency:
             found.append(Issue("unit_mismatch", f.role, f.metric_code, f.period_end))
-    verification = _verification(figures)
+    mixed = any(i.code == "mixed_sample_and_real" for i in found)
+    verification = None if mixed else _verification(figures)
     if found:
         return Outcome(None, None, None, _ordered(found), verification)
 

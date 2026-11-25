@@ -2,16 +2,17 @@
 
 Acceptance checklist for [WS4_2_IMPLEMENTATION_PLAN.md](WS4_2_IMPLEMENTATION_PLAN.md). Formulas are
 approved (WS4-D1 to D3, D7, D8, D11, D12), the design is approved and implementation was authorised
-(2026-11-25). Implemented on branch `feat/ws4-2-roe-roa`, uncommitted.
+(2026-11-25). Merged as PR #7 (`2079101`); display fixes AU-1 and AU-2 merged as PR #8 (`8007fe2`).
 
 | | |
 | --- | --- |
-| Last verified | 2026-11-25, branch `feat/ws4-2-roe-roa` (from `main` @ `105869f`), uncommitted |
+| Last verified | 2026-11-25, `main` @ `8007fe2` |
 | Statuses | `NOT STARTED`, `IN PROGRESS`, `PASS`, `BLOCKED`, `FAIL` only |
 | Parent items | WS4_CHECKLIST WS4-C7 (ROE implemented), WS4-D-7 (ROA implemented), WS4-H9 (calculated values in API and UI), WS4-I2 to I10 (tests) |
 
 PASS in group A means the design is written in the plan. Other PASS items rest on this evidence
-(2026-11-25, branch `feat/ws4-2-roe-roa` from `main` @ `105869f`, uncommitted; re-verify on merge):
+(2026-11-25, gathered on branch `feat/ws4-2-roe-roa` from `main` @ `105869f` before merge; CI
+re-ran them on the PR head and the merge commit, see **CI** below):
 
 - **BT:** fresh PostgreSQL 17: `ruff check`, `ruff format --check`, `mypy` clean; `pytest` **288
   passed** (+37 in `tests/test_ratios.py`, +27 in `tests/test_calculated_metrics.py`);
@@ -21,6 +22,8 @@ PASS in group A means the design is written in the plan. Other PASS items rest o
   ROE `15.00`, ROA `4.21`; FY2024 `missing_opening_balance`; route check online, offline and per
   calculated value in vi and en passed.
 - **BR:** browser, desktop and 375×812, vi and en.
+- **CI:** PR #7 head `037a820`: [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45537877885), [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45537877803), [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45537877765) success. Merge `2079101`: [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45538617789) (`288 passed`, `alembic check` clean), [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45538617702) (27/27), [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45538617848) success.
+- **Post-merge (2026-11-25):** the independent review [WS4_2_AUDIT.md](WS4_2_AUDIT.md) found no CRITICAL or HIGH issue; AU-1 and AU-2 (display) were fixed in PR #8 (`8007fe2`). AU-3 (sample/real isolation, database triggers plus an engine check), AU-4 (unit from inputs) and AU-5 (pagination) are fixed on branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed. AU-6 is open.
 
 ## Summary (recounted from the item rows below)
 
@@ -33,8 +36,8 @@ PASS in group A means the design is written in the plan. Other PASS items rest o
 | E. API | 6 | 6 | 0 | 0 | 0 | 0 |
 | F. Frontend | 6 | 6 | 0 | 0 | 0 | 0 |
 | G. Integrity and regression | 6 | 6 | 0 | 0 | 0 | 0 |
-| H. Release | 4 | 1 | 0 | 3 | 0 | 0 |
-| **Total** | **53** | **50** | **0** | **3** | **0** | **0** |
+| H. Release | 4 | 3 | 0 | 1 | 0 | 0 |
+| **Total** | **53** | **52** | **0** | **1** | **0** | **0** |
 
 ## A. Design
 
@@ -125,6 +128,6 @@ PASS in group A means the design is written in the plan. Other PASS items rest o
 | ID | Item | Status | Acceptance criteria | Evidence | Dependencies | Owner approval |
 | --- | --- | --- | --- | --- | --- | --- |
 | W2-H1 | Checklists updated | PASS | This file, WS4_CHECKLIST (C7, D-7, H9, I2–I10) and PHASE_2_CHECKLIST (P2-5.11, 5.12, 5.17) recounted | This file, WS4_CHECKLIST and PHASE_2_CHECKLIST updated and recounted (2026-11-25) | G group | No |
-| W2-H2 | Owner review of the change | NOT STARTED | Owner reviewed results and labels | Owner message | W2-H1 | Yes |
-| W2-H3 | PR and CI | NOT STARTED | PR opened on request; Backend, Frontend, Docker green | CI links | W2-H2 | Yes (commit, PR) |
-| W2-H4 | Merge | NOT STARTED | Merged by the owner | Merge commit | W2-H3 | Yes |
+| W2-H2 | Owner review of the change | NOT STARTED | Owner reviewed results and labels | Not done. PR #7 was merged by the owner's account with no recorded review; a merge is not a review (audit AU-6). Needs an owner review note | W2-H1 | Yes |
+| W2-H3 | PR and CI | PASS | PR opened on request; Backend, Frontend, Docker green | PR #7; CI success on head `037a820` and merge `2079101` (see **CI**) | W2-H2 | Yes (commit, PR) |
+| W2-H4 | Merge | PASS | Merged by the owner | Merged 2026-11-25 03:14:43 UTC as `2079101`; follow-up display fixes merged as PR #8 (`8007fe2`) | W2-H3 | Yes |

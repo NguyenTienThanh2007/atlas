@@ -10,7 +10,15 @@ from sqlalchemy import exists, select
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from app.calculations.ratios import Figure, Formula, Issue, Outcome, Role, compute, formulas_for
-from app.models import FinancialMetric, FinancialStatement, StatementScope, StatementType
+from app.models import (
+    Company,
+    Evidence,
+    FinancialMetric,
+    FinancialStatement,
+    StatementScope,
+    StatementType,
+    VerificationStatus,
+)
 
 OPENING_WINDOW = timedelta(days=7)  # approved period-end alignment rule (WS4 plan §4.3)
 
@@ -58,8 +66,33 @@ def _metric(statement: FinancialStatement, code: str) -> FinancialMetric | None:
     return next((m for m in statement.metrics if m.metric_code == code), None)
 
 
+def _company_mixed(db: Session, company_id: uuid.UUID, is_sample: bool) -> bool:
+    """True when any statement of the company (any type, granularity or revision) has evidence of
+    the other classification. The database refuses such rows since migration 8de09b58f4c2; this
+    is the independent check of the calculation engine (audit AU-3)."""
+    other = (
+        Evidence.verification_status != VerificationStatus.SAMPLE
+        if is_sample
+        else Evidence.verification_status == VerificationStatus.SAMPLE
+    )
+    return bool(
+        db.scalar(
+            select(
+                exists()
+                .where(FinancialStatement.company_id == company_id)
+                .where(Evidence.id == FinancialStatement.source_evidence_id)
+                .where(other)
+            )
+        )
+    )
+
+
 def _result(
-    formula: Formula, income: FinancialStatement, balance_sheets: list[FinancialStatement]
+    formula: Formula,
+    income: FinancialStatement,
+    balance_sheets: list[FinancialStatement],
+    company_is_sample: bool,
+    company_mixed: bool,
 ) -> Result:
     inputs: list[Input] = []
     issues: list[Issue] = []
@@ -137,7 +170,14 @@ def _result(
         )
         for i in inputs
     ]
-    return Result(formula, income, tuple(inputs), compute(formula, figures, issues))
+    outcome = compute(
+        formula,
+        figures,
+        issues,
+        company_is_sample=company_is_sample,
+        company_mixed=company_mixed,
+    )
+    return Result(formula, income, tuple(inputs), outcome)
 
 
 def calculated_metrics(
@@ -147,6 +187,10 @@ def calculated_metrics(
     scope: StatementScope | None = None,
 ) -> list[Result]:
     """One result per formula for each latest annual income statement, newest year first."""
+    company = db.get(Company, company_id)
+    if company is None:
+        return []
+    mixed = _company_mixed(db, company_id, company.is_sample)
     statements = _latest_annual(db, company_id)
     incomes = sorted(
         (
@@ -160,7 +204,7 @@ def calculated_metrics(
     )
     balance_sheets = [s for s in statements if s.statement_type is StatementType.BALANCE_SHEET]
     return [
-        _result(formula, income, balance_sheets)
+        _result(formula, income, balance_sheets, company.is_sample, mixed)
         for income in incomes
         for formula in sorted(formulas_for(income.scope), key=lambda f: f.code)
     ]

@@ -371,6 +371,36 @@ One addition made during implementation: each listed `issue` also carries the me
 and English names (`metric_name_vi`, `metric_name_en`) so the "missing input (…)" text can name it.
 Codes, precedence and texts are unchanged.
 
+**Implementation status (2026-11-25).** WS4-2 merged as PR #7 (`2079101`); the review's display
+fixes AU-1 and AU-2 merged as PR #8 (`8007fe2`). Both were merged by the owner's account without a
+recorded review, which is not an independent review (audit AU-6). No decision above is changed.
+
+**Audit fixes AU-3, AU-4, AU-5 authorised (2026-11-25).** The project owner authorised fixing
+these three findings from [WS4_2_AUDIT.md](WS4_2_AUDIT.md), including a database migration with
+triggers for sample/real isolation (AU-3) and an independent check in the calculation engine.
+That check adds reason code `mixed_sample_and_real`, ranked first (before `missing_input`), with
+no input-verification label. The ROE/ROA formulas and rounding are unchanged.
+
+## 2e. WS4-3 period comparison decisions (approved 2026-11-25)
+
+Approved by the project owner on 2026-11-25, as proposed in
+[WS4_3_IMPLEMENTATION_PLAN.md](WS4_3_IMPLEMENTATION_PLAN.md) §10 (the plan keeps the original
+proposal text). WS4-D9 is unchanged. These decisions approve the design only; **WS4-3
+implementation is not authorised yet and has not started.**
+
+| ID | Decision | Approved option |
+| --- | --- | --- |
+| W3-D1 | Quarterly figures printed only year to date | Not supported. Compare stand-alone quarters only, until a reliable stand-alone conversion exists |
+| W3-D2 | Current value exactly zero | Valid and computed (50 → 0 = −100 %) |
+| W3-D3 | Wording, especially for negative bases | Neutral "Thay đổi so với kỳ trước" / "Change versus previous period"; never automatically called growth |
+| W3-D4 | Precision | Ratio 10 decimals half-even; percentage 2 decimals half-up; both from exact `Decimal` arithmetic |
+| W3-D5 | Visual semantics | Neutral colours; direction arrow plus text; an increase is not assumed good, nor a decrease bad |
+| W3-D6 | Metric coverage | All 17 reported dictionary metrics; ROE/ROA comparison deferred to a later workstream |
+| W3-D7 | Extreme percentages | A readable display limit, with the exact full value in the calculation disclosure |
+| W3-D8 | Charts | None in WS4-3; comparison tables first |
+| W3-D9 | Period matching | Exactly the rules of plan §2; no cross-scope or incompatible-period comparison; ambiguous matches refused, never guessed |
+| W3-D10 | Statuses and reason codes | The codes, precedence and vi/en messages of plan §5.1 |
+
 ## 3. Rejected alternatives
 
 | Alternative | Why rejected |

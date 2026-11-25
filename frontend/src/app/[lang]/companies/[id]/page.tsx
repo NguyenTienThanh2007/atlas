@@ -2,16 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { Pagination } from "@/components/pagination";
 import { ApiErrorState, BackLink, SampleBadge } from "@/components/states";
 import { errorText, getI18n, unitText, type Dictionary, type Locale } from "@/i18n";
 import { figureHref, safeHref, type FigureSource } from "@/lib/provenance";
 import {
   apiGet,
   calculationLabel,
+  denominatorUnit,
   formatDate,
   formatDecimal,
   formatFixed,
   metricLabel,
+  pageNumber,
   UUID,
   type CalculatedMetric,
   type Company,
@@ -25,19 +28,36 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.meta.titles.company };
 }
 
-export default async function CompanyPage({ params }: PageProps<"/[lang]/companies/[id]">) {
-  const [{ id }, { locale, t, href }] = await Promise.all([params, getI18n()]);
+// Server-side pagination for the two growing lists (audit AU-5): each keeps its own page.
+const STATEMENTS_PAGE_SIZE = 20;
+const RATIOS_PAGE_SIZE = 20;
+
+export default async function CompanyPage({ params, searchParams }: PageProps<"/[lang]/companies/[id]">) {
+  const [{ id }, sp, { locale, t, href }] = await Promise.all([params, searchParams, getI18n()]);
   if (!UUID.test(id)) notFound();
   const date = (value: string | null) => formatDate(value, locale);
   const tc = t.company;
   const tf = tc.figure;
   const g = t.glossary;
 
+  const statementsPage = pageNumber(sp.statements_page);
+  const ratiosPage = pageNumber(sp.ratios_page);
+  const kept = {
+    statements_page: statementsPage > 1 ? String(statementsPage) : undefined,
+    ratios_page: ratiosPage > 1 ? String(ratiosPage) : undefined,
+  };
+
   const [company, evidence, statements, calculated] = await Promise.all([
     apiGet<Company>(`/companies/${id}`),
     apiGet<Page<Evidence>>(`/companies/${id}/evidence`, { limit: 50 }),
-    apiGet<Page<FinancialStatement>>(`/companies/${id}/financial-statements`, { limit: 20 }),
-    apiGet<Page<CalculatedMetric>>(`/companies/${id}/calculated-metrics`, { limit: 40 }),
+    apiGet<Page<FinancialStatement>>(`/companies/${id}/financial-statements`, {
+      limit: STATEMENTS_PAGE_SIZE,
+      offset: (statementsPage - 1) * STATEMENTS_PAGE_SIZE,
+    }),
+    apiGet<Page<CalculatedMetric>>(`/companies/${id}/calculated-metrics`, {
+      limit: RATIOS_PAGE_SIZE,
+      offset: (ratiosPage - 1) * RATIOS_PAGE_SIZE,
+    }),
   ]);
   if (!company.ok && company.kind === "not_found") notFound();
   if (!company.ok) {
@@ -125,10 +145,10 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
         </div>
       </Section>
 
-      <Section title={tc.statements}>
+      <Section id="statements" title={tc.statements}>
         {!statements.ok ? (
           <p className="text-sm text-bad">{errorText(t, statements)}</p>
-        ) : statements.data.items.length === 0 ? (
+        ) : statements.data.total === 0 ? (
           <p className="text-sm text-muted">{tc.noStatements}</p>
         ) : (
           <div className="space-y-6">
@@ -177,13 +197,26 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
             ))}
           </div>
         )}
+        {statements.ok && (
+          <Pagination
+            basePath={`/companies/${id}`}
+            params={kept}
+            page={statementsPage}
+            pageSize={STATEMENTS_PAGE_SIZE}
+            total={statements.data.total}
+            param="statements_page"
+            anchor="statements"
+            label={tc.statementsPages}
+            showRange
+          />
+        )}
       </Section>
 
-      <Section title={tc.calculated.title}>
+      <Section id="ratios" title={tc.calculated.title}>
         <p className="mb-4 max-w-prose text-xs leading-relaxed text-muted">{tc.calculated.note}</p>
         {!calculated.ok ? (
           <p className="text-sm text-bad">{errorText(t, calculated)}</p>
-        ) : calculated.data.items.length === 0 ? (
+        ) : calculated.data.total === 0 ? (
           <p className="text-sm text-muted">{tc.calculated.none}</p>
         ) : (
           <ul className="divide-y divide-line rounded-lg border border-line">
@@ -191,6 +224,19 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
               <CalculatedRow key={`${r.formula_id}-${r.scope}-${r.fiscal_year}`} result={r} locale={locale} t={t} />
             ))}
           </ul>
+        )}
+        {calculated.ok && (
+          <Pagination
+            basePath={`/companies/${id}`}
+            params={kept}
+            page={ratiosPage}
+            pageSize={RATIOS_PAGE_SIZE}
+            total={calculated.data.total}
+            param="ratios_page"
+            anchor="ratios"
+            label={tc.calculated.pages}
+            showRange
+          />
         )}
       </Section>
 
@@ -230,6 +276,7 @@ function CalculatedRow({ result: r, locale, t }: { result: CalculatedMetric; loc
   const label = (x: { metric_code: string; metric_name_vi: string | null; metric_name_en: string | null }) =>
     (vi ? x.metric_name_vi : x.metric_name_en) ?? x.metric_code;
   const verification = calculationLabel(r);
+  const unit = denominatorUnit(r); // from the inputs, never a default currency (audit AU-4)
   const first = r.issues[0];
   const reason = first
     ? first.code === "missing_input"
@@ -258,7 +305,9 @@ function CalculatedRow({ result: r, locale, t }: { result: CalculatedMetric; loc
         <p className="mt-2">{vi ? r.formula_text_vi : r.formula_text_en}</p>
         {r.denominator_average !== null && (
           <p className="mt-1 tabular-nums">
-            {k.average(`${formatDecimal(r.denominator_average, locale)} ${unitText(t, "VND")}`)}
+            {k.average(
+              [formatDecimal(r.denominator_average, locale), unit && unitText(t, unit)].filter(Boolean).join(" "),
+            )}
           </p>
         )}
         <ul className="mt-2 space-y-2">
@@ -338,9 +387,9 @@ function Fact({ label, children, wide }: { label: string; children: ReactNode; w
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ id, title, children }: { id?: string; title: string; children: ReactNode }) {
   return (
-    <section className="mt-12">
+    <section id={id} className="mt-12 scroll-mt-6">
       <h2 className="mb-4 font-display text-xl font-light text-mist">{title}</h2>
       {children}
     </section>

@@ -28,6 +28,14 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    # Tests may pass an open connection (inside a transaction they roll back) to exercise a
+    # migration against prepared data without leaving anything behind.
+    shared = config.attributes.get("connection")
+    if shared is not None:
+        context.configure(connection=shared, target_metadata=target_metadata)
+        with context.begin_transaction():
+            context.run_migrations()
+        return
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
