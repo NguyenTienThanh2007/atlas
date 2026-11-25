@@ -111,3 +111,17 @@ No CRITICAL or HIGH defects were found, so no code was changed.
 **Decision: CONDITIONAL PASS.** The software foundation is complete. These non-software blockers
 remain: no licensed data provider, G1 legal opinion pending, 0 verified companies, and Q-3 reviewer
 not appointed. Phase 2 readiness is in [PHASE_2_READINESS.md](PHASE_2_READINESS.md).
+
+## Post-audit status of findings (added 2026-11-25)
+
+The audit above is unchanged. This note records later evidence for two findings.
+
+| ID | Original acceptance (fix column above) | Evidence | Status now |
+| --- | --- | --- | --- |
+| F-1 | Per-metric definitions written in a versioned dictionary change, approved by the owner, before figures are shown | Metric dictionary **1.1.0** has `definition_vi` and `definition_en` for all 17 metrics; approved as WS4-D10 (G-1); the owner approved all 17 definition texts (2026-11-25); merged as PR #6 (`105869f`) with Backend (224 passed), Frontend (25/25) and Docker CI success; pinned by `backend/tests/test_metric_dictionary.py` | **RESOLVED** |
+| F-2 | A "not applicable" marker per metric, decided with Q-5, in a versioned dictionary change | `applicability {non_bank, bank}` per metric with no default; Q-5 resolved by WS4-D4/D5; `net_revenue` and `gross_profit` not applicable to banks; same PR, CI and tests as F-1 | **RESOLVED** |
+
+Not covered by these findings and still open: definitions are served by the API
+(`GET /api/v1/metric-dictionary`) but not yet shown in the UI; companies have no bank / non-bank type
+yet, so "not applicable" can't yet be shown for one company's figure (WS4 checklist WS4-F3); sign
+conventions (G-3) were not approved. The Phase 1 decision (CONDITIONAL PASS) is unchanged.

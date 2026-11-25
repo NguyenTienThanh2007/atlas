@@ -4,11 +4,12 @@ string (Pydantic's JSON mode), never as a float."""
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, computed_field
+from pydantic import BaseModel, ConfigDict, PlainSerializer, computed_field
 
+from app.calculations.ratios import InputVerification, ReasonCode, Role
 from app.ingestion.reference import metric_dictionary
 from app.models import (
     CommercialUsageStatus,
@@ -211,3 +212,59 @@ class FinancialStatementOut(_Out):
 
 class ErrorOut(BaseModel):
     detail: str
+
+
+# Calculated values: fixed-point strings ("0.0000000001", never "1E-10" or "-0").
+FixedDecimal = Annotated[Decimal, PlainSerializer(lambda d: format(d, "f"), return_type=str)]
+
+
+class CalculationInputOut(BaseModel):
+    """One reported figure used by a calculation, with its WS3 provenance."""
+
+    role: Role
+    metric_code: str
+    metric_name_vi: str | None
+    metric_name_en: str | None
+    statement_id: uuid.UUID
+    revision: int
+    period_end: date
+    value: Decimal
+    unit: str
+    reported_value: Decimal | None
+    reported_scale: int | None
+    source: MetricSourceOut
+
+
+class CalculationIssueOut(BaseModel):
+    code: ReasonCode
+    role: Role
+    metric_code: str
+    metric_name_vi: str | None
+    metric_name_en: str | None
+    period_end: date
+
+
+class CalculatedMetricOut(BaseModel):
+    """A ratio computed at read time (WS4-2). Never stored and never verified itself:
+    `input_verification` describes its inputs only."""
+
+    code: Literal["roe", "roa"]
+    kind: Literal["calculated"] = "calculated"
+    formula_id: str
+    formula_version: int
+    name_vi: str
+    name_en: str
+    formula_text_vi: str
+    formula_text_en: str
+    fiscal_year: int
+    scope: StatementScope
+    period_start: date
+    period_end: date
+    status: Literal["computed", "not_computable"]
+    reason: ReasonCode | None
+    value: FixedDecimal | None  # ratio, 10 decimals, half-even
+    percent: FixedDecimal | None  # 2 decimals, half-up (WS4-D8)
+    denominator_average: FixedDecimal | None  # exact, 7 decimals
+    inputs: list[CalculationInputOut]
+    issues: list[CalculationIssueOut]
+    input_verification: InputVerification | None

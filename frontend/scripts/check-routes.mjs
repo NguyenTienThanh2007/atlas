@@ -4,6 +4,10 @@
 // Checks the <html lang>, key text per language, status codes, and that no English UI copy
 // leaks into Vietnamese pages.
 
+import { en as dictEn } from "../src/i18n/en.ts";
+import { vi as dictVi } from "../src/i18n/vi.ts";
+import { formatFixed } from "../src/lib/api-core.ts";
+
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const OFFLINE = process.env.EXPECT === "offline";
 const failures = [];
@@ -91,6 +95,7 @@ const companyId = process.env.PROVENANCE_COMPANY_ID;
 if (companyId && !OFFLINE) {
   const api = process.env.API_URL ?? "http://localhost:8000";
   const body = await (await fetch(`${api}/api/v1/companies/${companyId}/financial-statements`)).json();
+  const calculated = await (await fetch(`${api}/api/v1/companies/${companyId}/calculated-metrics?limit=100`)).json();
   for (const lang of ["vi", "en"]) {
     const url = `${lang === "vi" ? "" : "/en"}/companies/${companyId}`;
     const { html } = await get(url);
@@ -125,6 +130,22 @@ if (companyId && !OFFLINE) {
       check(/href="https?:\/\//.test(tag), `${url}: non-http(s) external link ${tag}`);
     }
     check(figures > 0, `${url}: no figures to check`);
+
+    // WS4-2: each calculated ratio shows the API's percentage, or the reason it can't be computed.
+    const page = text(html);
+    const k = (lang === "vi" ? dictVi : dictEn).company.calculated;
+    for (const r of calculated.items) {
+      check(page.includes(lang === "vi" ? r.name_vi : r.name_en), `${url}: ${r.formula_id} name missing`);
+      if (r.percent !== null) {
+        const shown = `${formatFixed(r.percent, lang)}%`;
+        check(page.includes(shown), `${url}: ${r.formula_id} ${r.fiscal_year} should show ${shown}`);
+      } else {
+        const first = r.issues[0];
+        const name = (lang === "vi" ? first.metric_name_vi : first.metric_name_en) ?? first.metric_code;
+        const reason = first.code === "missing_input" ? k.reason.missing_input(name) : k.reason[first.code];
+        check(page.includes(reason), `${url}: ${r.formula_id} ${r.fiscal_year} should say "${reason}"`);
+      }
+    }
   }
 }
 

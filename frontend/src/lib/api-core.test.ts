@@ -6,6 +6,7 @@ import {
   fetchJson,
   formatDate,
   formatDecimal,
+  formatFixed,
   metricLabel,
   pageNumber,
   SECTOR_CODE,
@@ -94,4 +95,14 @@ test("metric labels use the current dictionary name, never a stale stored one", 
   const unknown = { metric_name: "Legacy metric", metric_name_vi: null, metric_name_en: null };
   assert.equal(metricLabel(unknown, "en"), "Legacy metric");
   assert.equal(metricLabel(unknown, "vi"), "Legacy metric");
+});
+
+test("fixed-point values keep their decimals and are never recomputed", () => {
+  assert.equal(formatFixed("18.30", "vi"), "18,30");
+  assert.equal(formatFixed("18.30", "en"), "18.30");
+  assert.equal(formatFixed("-5.00", "vi"), "-5,00");
+  assert.equal(formatFixed("0.00", "en"), "0.00");
+  assert.equal(formatFixed("1234567.10", "vi"), "1.234.567,10");
+  assert.equal(formatFixed("99999999999999999999999999999999.99", "en"), "99,999,999,999,999,999,999,999,999,999,999.99");
+  assert.equal(formatFixed("1E-10", "vi"), "1E-10"); // not a fixed-point string: shown as is
 });

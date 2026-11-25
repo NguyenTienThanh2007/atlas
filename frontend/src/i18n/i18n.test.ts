@@ -102,3 +102,26 @@ test("proxy: rewrite Vietnamese, pass English, redirect /vi to the canonical URL
   assert.deepEqual(routeRequest("/vi/companies"), { type: "redirect", pathname: "/companies" });
   assert.deepEqual(routeRequest("/vi"), { type: "redirect", pathname: "/" });
 });
+
+test("every calculation reason and input label has text in both languages (WS4-2)", () => {
+  const codes = [
+    "missing_input",
+    "missing_opening_balance",
+    "ambiguous_opening_balance",
+    "input_disputed_or_rejected",
+    "input_superseded",
+    "unit_mismatch",
+    "equity_not_positive",
+    "assets_not_positive",
+  ] as const;
+  for (const dict of [vi, en]) {
+    const k = dict.company.calculated;
+    assert.deepEqual(Object.keys(k.reason).sort(), [...codes].sort());
+    assert.deepEqual(Object.keys(k.verification).sort(), ["all_verified", "sample", "some_unverified"]);
+  }
+  assert.equal(vi.company.calculated.reason.missing_input("Vốn chủ sở hữu của cổ đông công ty mẹ"),
+    "Không tính được: thiếu số liệu đầu vào (Vốn chủ sở hữu của cổ đông công ty mẹ)");
+  assert.equal(en.company.calculated.reason.missing_opening_balance, "Not calculable: opening balance missing");
+  assert.equal(vi.company.calculated.verification.some_unverified, "Tính từ số liệu chưa kiểm chứng");
+  assert.equal(en.company.calculated.verification.some_unverified, "Calculated from unverified figures");
+});

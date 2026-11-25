@@ -3,7 +3,7 @@
 Vietnam Investment Discovery World: a platform for exploring Vietnam's listed economy by sector,
 company and region.
 
-**Status (2026-11-24, `main` @ `4be30b7`):** Phase 0 complete. Phase 1 software complete; its exit audit is a
+**Status (2026-11-25, `main` @ `105869f`):** Phase 0 complete. Phase 1 software complete; its exit audit is a
 **conditional pass** because non-software data blockers remain ([exit audit](docs/PHASE_1_EXIT_AUDIT.md)).
 Phase 2 planning complete; **Phase 2 execution in progress under a conditional go** (see
 [readiness](docs/PHASE_2_READINESS.md) and [roadmap](docs/ROADMAP.md)). 0 companies verified. The domain model (companies,
@@ -21,15 +21,16 @@ real, verified listed companies (stretch target 20–30) across the 4 approved s
 validation by real users.
 
 **Current status:** planning complete; all product decisions (A-1 to A-11) approved on 2026-11-23.
-Execution started under a **conditional go** (2026-11-23). 28 of 83 checklist items PASS
-(33.7%). Workstreams 1–3 are merged to `main` (PRs #3–#5, CI green). Workstream 3 shows each financial figure's source document and page. Workstream 1 added a two-person verification workflow, per-figure source pages and
+Execution started under a **conditional go** (2026-11-23). 31 of 83 checklist items PASS
+(37.3%). Workstreams 1–3 are merged to `main` (PRs #3–#5, CI green). Workstream 3 shows each financial figure's source document and page. Workstream 1 added a two-person verification workflow, per-figure source pages and
 stricter period and unit checks ([docs/VERIFICATION_WORKFLOW.md](docs/VERIFICATION_WORKFLOW.md)).
 Workstream 2 made the interface **Vietnamese-first**, with English at `/en`
 ([docs/GLOSSARY.md](docs/GLOSSARY.md); terms await a native-speaker review).
 10 items are **blocked**, mostly on the legal opinion (G1). No real data is loaded.
 Workstream 4 (ROE, ROA, missing data, period comparison, bank metrics) is specified, with the
-owner's decisions recorded on 2026-11-24 ([docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md](docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md));
-no calculated metric is implemented yet.
+owner's decisions recorded on 2026-11-24 ([docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md](docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.md)).
+WS4-1 (metric dictionary 1.1.0) is merged (PR #6). WS4-2 (ROE, ROA) is implemented on a branch, not yet merged
+([docs/WS4_2_CHECKLIST.md](docs/WS4_2_CHECKLIST.md)).
 
 **Product direction (approved 2026-11-23):** start with Vietnamese investors learning to research
 listed companies, with a Vietnamese-first interface; offer plain-language profiles where every
@@ -96,6 +97,7 @@ docker-compose.yml
 | --- | --- | --- |
 | GET | `/api/v1/health` | `200` when the API and database are reachable; `503` with the same body shape when the database check fails |
 | GET | `/api/v1/exchanges` | Exchanges (HOSE, HNX, UPCOM) |
+| GET | `/api/v1/companies/{id}/calculated-metrics` | ROE and ROA computed by ATLAS from the latest annual figures, with formula, inputs and their sources, or the reason they can't be computed; never stored |
 | GET | `/api/v1/metric-dictionary` | Metric dictionary (v1.1.0): names, vi/en definitions, unit, bank / non-bank applicability |
 | GET | `/api/v1/sectors`, `/api/v1/sectors/{id}` | ATLAS sector taxonomy with company counts |
 | GET | `/api/v1/companies` | Search (`q`: name or ticker), filter (`sector`, `exchange` codes), paginate (`limit`, `offset`) |
@@ -141,7 +143,10 @@ Example response:
 - No real company or financial data: 0 verified companies. Provider integration is blocked on
   licensing and credentials (see `data/SOURCES.md`). Publicly accessible documents are not treated
   as licensed, and no data is commercially licensed.
-- Metric dictionary entries have no definitions or bank applicability yet (exit audit F-1, F-2).
+- Metric definitions and bank / non-bank applicability exist (dictionary 1.1.0), but companies have
+  no bank / non-bank type yet, so a figure can't be shown as "not applicable" per company.
+- ROE and ROA (WS4-2) are computed from unverified inputs until an independent reviewer exists (Q-3),
+  and are labelled so; growth and other ratios are not implemented.
 - No authentication, and no price or market-event data.
 - The 3D world view is not implemented; the Discover page only reserves space for it.
 - `.env.example` credentials are for local development only. A production deployment needs

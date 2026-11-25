@@ -154,4 +154,5 @@ unchanged; the one English rename is `total_equity` "Total owners' equity" → "
 
 Not in 1.1.0: sign conventions (G-3) and G-5 to G-9, which were not approved. Companies do not yet
 carry a bank / non-bank type, so the API cannot yet say "not applicable" for one company's figure.
-Phase 1 exit audit F-1 and F-2 stay OPEN until this version is merged and the definitions are checked.
+Merged in PR #6 (`105869f`, 2026-11-25); the owner approved all 17 definitions. Phase 1 exit audit
+F-1 and F-2 are resolved (see the post-audit note in [PHASE_1_EXIT_AUDIT.md](../docs/PHASE_1_EXIT_AUDIT.md)).

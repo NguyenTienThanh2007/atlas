@@ -3,14 +3,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { ApiErrorState, BackLink, SampleBadge } from "@/components/states";
-import { errorText, getI18n, unitText, type Dictionary } from "@/i18n";
+import { errorText, getI18n, unitText, type Dictionary, type Locale } from "@/i18n";
 import { figureHref, safeHref, type FigureSource } from "@/lib/provenance";
 import {
   apiGet,
   formatDate,
   formatDecimal,
+  formatFixed,
   metricLabel,
   UUID,
+  type CalculatedMetric,
   type Company,
   type Evidence,
   type FinancialStatement,
@@ -30,10 +32,11 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
   const tf = tc.figure;
   const g = t.glossary;
 
-  const [company, evidence, statements] = await Promise.all([
+  const [company, evidence, statements, calculated] = await Promise.all([
     apiGet<Company>(`/companies/${id}`),
     apiGet<Page<Evidence>>(`/companies/${id}/evidence`, { limit: 50 }),
     apiGet<Page<FinancialStatement>>(`/companies/${id}/financial-statements`, { limit: 20 }),
+    apiGet<Page<CalculatedMetric>>(`/companies/${id}/calculated-metrics`, { limit: 40 }),
   ]);
   if (!company.ok && company.kind === "not_found") notFound();
   if (!company.ok) {
@@ -175,6 +178,21 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
         )}
       </Section>
 
+      <Section title={tc.calculated.title}>
+        <p className="mb-4 max-w-prose text-xs leading-relaxed text-muted">{tc.calculated.note}</p>
+        {!calculated.ok ? (
+          <p className="text-sm text-bad">{errorText(t, calculated)}</p>
+        ) : calculated.data.items.length === 0 ? (
+          <p className="text-sm text-muted">{tc.calculated.none}</p>
+        ) : (
+          <ul className="divide-y divide-line rounded-lg border border-line">
+            {calculated.data.items.map((r) => (
+              <CalculatedRow key={`${r.formula_id}-${r.scope}-${r.fiscal_year}`} result={r} locale={locale} t={t} />
+            ))}
+          </ul>
+        )}
+      </Section>
+
       <Section title={tc.sources}>
         {!evidence.ok ? (
           <p className="text-sm text-bad">{errorText(t, evidence)}</p>
@@ -199,6 +217,65 @@ export default async function CompanyPage({ params }: PageProps<"/[lang]/compani
         )}
       </Section>
     </article>
+  );
+}
+
+/** WS4-2: one ratio computed by ATLAS. The value is the API's rounded percentage, only
+ * formatted here; a ratio that can't be computed shows why, never a zero or a dash. */
+function CalculatedRow({ result: r, locale, t }: { result: CalculatedMetric; locale: Locale; t: Dictionary }) {
+  const tc = t.company;
+  const k = tc.calculated;
+  const vi = locale === "vi";
+  const label = (x: { metric_code: string; metric_name_vi: string | null; metric_name_en: string | null }) =>
+    (vi ? x.metric_name_vi : x.metric_name_en) ?? x.metric_code;
+  const first = r.issues[0];
+  const reason = first
+    ? first.code === "missing_input"
+      ? k.reason.missing_input(label(first))
+      : k.reason[first.code]
+    : null;
+  return (
+    <li className="px-5 py-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h3 className="text-sm font-medium text-mist">
+          {vi ? r.name_vi : r.name_en}
+          <span className="font-normal text-muted">
+            {" "}
+            · {tc.period(r.fiscal_year, null)} · {t.glossary.scope[r.scope]}
+          </span>
+        </h3>
+        {r.percent !== null ? (
+          <span className="text-lg font-medium text-mist tabular-nums">{`${formatFixed(r.percent, locale)}%`}</span>
+        ) : (
+          <span className="text-sm text-brass">{reason}</span>
+        )}
+      </div>
+      {r.input_verification && (
+        <p className="mt-1 text-xs text-muted">{k.verification[r.input_verification]}</p>
+      )}
+      <details className="mt-2 text-xs text-muted">
+        <summary className="cursor-pointer text-mist underline decoration-line underline-offset-2">{k.howTo}</summary>
+        <p className="mt-2">{vi ? r.formula_text_vi : r.formula_text_en}</p>
+        {r.denominator_average !== null && (
+          <p className="mt-1 tabular-nums">
+            {k.average(`${formatDecimal(r.denominator_average, locale)} ${unitText(t, "VND")}`)}
+          </p>
+        )}
+        <ul className="mt-2 space-y-2">
+          {r.inputs.map((i) => (
+            <li key={i.role}>
+              <span className="text-mist">{k.role[i.role]}</span>: {label(i)} ·{" "}
+              <span className="tabular-nums">
+                {formatDecimal(i.value, locale)} {unitText(t, i.unit)}
+              </span>{" "}
+              · {formatDate(i.period_end, locale)}
+              {i.revision > 1 && <span className="text-brass"> · {tc.restated(i.revision)}</span>}
+              <FigureSourceLine metric={label(i)} source={i.source} labels={tc.figure} />
+            </li>
+          ))}
+        </ul>
+      </details>
+    </li>
   );
 }
 
