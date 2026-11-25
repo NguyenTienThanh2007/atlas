@@ -114,6 +114,7 @@ CLI) commits data and the run record together. The rules are listed in `data/REA
 | --- | --- |
 | `GET /health` | 200, or 503 if the database is down |
 | `GET /exchanges` | Paginated |
+| `GET /metric-dictionary` | The versioned dictionary as one document (not paginated, 17 metrics); served from `app/reference/metric_dictionary.json` |
 | `GET /sectors`, `GET /sectors/{id}` | Includes `company_count` (one query, scalar subquery) |
 | `GET /companies` | `q` (name, English name or ticker; case-insensitive substring, wildcards escaped), `sector` (code), `exchange` (code, non-delisted listings only), `limit` 1–100, `offset` |
 | `GET /companies/{id}` | With sector and all securities |
@@ -160,7 +161,10 @@ scripts/check-routes.mjs           Route check against a running build: lang, ke
 - Sample records always show a "Sample data" / "Dữ liệu mẫu" badge, and a banner on the detail page.
 - Financial values are shown from the API's decimal strings with digit grouping only
   (`1.234.567,89` in Vietnamese, `1,234,567.89` in English). They are never parsed to floats.
-  Metric labels in Vietnamese come from the metric dictionary via the API (`metric_name_vi`).
+  Metric labels come from the current metric dictionary via the API (`metric_name_vi`,
+  `metric_name_en`); `metric_name` is the English name stored at import time and is kept unchanged
+  for compatibility. A code missing from the dictionary gives `null` and the UI falls back to
+  `metric_name`.
   Timestamps are shown in Vietnam time (UTC+7).
 - Cache Components: the nav highlight and the language switch read `usePathname()` /
   `useSearchParams()` inside their own `<Suspense>`, so routes still prerender a static shell per

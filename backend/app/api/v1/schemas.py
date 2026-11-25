@@ -183,6 +183,14 @@ class MetricOut(_Out):
         definition = metric_dictionary().get(self.metric_code)
         return definition.name_vi if definition else None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def metric_name_en(self) -> str | None:
+        """English label from the current metric dictionary (read-only; never stored).
+        `metric_name` stays the name stored at import time, which may be an older label."""
+        definition = metric_dictionary().get(self.metric_code)
+        return definition.name if definition else None
+
 
 class FinancialStatementOut(_Out):
     id: uuid.UUID

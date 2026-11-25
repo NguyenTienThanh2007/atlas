@@ -103,7 +103,7 @@ if (companyId && !OFFLINE) {
       for (const m of st.metrics) {
         figures++;
         const s = m.source;
-        const name = lang === "vi" ? (m.metric_name_vi ?? m.metric_name) : m.metric_name;
+        const name = (lang === "vi" ? m.metric_name_vi : m.metric_name_en) ?? m.metric_name;
         const mine = anchors.filter((a) => a.label.includes(name) && a.href.startsWith(s.document_url ?? "\u0000"));
         if (s.link_status === "linkable") {
           const expected = s.page === null ? s.document_url : `${s.document_url}#page=${s.page}`;

@@ -108,7 +108,7 @@ conflict, without applying it, if the file changes without a bump.
 Methodology: a company is assigned by its primary revenue-generating activity as stated in its own
 disclosures, and every assignment must carry evidence.
 
-## Metric dictionary (v1.0.0)
+## Metric dictionary (v1.1.0)
 
 Reported line items only. Ratios are derived at read time, never stored. Values are in full
 units of the statement currency (not thousands or millions). The stored `unit` is the currency
@@ -117,9 +117,41 @@ units of the statement currency (not thousands or millions). The stored `unit` i
 | Statement | Codes |
 | --- | --- |
 | Income statement | `net_revenue`, `net_interest_income`, `gross_profit`, `operating_profit`, `profit_before_tax`, `net_profit`, `net_profit_parent`, `eps_basic` |
-| Balance sheet | `total_assets`, `total_liabilities`, `total_equity`, `cash_and_equivalents`, `shares_outstanding` |
+| Balance sheet | `total_assets`, `total_liabilities`, `total_equity`, `equity_parent`, `cash_and_equivalents`, `shares_outstanding` |
 | Cash flow | `operating_cash_flow`, `investing_cash_flow`, `financing_cash_flow` |
 
-Each metric's English and Vietnamese names, statement type and unit are in
-`metric_dictionary.json`. Per-metric definitions and bank applicability ("not applicable" vs "not
-reported") are **not written yet** (Phase 1 exit audit F-1, F-2).
+Each metric's English and Vietnamese names, statement type, unit, definitions and applicability
+are in `metric_dictionary.json`, served read-only at `GET /api/v1/metric-dictionary`.
+
+**1.1.0** (2026-11-24, owner decision WS4-D10, [PRODUCT_DECISIONS.md](../docs/PRODUCT_DECISIONS.md)
+§2d) adds exactly three things. All 1.0.0 codes, Vietnamese names, statement types and units are
+unchanged; the one English rename is `total_equity` "Total owners' equity" → "Total equity"
+(owner review, 2026-11-24). Statement rows imported earlier keep the name stored at import time.
+
+- **G-1:** `definition_vi` and `definition_en` for every metric. Each describes the line as the
+  statement presents it; ATLAS introduces no formula. The text still needs a check by the owner or
+  a delegate before learners see it.
+- **G-2:** `applicability: {non_bank, bank}`, each `applicable`, `not_applicable` or
+  `unclassified`. Both keys are required, with no default. `unclassified` means no approved
+  classification yet and never means "not applicable". Applicability describes the metric; a
+  missing figure is never turned into "not applicable".
+- **G-4:** new reported metric `equity_parent` (Vốn chủ sở hữu của cổ đông công ty mẹ), balance
+  sheet, currency. It is recorded only where the consolidated statement explicitly presents it;
+  never derived as total equity minus non-controlling interests and never replaced by
+  `total_equity` (WS4-D12). Where it is missing, consolidated ROE is not calculable. It is the denominator input of consolidated ROE (WS4-D1); `total_equity` on
+  consolidated corporate statements includes non-controlling interests.
+
+| Applicability | Basis |
+| --- | --- |
+| `net_revenue`, `gross_profit`: bank `not_applicable` | WS4-D5 |
+| `net_interest_income`: bank `applicable` | WS4-D4 |
+| `net_profit`, `total_assets`: bank `applicable` | Inputs of bank ROA (WS4-D2, D4) |
+| `net_profit_parent`, `equity_parent`: bank `applicable` | Inputs of consolidated bank ROE (WS4-D1, D4) |
+| `total_equity` (and `net_profit`): bank `applicable` | Inputs of separate-statement bank ROE (WS4-D1, D4) |
+| `operating_profit`, `profit_before_tax`, `eps_basic`, `total_liabilities`, `cash_and_equivalents`, `shares_outstanding`, the three cash-flow totals: bank `unclassified` | No approved decision; never treated as not applicable |
+| `net_interest_income`: non-bank `unclassified` | No approved classification |
+| All other non-bank entries `applicable` | Approved specification (WS4 plan §3.1 non-bank column) |
+
+Not in 1.1.0: sign conventions (G-3) and G-5 to G-9, which were not approved. Companies do not yet
+carry a bank / non-bank type, so the API cannot yet say "not applicable" for one company's figure.
+Phase 1 exit audit F-1 and F-2 stay OPEN until this version is merged and the definitions are checked.

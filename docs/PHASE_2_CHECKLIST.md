@@ -8,12 +8,12 @@ evidence recorded here.
 | | |
 | --- | --- |
 | **Phase objective** | Turn the Phase 1 foundation into a usable discovery product backed by **at least 5 verified Vietnamese listed companies (stretch target 20–30)** across the 4 approved sectors, with evidence-backed financials and validation by real users |
-| **Current status** | **IN PROGRESS: planning complete.** All product decisions A-1 to A-11 **approved** on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)). A private 5-company pilot can start; **public display of real data waits on gate G1** (legal opinion), reported under Track B. Phase 1 capabilities re-verified. **Execution: CONDITIONAL GO (EX-1).** Workstream 1 (verification workflow, figure provenance, period and unit validation) implemented and verified (E-WS1); uncommitted. |
-| **Last verified** | 2026-11-24, WS3 on `feat/ws3-per-figure-sources` (from `main` @ `78cf577`, E-WS3). Earlier evidence: E-B/E-F (2026-11-23, `3660e5f`), E-WS1, E-WS2 |
+| **Current status** | **IN PROGRESS: planning complete.** All product decisions A-1 to A-11 **approved** on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)). A private 5-company pilot can start; **public display of real data waits on gate G1** (legal opinion), reported under Track B. Phase 1 capabilities re-verified. **Execution: CONDITIONAL GO (EX-1).** Merged to `main`: WS1 verification workflow (PR #3, `45ef0ca`), WS2 Vietnamese-first UI (PR #4, `78cf577`), WS3 per-figure sources (PR #5, `4be30b7`); CI green on each merge (E-MAIN). WS4 financial intelligence: **specification with owner decisions recorded 2026-11-24, not implemented** ([WS4_FINANCIAL_INTELLIGENCE_PLAN.md](WS4_FINANCIAL_INTELLIGENCE_PLAN.md)). |
+| **Last verified** | 2026-11-24, `main` @ `4be30b7` (PR #5 merge): GitHub Actions Backend, Frontend and Docker success (E-MAIN). Earlier evidence: E-B/E-F (2026-11-23, `3660e5f`), E-WS1, E-WS2, E-WS3 |
 | **Overall completion** | **28 / 83 items PASS (33.7%)**. BLOCKED and FAIL never count as complete |
 | **Completed (PASS)** | 28 |
-| **In progress** | 25 |
-| **Not started** | 20 |
+| **In progress** | 30 |
+| **Not started** | 15 |
 | **Blocked** | 10 |
 | **Failed** | 0 |
 
@@ -23,14 +23,16 @@ evidence recorded here.
 | 2. Data governance and provenance | 8 | 7 | 0 | 0 | 1 | 0 |
 | 3. Verified company dataset | 9 | 0 | 1 | 8 | 0 | 0 |
 | 4. Company discovery experience | 13 | 9 | 4 | 0 | 0 | 0 |
-| 5. Financial intelligence and presentation | 17 | 0 | 3 | 5 | 9 | 0 |
+| 5. Financial intelligence and presentation | 17 | 0 | 8 | 0 | 9 | 0 |
 | 6. Data quality and testing | 12 | 7 | 4 | 1 | 0 | 0 |
 | 7. Product validation | 7 | 2 | 1 | 4 | 0 | 0 |
 | 8. Engineering and release readiness | 12 | 0 | 10 | 2 | 0 | 0 |
-| **Total** | **83** | **28** | **25** | **20** | **10** | **0** |
+| **Total** | **83** | **28** | **30** | **15** | **10** | **0** |
 
 Scope changes: 2026-11-23, +2 items (P2-4.12, P2-4.13) added for the MVP scope approved in
 A-3 and A-4. The total went from 81 to 83; no items were removed.
+2026-11-24: P2-5.11, 5.12, 5.13, 5.15 and 5.17 moved NOT STARTED → IN PROGRESS because a written
+proposal now exists (WS4 plan). Nothing moved to PASS; no formula is approved or implemented.
 
 Percent complete = PASS ÷ total items. Counts are tallied from the item lines below. Re-count after
 every update; don't estimate.
@@ -53,13 +55,16 @@ every update; don't estimate.
    §4a).
 4. **Verification workflow (P2-2.1, P2-2.5): done in WS1** ([VERIFICATION_WORKFLOW.md](VERIFICATION_WORKFLOW.md)). Applying it needs the Q-3 reviewer.
 5. **Calculated metrics (P2-5.11, P2-5.12, P2-5.17).** ROE and ROA formulas, and a clear split
-   between reported and calculated values.
+   between reported and calculated values. Proposed in
+   [WS4_FINANCIAL_INTELLIGENCE_PLAN.md](WS4_FINANCIAL_INTELLIGENCE_PLAN.md); owner decisions
+   WS4-D1 to WS4-D11 recorded 2026-11-24 (Q-5 resolved). Implementation waits on the owner's go-ahead.
 6. **Product validation with real users (section 7).**
 
 **Related documents:** [README](../README.md) ·
 [Architecture](ARCHITECTURE.md) · [Development](DEVELOPMENT.md) ·
 [Product strategy](PRODUCT_STRATEGY.md) · [Product decisions](PRODUCT_DECISIONS.md) ·
 [Pilot selection criteria](PILOT_SELECTION_CRITERIA.md) ·
+[WS4 plan](WS4_FINANCIAL_INTELLIGENCE_PLAN.md) · [WS4 checklist](WS4_CHECKLIST.md) ·
 [Phase 0 checklist](PHASE_0_CHECKLIST.md) · [Phase 1 checklist](PHASE_1_CHECKLIST.md) ·
 [Data rules, taxonomy, metric dictionary](../data/README.md) · [Data sources](../data/SOURCES.md)
 
@@ -92,9 +97,23 @@ the tests are re-run.
   [Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45037564694),
   [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45037564678) and
   [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45037564765).
-- **E-WS1** (2026-11-23, Phase 2 workstream 1, approved EX-2): clean copy of the working tree (no `.venv`, `node_modules`, `.next`), fresh PostgreSQL 17: `uv sync --frozen`; `ruff check`, `ruff format --check`, `mypy` clean; `pytest` **170 passed**; `alembic upgrade head` → `check` ("No new upgrade operations detected") → `downgrade base` → `upgrade head` (`31b1317163eb`); `pip-audit` clean. Frontend `npm ci`, lint, typecheck, `npm test` 8/8, build, `npm audit` 0. Docker fresh volume: migrations to `31b1317163eb`, health 200, frontend 200, sample import OK, review of sample evidence refused, restart keeps data. Compatibility: upgrade/downgrade on a database holding Phase 1-era data left it unchanged; downgrade refused once a review existed. Not yet run on GitHub Actions (nothing pushed).
-- **E-WS3** (2026-11-24, workstream 3, branch `feat/ws3-per-figure-sources` from `main` @ `78cf577`): clean copy of the working tree: backend ruff/format/mypy clean, `pytest` **201 passed** (+31 in `tests/test_provenance.py`), `alembic check` clean (no migration), `pip-audit` clean; frontend `npm ci`, lint, typecheck, `npm test` **24/24**, build, `npm audit` 0. Isolated Docker stack (`atlasws3`, new volume, ports 5463/8063/3063) with fictional fixtures: route check online and offline, per-figure API-to-UI check in vi and en; browser pass desktop and 375×812. Not yet run on GitHub Actions.
-- **E-WS2** (2026-11-23, workstream 2, approved by the owner): clean copy of the working tree: frontend `npm ci`, lint, typecheck, `npm test` **17/17**, production build (both languages partially prerendered, proxy registered); backend `pytest` **170 passed**, ruff/mypy clean, `alembic check` clean (no schema change). Isolated Docker stack: `scripts/check-routes.mjs` passed with the backend up and stopped; browser pass in both languages at desktop and 375×812 (layout, keyboard focus on the language switch, no console errors). Not yet run on GitHub Actions.
+- **E-WS1** (2026-11-23, Phase 2 workstream 1, approved EX-2): clean copy of the working tree (no `.venv`, `node_modules`, `.next`), fresh PostgreSQL 17: `uv sync --frozen`; `ruff check`, `ruff format --check`, `mypy` clean; `pytest` **170 passed**; `alembic upgrade head` → `check` ("No new upgrade operations detected") → `downgrade base` → `upgrade head` (`31b1317163eb`); `pip-audit` clean. Frontend `npm ci`, lint, typecheck, `npm test` 8/8, build, `npm audit` 0. Docker fresh volume: migrations to `31b1317163eb`, health 200, frontend 200, sample import OK, review of sample evidence refused, restart keeps data. Compatibility: upgrade/downgrade on a database holding Phase 1-era data left it unchanged; downgrade refused once a review existed. Not run on GitHub Actions at the time; CI after merge: E-MAIN.
+- **E-WS3** (2026-11-24, workstream 3, branch `feat/ws3-per-figure-sources` from `main` @ `78cf577`): clean copy of the working tree: backend ruff/format/mypy clean, `pytest` **201 passed** (+31 in `tests/test_provenance.py`), `alembic check` clean (no migration), `pip-audit` clean; frontend `npm ci`, lint, typecheck, `npm test` **24/24**, build, `npm audit` 0. Isolated Docker stack (`atlasws3`, new volume, ports 5463/8063/3063) with fictional fixtures: route check online and offline, per-figure API-to-UI check in vi and en; browser pass desktop and 375×812. Not run on GitHub Actions at the time; CI after merge: E-MAIN.
+- **E-WS2** (2026-11-23, workstream 2, approved by the owner): clean copy of the working tree: frontend `npm ci`, lint, typecheck, `npm test` **17/17**, production build (both languages partially prerendered, proxy registered); backend `pytest` **170 passed**, ruff/mypy clean, `alembic check` clean (no schema change). Isolated Docker stack: `scripts/check-routes.mjs` passed with the backend up and stopped; browser pass in both languages at desktop and 375×812 (layout, keyboard focus on the language switch, no console errors). Not run on GitHub Actions at the time; CI after merge: E-MAIN.
+- **E-MAIN** (checked 2026-11-24 with `git fetch` and `gh`): PR #3 merged as `45ef0ca`
+  ([Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45180859560),
+  [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45180859516) success; Frontend
+  not triggered by its path filter, and `git diff 3660e5f 45ef0ca -- frontend` is empty); PR #4
+  merged as `78cf577`
+  ([Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45185760407),
+  [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45185760378),
+  [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45185760569) success); PR #5
+  merged as `4be30b7`
+  ([Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45318642634): `201 passed`
+  incl. migration round-trip;
+  [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45318642611): tests 24, pass
+  24; [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45318642530): stack healthy).
+  The PRs were opened and merged by the owner's account with no recorded GitHub review.
 - **E-BR**: browser verification recorded in [PHASE_1_CHECKLIST.md](PHASE_1_CHECKLIST.md)
   sections 11–12 (2026-11-22, code `d858fbc`, identical to `main`).
 
@@ -173,6 +192,7 @@ audited annual report; aggregators are never a source.
 
 - [x] **[PASS]** P2-4.1 Company listing page.
   - Evidence: `frontend/src/app/companies/page.tsx` renders `GET /api/v1/companies` (E-BR). Build passes (E-F).
+  - Path since WS2: `frontend/src/app/[lang]/companies/page.tsx`; re-checked in both languages by `scripts/check-routes.mjs` and the browser pass (E-WS2).
 - [x] **[PASS]** P2-4.2 Search by company name and ticker.
   - Evidence: `test_search_and_filters` (13 cases, covering name, English name, ticker, and literal `%` and `_`) passes (E-B). Browser search for `sample2p` returned 1 result (E-BR).
 - [x] **[PASS]** P2-4.3 Sector and exchange filters.
@@ -181,6 +201,7 @@ audited annual report; aggregators are never a source.
   - Evidence: `test_pagination_is_stable_and_complete` passes (E-B); `Pagination` component in `frontend/src/components/pagination.tsx`.
 - [x] **[PASS]** P2-4.5 Company detail page.
   - Evidence: `frontend/src/app/companies/[id]/page.tsx`; `test_company_detail` passes (E-B); browser verified (E-BR).
+  - Path since WS2: `frontend/src/app/[lang]/companies/[id]/page.tsx` (re-checked E-WS2, E-WS3).
 - [ ] **[IN PROGRESS]** P2-4.6 Business overview.
   - Done: the `description` field is shown on the detail page.
   - Remaining: link each description to its evidence; real descriptions (blocked by P2-3.5).
@@ -188,6 +209,7 @@ audited annual report; aggregators are never a source.
   - Evidence: Listings table (ticker, exchange, type, status, listed and delisted dates); `GET /api/v1/securities/{id}`; tests `test_security_detail` and `test_list_item_shape_hides_internal_fields` pass (E-B). Two listings on two exchanges shown in the browser (E-BR).
 - [ ] **[IN PROGRESS]** P2-4.8 Financial statement section.
   - Done: statements render with exact values, unit, period, source and verification status, and show a "restated (revision N)" label (E-BR, fictional data in an isolated database). API test `test_financial_statements_latest_revision_and_exact_values` passes (E-B).
+  - Done (E-WS3): each figure shows its source document and page, and the as-reported value and scale.
   - Remaining: the section shows unverified statements too, labelled. Section 5 requires showing only verified-supported metrics, and that rule must be decided and implemented.
 - [x] **[PASS]** P2-4.9 Source and evidence display.
   - Evidence: "Sources" section with data-source name, retrieval date (Vietnam time), verification status and usage rights; only http(s) URLs are links. Tests `test_company_evidence_includes_provenance` (E-B) and `formatDate` (E-F); browser verified (E-BR).
@@ -212,6 +234,7 @@ values from **calculated** ones.
 - [ ] **[IN PROGRESS]** P2-5.1 Define metric definitions and calculation formulas.
   - Done: 16 reported metrics defined, with Vietnamese names, statement type and unit, in `backend/app/reference/metric_dictionary.json` (documented in `data/README.md`).
   - Remaining: formulas for calculated metrics (ROE, ROA, growth), averaging conventions, and sign conventions.
+  - 2026-11-24: per-metric gap analysis, proposed definitions, sign conventions and applicability in [WS4_FINANCIAL_INTELLIGENCE_PLAN.md](WS4_FINANCIAL_INTELLIGENCE_PLAN.md) §3. Owner approved definitions, bank applicability and a new `equity_parent` metric (WS4-D10, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d)); sign-convention field not approved. WS4-1 (2026-11-24, branch `feat/ws4-1-metric-dictionary`, uncommitted): dictionary **1.1.0** with vi/en definitions, bank / non-bank applicability and `equity_parent`, served at `GET /api/v1/metric-dictionary`; 23 new tests, backend `pytest` 224 passed (incl. `metric_name_en`); bank applicability derived from WS4-D1, D2, D4, D5; `equity_parent` rule WS4-D12. F-1 and F-2 stay OPEN until it is reviewed and merged.
 - [ ] **[BLOCKED]** P2-5.2 Revenue (`net_revenue`).
   - Done: defined, importable, displayable.
   - Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
@@ -223,17 +246,28 @@ values from **calculated** ones.
 - [ ] **[BLOCKED]** P2-5.8 Equity (`total_equity`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
 - [ ] **[BLOCKED]** P2-5.9 Operating cash flow (`operating_cash_flow`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
 - [ ] **[BLOCKED]** P2-5.10 EPS (`eps_basic`, unit `VND/share`). Defined and importable. Blocked by: **B-1** (public display waits on gate G1; pilot values depend on P2-3.6).
-- [ ] **[NOT STARTED]** P2-5.11 ROE: formula (e.g. net profit to parent ÷ average equity), calculation and tests. Not stored; derived at read time per `data/README.md`.
-- [ ] **[NOT STARTED]** P2-5.12 ROA: formula, calculation and tests.
-- [ ] **[NOT STARTED]** P2-5.13 Financial period comparisons (year over year, quarter over quarter), only between comparable periods and scopes.
+- [ ] **[IN PROGRESS]** P2-5.11 ROE: formula (e.g. net profit to parent ÷ average equity), calculation and tests. Not stored; derived at read time per `data/README.md`.
+  - Done: options, proposed default and edge cases written (WS4 plan §4). Formula approved: WS4-D1, WS4-D3, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d).
+  - Remaining: `equity_parent` in the dictionary; implementation; tests.
+- [ ] **[IN PROGRESS]** P2-5.12 ROA: formula, calculation and tests.
+  - Done: options, proposed default and edge cases written (WS4 plan §5). Formula approved: WS4-D2, WS4-D3, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d).
+  - Remaining: implementation; tests.
+- [ ] **[IN PROGRESS]** P2-5.13 Financial period comparisons (year over year, quarter over quarter), only between comparable periods and scopes.
+  - Done: comparability rules proposed (WS4 plan §8); approved as WS4-D9, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d).
+  - Remaining: implementation; tests.
 - [ ] **[IN PROGRESS]** P2-5.14 Currency and unit formatting.
   - Done: exact digit grouping from decimal strings, never floats (`formatDecimal`, unit test in E-F); unit shown next to each value.
   - Remaining: compact Vietnamese scales (tỷ / triệu), a locale decision, and negative-value styling.
-- [ ] **[NOT STARTED]** P2-5.15 Missing data handling (show "not reported", never zero; exclude from calculations).
+  - 2026-11-24: display and rounding rules proposed (WS4 plan §10); approved as WS4-D8, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d); not implemented.
+- [ ] **[IN PROGRESS]** P2-5.15 Missing data handling (show "not reported", never zero; exclude from calculations).
+  - Done: seven availability states proposed, with what today's schema can and cannot express (WS4 plan §7); vocabulary and Phase A approved as WS4-D6, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d). Phase B (explicit records, a schema change) not approved.
+  - Remaining: implementation; tests.
 - [ ] **[IN PROGRESS]** P2-5.16 Revision and restatement presentation.
   - Done: the latest revision is shown by default with a "restated" label; API `include_superseded=true` returns history (E-B, E-BR).
   - Remaining: a UI view of revision history and what changed.
-- [ ] **[NOT STARTED]** P2-5.17 Clearly distinguish reported values from calculated values in the API and UI (labels, formula disclosure, source).
+- [ ] **[IN PROGRESS]** P2-5.17 Clearly distinguish reported values from calculated values in the API and UI (labels, formula disclosure, source).
+  - Done: reported figures already carry document, page and verification status per figure (P2-4.13). API and UI proposal for calculated values (WS4 plan §9); approved as WS4-D7 and WS4-D11, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d).
+  - Remaining: implementation; tests.
 
 ## 6. Data quality and testing
 
@@ -254,12 +288,15 @@ values from **calculated** ones.
   - Evidence: append-only triggers plus revision chain; `test_financial_history_is_append_only`, `test_restatement_is_a_new_revision_and_history_is_kept` and `test_revision_gap_and_unknown_company_are_reported` pass (E-B).
 - [ ] **[IN PROGRESS]** P2-6.8 API tests.
   - Done: 34 API tests for the Phase 1 endpoints (`backend/tests/test_api.py`, E-B).
+  - Done: WS3 added 31 per-figure provenance API and URL-safety tests (`backend/tests/test_provenance.py`); 201 backend tests pass on `main` (E-MAIN).
+  - Done: WS4-1 added tests for `GET /api/v1/metric-dictionary` and its OpenAPI schema (`backend/tests/test_metric_dictionary.py`, branch, uncommitted).
   - Remaining: tests for Phase 2 endpoints (calculated metrics, comparisons, coverage) as they are built.
 - [ ] **[IN PROGRESS]** P2-6.9 Frontend tests.
-  - Done: 8 unit tests for the API client and formatting (E-F).
+  - Done: 8 unit tests for the API client and formatting (E-F); 24 after WS2 and WS3 (i18n parity, routing, provenance links), passing on `main` (E-MAIN).
   - Remaining: page and component tests for states, search and filters.
 - [ ] **[IN PROGRESS]** P2-6.10 Integration tests.
   - Done: the Docker workflow boots the full stack and checks health and frontend routes (E-CI).
+  - Done: `npm run test:routes` (`frontend/scripts/check-routes.mjs`) checks routes online and offline and per-figure links against the API; run manually (E-WS2, E-WS3), not in CI.
   - Remaining: automated end-to-end browser tests of the core journeys.
 - [ ] **[IN PROGRESS]** P2-6.11 Regression tests.
   - Done: full suites run on every PR (E-CI).
@@ -290,16 +327,17 @@ These are release gates. They pass on the current baseline but must be re-verifi
 release candidate, so they stay IN PROGRESS until then.
 
 - [ ] **[IN PROGRESS]** P2-8.1 Backend lint and strict type checks. Baseline: clean (E-B).
-- [ ] **[IN PROGRESS]** P2-8.2 Backend tests. Baseline: 87 passed (E-B); after WS1: 170 passed (E-WS1).
+- [ ] **[IN PROGRESS]** P2-8.2 Backend tests. Baseline: 87 passed (E-B); after WS1: 170 passed (E-WS1); after WS3: 201 passed, also on GitHub Actions for `4be30b7` (E-MAIN).
 - [ ] **[IN PROGRESS]** P2-8.3 Frontend lint and type checks. Baseline: pass (E-F).
-- [ ] **[IN PROGRESS]** P2-8.4 Frontend unit tests. Baseline: 8/8 (E-F); after WS2: 17/17 (E-WS2).
+- [ ] **[IN PROGRESS]** P2-8.4 Frontend unit tests. Baseline: 8/8 (E-F); after WS2: 17/17 (E-WS2); after WS3: 24/24, also on GitHub Actions for `4be30b7` (E-MAIN).
 - [ ] **[IN PROGRESS]** P2-8.5 Production build. Baseline: `next build` passes (E-F).
 - [ ] **[IN PROGRESS]** P2-8.6 Docker clean build. Baseline: Docker workflow passed on `d858fbc` (E-CI).
 - [ ] **[IN PROGRESS]** P2-8.7 Fresh database migration. Baseline: fresh volume migrated and seeded (Phase 1 checklist, section 2).
 - [ ] **[IN PROGRESS]** P2-8.8 Migration upgrade and downgrade tests. Baseline: `test_migrations_upgrade_downgrade_roundtrip` passes (E-B).
-- [ ] **[IN PROGRESS]** P2-8.9 GitHub Actions. Baseline: Backend, Frontend and Docker all passed on PR #2 (E-CI).
-- [ ] **[IN PROGRESS]** P2-8.10 Documentation. Done: this checklist, the README Phase 2 section, PRODUCT_STRATEGY.md and PRODUCT_DECISIONS.md. Remaining: docs for each Phase 2 feature.
+- [ ] **[IN PROGRESS]** P2-8.9 GitHub Actions. Baseline: Backend, Frontend and Docker all passed on PR #2 (E-CI); and on the PR #4 and PR #5 merge commits (`78cf577`, `4be30b7`), with Backend and Docker on `45ef0ca` (E-MAIN). Remaining: re-run on the Phase 2 release candidate.
+- [ ] **[IN PROGRESS]** P2-8.10 Documentation. Done: this checklist, the README Phase 2 section, PRODUCT_STRATEGY.md and PRODUCT_DECISIONS.md. Since then: VERIFICATION_WORKFLOW.md (WS1), GLOSSARY.md (WS2), WS3_CHECKLIST.md (WS3), WS4 plan and checklist (proposal). Remaining: docs for each Phase 2 feature.
 - [ ] **[NOT STARTED]** P2-8.11 Pull request review of the Phase 2 changes.
+  - Note: PRs #3–#5 were merged by the owner's account with no recorded review; a review of the merged Phase 2 changes is still needed.
 - [ ] **[NOT STARTED]** P2-8.12 Release readiness review (all gates re-verified, blockers reported separately).
 
 ---

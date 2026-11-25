@@ -83,6 +83,7 @@ export type FinancialStatement = {
     metric_code: string;
     metric_name: string;
     metric_name_vi: string | null;
+    metric_name_en: string | null; // current dictionary label; metric_name is the stored one
     value: string; // full units
     unit: string;
     reported_value: string | null; // as printed in the document (null for rows from before WS1)
@@ -143,6 +144,15 @@ const SEPARATORS: Record<DisplayLocale, { group: string; decimal: string }> = {
 };
 
 /** Group a decimal string for display without converting it to a float. */
+/** Metric label for display: the current dictionary name for the locale, falling back to the name
+ * stored at import time when the code is not in the dictionary. */
+export function metricLabel(
+  m: { metric_name: string; metric_name_vi: string | null; metric_name_en: string | null },
+  locale: DisplayLocale,
+): string {
+  return (locale === "vi" ? m.metric_name_vi : m.metric_name_en) ?? m.metric_name;
+}
+
 export function formatDecimal(value: string, locale: DisplayLocale): string {
   const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(value.trim());
   if (!match) return value;
