@@ -55,6 +55,23 @@ PASS. Proposed changes go into `vi.ts`, then this table.
 Numbers are formatted from the exact decimal string, never through floating point. Timestamps
 are shown in Vietnam time (UTC+7).
 
+## Calculated ratios (WS4-2)
+
+New terms, added for the same native-speaker review. "Kiểm chứng" here follows the owner-approved
+label text (WS4-D7); the verification statuses above use "xác minh". The review should pick one.
+
+| Concept | Tiếng Việt | English |
+| --- | --- | --- |
+| Calculated ratios (section) | Chỉ số tính toán (do ATLAS tính) | Calculated ratios (computed by ATLAS) |
+| ROE | Tỷ suất lợi nhuận trên vốn chủ sở hữu (ROE) | Return on equity (ROE) |
+| ROA | Tỷ suất lợi nhuận trên tổng tài sản (ROA) | Return on assets (ROA) |
+| How it's calculated | Cách tính | How it's calculated |
+| Numerator / closing / opening | Tử số / Cuối kỳ / Đầu kỳ | Numerator / Closing / Opening |
+| Average denominator | Bình quân mẫu số | Average denominator |
+| Calculated from verified / unverified figures | Tính từ số liệu đã kiểm chứng / chưa kiểm chứng | Calculated from verified / unverified figures |
+| Not calculable / not meaningful | Không tính được / Không có ý nghĩa | Not calculable / Not meaningful |
+| Opening balance | Số dư đầu kỳ | Opening balance |
+
 ## Navigation
 
 Khám phá (Discover) · Ngành (Sectors) · Doanh nghiệp (Companies) · Danh sách theo dõi

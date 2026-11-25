@@ -115,6 +115,29 @@ export const en: Dictionary = {
       scale: (factor, currency) =>
         `${factor === 1000 ? "thousand" : factor === 1000000 ? "million" : `× ${factor}`} ${currency}`,
     },
+    calculated: {
+      title: "Calculated ratios (computed by ATLAS)",
+      note: "ATLAS computes these ratios when you view them, from the annual reported figures above. They are not figures published by the company and are not stored.",
+      none: "No annual income statement to calculate ratios from yet.",
+      verification: {
+        all_verified: "Calculated from verified figures",
+        some_unverified: "Calculated from unverified figures",
+        sample: "Sample data",
+      },
+      howTo: "How it's calculated",
+      role: { numerator: "Numerator", denominator_closing: "Closing", denominator_opening: "Opening" },
+      average: (value) => `Average denominator: ${value}`,
+      reason: {
+        missing_input: (metric) => `Not calculable: missing input (${metric})`,
+        missing_opening_balance: "Not calculable: opening balance missing",
+        ambiguous_opening_balance: "Not calculable: more than one possible opening balance",
+        input_disputed_or_rejected: "Not calculable: an input is under review or rejected",
+        input_superseded: "Not calculable: a source document was superseded",
+        unit_mismatch: "Not calculable: units do not match",
+        equity_not_positive: "Not meaningful: equity is not positive",
+        assets_not_positive: "Not meaningful: total assets are not positive",
+      },
+    },
   },
   sectors: {
     title: "Sectors",

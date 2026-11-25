@@ -1,0 +1,166 @@
+"""WS4-2: select the inputs of ROE and ROA for one company. Read-only; never writes or caches.
+
+Matching rules: docs/WS4_2_IMPLEMENTATION_PLAN.md §4 (owner-approved design, 2026-11-25)."""
+
+import uuid
+from dataclasses import dataclass
+from datetime import timedelta
+
+from sqlalchemy import exists, select
+from sqlalchemy.orm import Session, aliased, joinedload, selectinload
+
+from app.calculations.ratios import Figure, Formula, Issue, Outcome, Role, compute, formulas_for
+from app.models import FinancialMetric, FinancialStatement, StatementScope, StatementType
+
+OPENING_WINDOW = timedelta(days=7)  # approved period-end alignment rule (WS4 plan §4.3)
+
+
+@dataclass(frozen=True)
+class Input:
+    role: Role
+    statement: FinancialStatement
+    metric: FinancialMetric
+
+
+@dataclass(frozen=True)
+class Result:
+    formula: Formula
+    income_statement: FinancialStatement
+    inputs: tuple[Input, ...]
+    outcome: Outcome
+
+
+def _latest_annual(db: Session, company_id: uuid.UUID) -> list[FinancialStatement]:
+    """Latest revisions of annual income statements and balance sheets, with figures and evidence.
+    A revision replaced by a newer one is never returned, whatever the newer one's status."""
+    newer = aliased(FinancialStatement)
+    superseded = exists().where(newer.supersedes_id == FinancialStatement.id)
+    return list(
+        db.scalars(
+            select(FinancialStatement)
+            .where(
+                FinancialStatement.company_id == company_id,
+                FinancialStatement.fiscal_quarter.is_(None),
+                FinancialStatement.statement_type.in_(
+                    [StatementType.INCOME_STATEMENT, StatementType.BALANCE_SHEET]
+                ),
+                ~superseded,
+            )
+            .options(
+                selectinload(FinancialStatement.metrics),
+                joinedload(FinancialStatement.source_evidence),
+            )
+        ).unique()
+    )
+
+
+def _metric(statement: FinancialStatement, code: str) -> FinancialMetric | None:
+    return next((m for m in statement.metrics if m.metric_code == code), None)
+
+
+def _result(
+    formula: Formula, income: FinancialStatement, balance_sheets: list[FinancialStatement]
+) -> Result:
+    inputs: list[Input] = []
+    issues: list[Issue] = []
+
+    numerator = _metric(income, formula.numerator)
+    if numerator is None:
+        issues.append(
+            Issue("missing_input", "numerator", formula.numerator, income.reporting_period_end)
+        )
+    else:
+        inputs.append(Input("numerator", income, numerator))
+
+    same_scope = [b for b in balance_sheets if b.scope is formula.scope]
+    closing = next(
+        (
+            b
+            for b in same_scope
+            if b.fiscal_year == income.fiscal_year
+            and b.reporting_period_end == income.reporting_period_end
+        ),
+        None,
+    )
+    closing_metric = _metric(closing, formula.denominator) if closing else None
+    if closing is None or closing_metric is None:
+        issues.append(
+            Issue(
+                "missing_input",
+                "denominator_closing",
+                formula.denominator,
+                income.reporting_period_end,
+            )
+        )
+    else:
+        inputs.append(Input("denominator_closing", closing, closing_metric))
+
+    expected = income.reporting_period_start - timedelta(days=1)
+    candidates = [
+        b
+        for b in same_scope
+        if b.fiscal_year == income.fiscal_year - 1
+        and abs(b.reporting_period_end - expected) <= OPENING_WINDOW
+    ]
+    if len(candidates) > 1:
+        issues.append(
+            Issue("ambiguous_opening_balance", "denominator_opening", formula.denominator, expected)
+        )
+    elif not candidates:
+        issues.append(
+            Issue("missing_opening_balance", "denominator_opening", formula.denominator, expected)
+        )
+    else:
+        opening = candidates[0]
+        opening_metric = _metric(opening, formula.denominator)
+        if opening_metric is None:
+            issues.append(
+                Issue(
+                    "missing_opening_balance",
+                    "denominator_opening",
+                    formula.denominator,
+                    opening.reporting_period_end,
+                )
+            )
+        else:
+            inputs.append(Input("denominator_opening", opening, opening_metric))
+
+    figures = [
+        Figure(
+            role=i.role,
+            metric_code=i.metric.metric_code,
+            period_end=i.statement.reporting_period_end,
+            value=i.metric.value,
+            unit=i.metric.unit,
+            currency=i.statement.currency,
+            status=i.statement.source_evidence.verification_status,
+        )
+        for i in inputs
+    ]
+    return Result(formula, income, tuple(inputs), compute(formula, figures, issues))
+
+
+def calculated_metrics(
+    db: Session,
+    company_id: uuid.UUID,
+    fiscal_year: int | None = None,
+    scope: StatementScope | None = None,
+) -> list[Result]:
+    """One result per formula for each latest annual income statement, newest year first."""
+    statements = _latest_annual(db, company_id)
+    incomes = sorted(
+        (
+            s
+            for s in statements
+            if s.statement_type is StatementType.INCOME_STATEMENT
+            and (fiscal_year is None or s.fiscal_year == fiscal_year)
+            and (scope is None or s.scope is scope)
+        ),
+        key=lambda s: (-s.fiscal_year, s.scope.value),
+    )
+    balance_sheets = [s for s in statements if s.statement_type is StatementType.BALANCE_SHEET]
+    return [
+        _result(formula, income, balance_sheets)
+        for income in incomes
+        for formula in sorted(formulas_for(income.scope), key=lambda f: f.code)
+    ]

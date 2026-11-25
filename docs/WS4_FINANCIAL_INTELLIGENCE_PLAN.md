@@ -9,9 +9,10 @@ implemented; implementation needs the owner's go-ahead.
 | | |
 | --- | --- |
 | Written | 2026-11-24 |
-| Code inspected | `main` @ `4be30b7` (after PRs #3, #4, #5) |
+| Code inspected | `main` @ `4be30b7` (after PRs #3, #4, #5); WS4-1 merged as `105869f` (PR #6, 2026-11-25) |
 | Phase 2 items served | P2-5.1, P2-5.11 to P2-5.17 ([PHASE_2_CHECKLIST.md](PHASE_2_CHECKLIST.md)) |
 | Acceptance checklist | [WS4_CHECKLIST.md](WS4_CHECKLIST.md) |
+| WS4-2 (ROE, ROA) | [WS4_2_IMPLEMENTATION_PLAN.md](WS4_2_IMPLEMENTATION_PLAN.md), [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) |
 | Preserved | A-1 to A-11, AM-1, EX-1 to EX-3 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)); metric dictionary 1.0.0 unchanged (exit audit F-1, F-2 stay OPEN until the approved changes ship); Q-3, Q-7, Q-8 stay OPEN; G1 not passed. Q-5 resolved by WS4-D4 |
 
 **Goal.** Make financial figures understandable, comparable and computable in a way that is exact,
@@ -565,7 +566,7 @@ Decided by the project owner on 2026-11-24, recorded in [PRODUCT_DECISIONS.md](P
 
 | Step | Content | Depends on | Schema change |
 | --- | --- | --- | --- |
-| WS4-1 | Dictionary 1.1.0: definitions, applicability, new metrics as approved (G-1, G-2, G-4; no signs, G-3 not approved) | D4, D5, D10 | No (reference JSON only; the dictionary is not stored in the database). **Implemented 2026-11-24** on `feat/ws4-1-metric-dictionary`, uncommitted, awaiting owner review |
+| WS4-1 | Dictionary 1.1.0: definitions, applicability, new metrics as approved (G-1, G-2, G-4; no signs, G-3 not approved) | D4, D5, D10 | No (reference JSON only; the dictionary is not stored in the database). **Done:** merged 2026-11-25 (PR #6, `105869f`; Backend, Frontend, Docker CI success); definitions approved by the owner |
 | WS4-2 | Calculated-metric registry and read-time service with exact `Decimal` | D1, D2, D3, D7 | No |
 | WS4-3 | API endpoint for calculated metrics; OpenAPI | WS4-2 | No |
 | WS4-4 | UI: calculated labels, formula disclosure, states, compact display | D6, D7, D8 | No |

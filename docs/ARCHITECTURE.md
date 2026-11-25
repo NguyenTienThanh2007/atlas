@@ -108,12 +108,20 @@ Both downgrade cleanly, and a test checks the round trip.
 Each record is applied inside a SAVEPOINT, so it lands completely or not at all. The caller (the
 CLI) commits data and the run record together. The rules are listed in `data/README.md`.
 
+`backend/app/calculations/` (WS4-2) computes ROE and ROA on request and never stores them:
+
+| Module | Job |
+| --- | --- |
+| `ratios.py` | Versioned formula registry (owner-approved WS4-D1 to D3) and pure exact-`Decimal` computation: exact average, one rounding per output, reason codes in a fixed precedence |
+| `service.py` | Read-only input selection: latest annual revisions, same scope, closing on the income statement's end date, opening = FY *t*−1 within ±7 days ([WS4_2_IMPLEMENTATION_PLAN.md](WS4_2_IMPLEMENTATION_PLAN.md) §4) |
+
 ### API (`/api/v1`)
 
 | Endpoint | Notes |
 | --- | --- |
 | `GET /health` | 200, or 503 if the database is down |
 | `GET /exchanges` | Paginated |
+| `GET /companies/{id}/calculated-metrics` | ROE and ROA per latest annual income statement (`fiscal_year`, `scope`, paginated). Values are fixed-point strings (`value` 10 decimals, `percent` 2, `denominator_average` 7) or `null` with a `reason` and every `issue`; each input carries its WS3 `source`; `input_verification` describes the inputs and nothing is ever `verified`. Computed per request, never stored |
 | `GET /metric-dictionary` | The versioned dictionary as one document (not paginated, 17 metrics); served from `app/reference/metric_dictionary.json` |
 | `GET /sectors`, `GET /sectors/{id}` | Includes `company_count` (one query, scalar subquery) |
 | `GET /companies` | `q` (name, English name or ticker; case-insensitive substring, wildcards escaped), `sector` (code), `exchange` (code, non-delisted listings only), `limit` 1–100, `offset` |

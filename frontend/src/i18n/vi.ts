@@ -124,6 +124,29 @@ export const vi = {
       scale: (factor: number, currency: string) =>
         `${factor === 1000 ? "nghìn" : factor === 1000000 ? "triệu" : `× ${factor}`} ${unit(currency)}`,
     },
+    calculated: {
+      title: "Chỉ số tính toán (do ATLAS tính)",
+      note: "ATLAS tính các chỉ số này khi bạn xem, từ số liệu báo cáo năm ở trên. Đây không phải số liệu doanh nghiệp công bố và không được lưu lại.",
+      none: "Chưa có báo cáo kết quả kinh doanh năm nào để tính chỉ số.",
+      verification: {
+        all_verified: "Tính từ số liệu đã kiểm chứng",
+        some_unverified: "Tính từ số liệu chưa kiểm chứng",
+        sample: "Dữ liệu mẫu",
+      },
+      howTo: "Cách tính",
+      role: { numerator: "Tử số", denominator_closing: "Cuối kỳ", denominator_opening: "Đầu kỳ" },
+      average: (value: string) => `Bình quân mẫu số: ${value}`,
+      reason: {
+        missing_input: (metric: string) => `Không tính được: thiếu số liệu đầu vào (${metric})`,
+        missing_opening_balance: "Không tính được: thiếu số dư đầu kỳ",
+        ambiguous_opening_balance: "Không tính được: có nhiều hơn một số dư đầu kỳ phù hợp",
+        input_disputed_or_rejected: "Không tính được: số liệu đầu vào đang xem xét lại hoặc bị loại",
+        input_superseded: "Không tính được: tài liệu nguồn đã được thay thế",
+        unit_mismatch: "Không tính được: đơn vị không khớp",
+        equity_not_positive: "Không có ý nghĩa: vốn chủ sở hữu không dương",
+        assets_not_positive: "Không có ý nghĩa: tổng tài sản không dương",
+      },
+    },
   },
   sectors: {
     title: "Ngành",

@@ -92,6 +92,62 @@ export type FinancialStatement = {
   }[];
 };
 
+// WS4-2: ratios computed by ATLAS at read time. Values are fixed-point decimal strings; the
+// browser only formats them and never does arithmetic.
+export type CalculationRole = "numerator" | "denominator_closing" | "denominator_opening";
+export type CalculationReason =
+  | "missing_input"
+  | "missing_opening_balance"
+  | "ambiguous_opening_balance"
+  | "input_disputed_or_rejected"
+  | "input_superseded"
+  | "unit_mismatch"
+  | "equity_not_positive"
+  | "assets_not_positive";
+
+export type CalculatedMetric = {
+  code: "roe" | "roa";
+  kind: "calculated";
+  formula_id: string;
+  formula_version: number;
+  name_vi: string;
+  name_en: string;
+  formula_text_vi: string;
+  formula_text_en: string;
+  fiscal_year: number;
+  scope: "separate" | "consolidated";
+  period_start: string;
+  period_end: string;
+  status: "computed" | "not_computable";
+  reason: CalculationReason | null;
+  value: string | null; // ratio, 10 decimals
+  percent: string | null; // 2 decimals, already rounded by the API
+  denominator_average: string | null;
+  inputs: {
+    role: CalculationRole;
+    metric_code: string;
+    metric_name_vi: string | null;
+    metric_name_en: string | null;
+    statement_id: string;
+    revision: number;
+    period_end: string;
+    value: string;
+    unit: string;
+    reported_value: string | null;
+    reported_scale: number | null;
+    source: FigureSource;
+  }[];
+  issues: {
+    code: CalculationReason;
+    role: CalculationRole;
+    metric_code: string;
+    metric_name_vi: string | null;
+    metric_name_en: string | null;
+    period_end: string;
+  }[];
+  input_verification: "all_verified" | "some_unverified" | "sample" | null;
+};
+
 // Failures carry a kind, not text: pages translate it (src/i18n/text.ts).
 export type ApiFailure = {
   ok: false;
@@ -151,6 +207,16 @@ export function metricLabel(
   locale: DisplayLocale,
 ): string {
   return (locale === "vi" ? m.metric_name_vi : m.metric_name_en) ?? m.metric_name;
+}
+
+/** Format a fixed-point string keeping every decimal it has ("18.30" → "18,30"): no rounding,
+ * no parsing to a number. For values the API has already rounded (percentages). */
+export function formatFixed(value: string, locale: DisplayLocale): string {
+  const match = /^(-?)(\d+)\.(\d+)$/.exec(value.trim());
+  if (!match) return value;
+  const [, sign, int, frac] = match;
+  const { group, decimal } = SEPARATORS[locale];
+  return `${sign}${int.replace(/\B(?=(\d{3})+(?!\d))/g, group)}${decimal}${frac}`;
 }
 
 export function formatDecimal(value: string, locale: DisplayLocale): string {

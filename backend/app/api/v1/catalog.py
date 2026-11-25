@@ -11,6 +11,9 @@ from sqlalchemy import Select, and_, exists, func, or_, select
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from app.api.v1.schemas import (
+    CalculatedMetricOut,
+    CalculationInputOut,
+    CalculationIssueOut,
     CompanyListItem,
     CompanyOut,
     ErrorOut,
@@ -23,8 +26,9 @@ from app.api.v1.schemas import (
     SectorOut,
     SecurityDetailOut,
 )
+from app.calculations.service import calculated_metrics
 from app.db import get_session
-from app.ingestion.reference import MetricDictionary, metric_dictionary_document
+from app.ingestion.reference import MetricDictionary, metric_dictionary, metric_dictionary_document
 from app.models import (
     Company,
     EntityType,
@@ -318,3 +322,85 @@ def list_financial_statements(
         for s, flag in rows
     ]
     return Page[FinancialStatementOut](items=items, total=total, limit=limit, offset=offset)
+
+
+# ---------------------------------------------------------------- calculated metrics (WS4-2)
+
+
+@router.get(
+    "/companies/{company_id}/calculated-metrics",
+    response_model=Page[CalculatedMetricOut],
+    responses={404: {"model": ErrorOut}},
+    tags=["companies"],
+)
+def list_calculated_metrics(
+    company_id: uuid.UUID,
+    db: DB,
+    fiscal_year: Annotated[int | None, Query(ge=1990, le=2200)] = None,
+    scope: StatementScope | None = None,
+    limit: Limit = 20,
+    offset: Offset = 0,
+) -> Page[CalculatedMetricOut]:
+    """ROE and ROA computed on request from the latest annual reported figures (never stored).
+    A result that can't be computed says why (`reason`, `issues`); nothing is estimated."""
+    _company_or_404(db, company_id)
+    results = calculated_metrics(db, company_id, fiscal_year, scope)
+    dictionary = metric_dictionary()
+
+    def names(code: str) -> tuple[str | None, str | None]:
+        d = dictionary.get(code)
+        return (d.name_vi, d.name) if d else (None, None)
+
+    items = [
+        CalculatedMetricOut(
+            code=r.formula.code,
+            formula_id=r.formula.formula_id,
+            formula_version=r.formula.version,
+            name_vi=r.formula.name_vi,
+            name_en=r.formula.name_en,
+            formula_text_vi=r.formula.text_vi,
+            formula_text_en=r.formula.text_en,
+            fiscal_year=r.income_statement.fiscal_year,
+            scope=r.income_statement.scope,
+            period_start=r.income_statement.reporting_period_start,
+            period_end=r.income_statement.reporting_period_end,
+            status="computed" if r.outcome.value is not None else "not_computable",
+            reason=r.outcome.reason,
+            value=r.outcome.value,
+            percent=r.outcome.percent,
+            denominator_average=r.outcome.average,
+            inputs=[
+                CalculationInputOut(
+                    role=i.role,
+                    metric_code=i.metric.metric_code,
+                    metric_name_vi=names(i.metric.metric_code)[0],
+                    metric_name_en=names(i.metric.metric_code)[1],
+                    statement_id=i.statement.id,
+                    revision=i.statement.revision,
+                    period_end=i.statement.reporting_period_end,
+                    value=i.metric.value,
+                    unit=i.metric.unit,
+                    reported_value=i.metric.reported_value,
+                    reported_scale=i.metric.reported_scale,
+                    source=MetricSourceOut.for_figure(
+                        i.statement.source_evidence, i.metric.source_page
+                    ),
+                )
+                for i in r.inputs
+            ],
+            issues=[
+                CalculationIssueOut(
+                    code=x.code,
+                    role=x.role,
+                    metric_code=x.metric_code,
+                    metric_name_vi=names(x.metric_code)[0],
+                    metric_name_en=names(x.metric_code)[1],
+                    period_end=x.period_end,
+                )
+                for x in r.outcome.issues
+            ],
+            input_verification=r.outcome.input_verification,
+        )
+        for r in results[offset : offset + limit]
+    ]
+    return Page[CalculatedMetricOut](items=items, total=len(results), limit=limit, offset=offset)

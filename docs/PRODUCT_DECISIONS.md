@@ -351,6 +351,26 @@ This is not a separate decision; every value follows from the decisions above:
 The owner also approved, in the same review, the English name **"Total equity"** for `total_equity`
 (was "Total owners' equity"), to avoid confusion with equity attributable to owners of the parent.
 
+**Implementation status (2026-11-25):** WS4-D10 and WS4-D12 are implemented in metric dictionary
+1.1.0, merged as PR #6 (`105869f`, Backend, Frontend and Docker CI success). The owner approved all
+17 definitions. No other §2d decision is implemented yet (WS4-2 onward). Records above unchanged.
+
+**WS4-2 design approval (2026-11-25).** The project owner approved all six design points of
+[WS4_2_IMPLEMENTATION_PLAN.md](WS4_2_IMPLEMENTATION_PLAN.md) §12 as written: (1) a separate
+`GET /companies/{id}/calculated-metrics` endpoint; (2) the eight reason codes, their precedence and
+vi/en texts, with every issue listed; (3) `value` 10 decimals half-even and `percent` 2 decimals
+half-up, both from the exact quotient, as fixed-point strings; (4) opening balance = FY *t*−1 annual
+balance sheet, same scope, latest revision, within ±7 days, `ambiguous_opening_balance` when several,
+closing on the exact date; (5) `verified` / `unverified` / `sample` used, `disputed` / `rejected` /
+`superseded` refused, no fallback to older revisions; (6) the ROE and ROA names. This implements the
+approved formulas (WS4-D1 to D3, D7, D8, D11, D12) and changes none of them. It is **not** a
+go-ahead to implement; that is a separate approval.
+
+**WS4-2 go-ahead (2026-11-25).** The project owner authorised WS4-2 implementation ("Start WS4-2").
+One addition made during implementation: each listed `issue` also carries the metric's Vietnamese
+and English names (`metric_name_vi`, `metric_name_en`) so the "missing input (…)" text can name it.
+Codes, precedence and texts are unchanged.
+
 ## 3. Rejected alternatives
 
 | Alternative | Why rejected |
