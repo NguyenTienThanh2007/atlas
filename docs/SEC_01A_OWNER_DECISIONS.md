@@ -225,23 +225,25 @@ starts, or before G2 real-pilot data is loaded.
 
 ### D7: staged remediation scope
 
-- **Proposal:**
-  - SEC-03 (local paths) comes with Stage 1: the `api.evidence` view nulls non-http(s) URLs.
-    **This is an API behaviour change.**
-  - SEC-09 (docs) comes with Stage 3.
+**Status: APPROVED by the project owner, 2026-11-26.**
+
+- **Decision:** adopt the staged remediation sequence:
+  - SEC-03 (local paths) comes with Stage 1: the `api.evidence` view returns `null` for
+    non-HTTP(S) URLs. The API behaviour change is approved.
+  - SEC-10 (identity) comes with Stage 2.
+  - SEC-09 (disable pilot API docs) comes with Stage 3.
   - SEC-04, SEC-05 and SEC-06 are Stage 4.
-  - SEC-07 is the owner's GitHub setting.
-  - SEC-10 is Stage 2.
-- **Benefits:** keeps each change reviewable. The privacy fix comes free with the views.
-- **Risks and trade-offs:**
-  - Low findings stay open longer.
-  - The SEC-03 behaviour change needs its own approval.
+  - SEC-07: protect `main` now. Require PRs, at least one approving human review,
+    dismissal of stale approvals, resolved conversations, and prohibit force-pushes
+    and branch deletion. Do not allow routine administrator bypass. Select required
+    CI checks only after confirming their stable names.
+- **Benefits:** keeps each change reviewable. The privacy fix comes with the views.
+- **Risks and trade-offs:** low findings remain open longer; the SEC-03 response behaviour
+  changes for non-HTTP(S) source URLs.
 - **Dependencies:** D1.
-- **Owner must approve:**
-  1. the staging;
-  2. the SEC-03 API change (`source_url` becomes `null` for non-http(s) URLs);
-  3. whether to enable branch protection now (SEC-07).
-- **Blocks:** Stage 1, for the SEC-03 API change only. Otherwise it fixes the scope of Stages 1–4.
+- **Operational note:** branch-protection policy is approved, but the GitHub settings
+  change is still pending; it must be applied in repository settings.
+- **Blocks:** Stage 1 for SEC-03 and D1; otherwise it fixes the scope of Stages 1–4.
 
 ### D8: database credentials, TLS and authentication policy
 
@@ -308,20 +310,22 @@ starts, or before G2 real-pilot data is loaded.
 
 ### D11: migration rollback
 
-- **Proposal (corrected by C-2):**
+**Status: APPROVED by the project owner, 2026-11-26.**
+
+- **Decision (corrected by C-2):**
   - **Stage 1 (M1):** the downgrade restores the old function bodies and grants, and **leaves
-    ownership with `atlas_owner`**. Handing ownership back is a manual bootstrap-superuser step,
-    and it isn't needed for a superuser runtime to work.
+    ownership with `atlas_owner`**. It must not attempt to hand ownership back to the bootstrap
+    superuser. Returning ownership, if ever needed, is a separate manual bootstrap-superuser step.
   - **Stage 2 (M2):** a forward fix is preferred. The downgrade refuses if authenticated reviews
-    exist; otherwise restore the pre-migration backup.
-  - **Before each stage:** a backup (D10) and an integrity-check record.
-- **Benefits:** a rollback can't discard review history.
-- **Risks and trade-offs:** M1 isn't a perfect inverse (ownership stays), and Stage 2 relies on
-  backups.
-- **Dependencies:** D10.
-- **Owner must approve:**
-  1. the non-symmetric M1 downgrade;
-  2. backup-based rollback for Stage 2.
+    exist; if recovery is required after authenticated reviews exist, restore from a verified
+    pre-migration backup under the approved recovery procedure.
+  - **Before each stage:** create and record a verified pre-migration backup and integrity-check
+    result. D10's broader backup, retention and anchor policy remains a separate decision before G2.
+- **Benefits:** rollback cannot discard authenticated review history.
+- **Risks and trade-offs:** M1 is intentionally non-symmetric (ownership stays with `atlas_owner`);
+  Stage 2 recovery relies on a verified backup.
+- **Dependencies:** a verified pre-migration backup for each stage; D10's broader policy before G2.
+- **Owner approved:** the non-symmetric M1 downgrade and backup-based Stage 2 recovery.
 - **Blocks:** Stage 1.
 
 ### D12: acceptance criteria before real pilot data
@@ -365,11 +369,11 @@ starts, or before G2 real-pilot data is loaded.
 | D4 Definer procedures and import | Stages 1, 2 | D1 |
 | D5 Privileged operator | G2 (`pg_hba` in Stage 1) | D10, D13 |
 | D6 No remote access before Q-7 | Stage 3 (G2 if the reviewer is remote) | Q-7, D8 |
-| D7 Staged scope | Stage 1 (SEC-03 API change) | D1 |
+| D7 Staged scope | Stage 1 (SEC-03 API change); SEC-07 GitHub setting approved, operational action pending | D1 |
 | D8 Credentials, TLS, authentication | Stages 2, 3 | Q-7 |
 | D9 Retention and revocation | Stage 2 | D2 |
 | D10 Backup and recovery | G2 | D5, Q-7 |
-| D11 Migration rollback | Stage 1 | D10 |
+| D11 Migration rollback | Stage 1; verified pre-migration backup required | D10 (broader policy before G2) |
 | D12 Acceptance before real data | G2 | D1–D4, D8, D10, D13 |
 | D13 Independent reviewer | G2 | Q-3 |
 
@@ -382,8 +386,9 @@ proposals in D7 or D11 (or any other D1–D13 proposal). D7's SEC-03 API behavio
 (leaves ownership with `atlas_owner`) each still require an explicit owner decision before
 implementation. Plan §9 and C-13 in Plan §0 reflect the expanded gate.
 
-**The substantive decisions stay PROPOSALS until the owner approves them explicitly:** D1, D2,
-D3, D4, D6, D7, D8 and D11. So do D5, D9, D10, D12 and D13. The owner's approval of G-0
-scope does not approve any of these proposals.
+**Still PROPOSALS / not approved:** D1, D2, D3, D4, D5, D6, D8, D9, D10, D12 and D13.
+D7 and D11 are approved by the owner on 2026-11-26, as recorded in
+[PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §6. Approval of D7 and D11 does not satisfy G-0
+by itself; D1–D4, D6 and D8 remain outstanding.
 
 **OWNER DECISIONS REQUIRED — STAGE 1 NOT AUTHORIZED.**
