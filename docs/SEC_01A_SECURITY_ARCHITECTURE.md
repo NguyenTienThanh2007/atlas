@@ -1,8 +1,9 @@
 # SEC-01A: security architecture (design only)
 
-**Status: DESIGN FOR OWNER REVIEW. Nothing here is approved or implemented.** Every
-recommendation is a **PROPOSAL**. Decisions are listed in
-[SEC_01A_IMPLEMENTATION_PLAN.md](SEC_01A_IMPLEMENTATION_PLAN.md) §1. Threats:
+**Status: DESIGN BASELINE — D1–D4, D6–D8 and D11 APPROVED 2026-11-26; IMPLEMENTATION NOT INCLUDED HERE.**
+The approved decisions are recorded in [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §§5–7.
+Other recommendations remain proposals unless separately approved. This document is a design
+reference, not an implementation or independent human review. Threats:
 [SEC_01A_THREAT_MODEL.md](SEC_01A_THREAT_MODEL.md).
 
 | | |
@@ -26,7 +27,7 @@ and **HUMAN DEPENDENCY**.
    - **P6e:** a curator role can store a classification that cites **another company's** evidence.
 2. **The two-person rule is one person typing two names.** Today one session submits both
    `curator` and `reviewer` (P7). The database cannot tell who is at the keyboard.
-3. **Recommended model (PROPOSAL):**
+3. **Approved design baseline (D1, D2 and D4):**
    - one owner role that is never used at runtime;
    - a read-only API role;
    - **one database login per human**, authenticated by PostgreSQL itself;
@@ -146,7 +147,7 @@ logs in as, with a pinned `search_path` and schema-qualified names. Runtime role
 `UPDATE`, `DELETE` or `TRUNCATE` on protected tables, and no `TEMP`. Writes go only through
 procedures.
 
-## 3. Recommended PostgreSQL role model (PROPOSAL)
+## 3. PostgreSQL role model (D1 approved 2026-11-26; implementation pending)
 
 ### 3.1 Principals
 
@@ -164,9 +165,10 @@ Notes on this model:
 - **Why `atlas_owner` is NOLOGIN and the migrator NOINHERIT.** A leaked migrator password then
   needs an explicit `SET ROLE` to act as owner, and that shows in the logs. It still *can* act as
   owner, so migration credentials are as sensitive as the owner itself (T-15 in the threat model).
-- **Why the person roles are NOINHERIT.** The procedures check membership with
-  `pg_has_role(session_user, 'atlas_reviewers', 'MEMBER')`, so no table rights flow through
-  inheritance.
+- **Person-role membership is explicit.** Each `p_*` role joins the relevant group with
+  `INHERIT TRUE, SET FALSE`; procedures check membership with
+  `pg_has_role(session_user, 'atlas_reviewers', 'MEMBER')`. Group membership grants procedure
+  EXECUTE only, not table privileges.
 - **No separate `atlas_curator` service login.** A shared curator login would again record "the
   service" rather than a person (§4).
 
@@ -174,17 +176,16 @@ Notes on this model:
 
 Each item below fixes a tested gap.
 
-- `REVOKE ALL ON DATABASE atlas FROM PUBLIC`, then `GRANT CONNECT` to the roles that need it. This
-  removes **TEMP**, which closes P5 and P6e as defence in depth.
+- Revoke PUBLIC `CONNECT` and `TEMP` on **every database in the cluster** (`atlas`, `atlas_test`,
+  `postgres`), then grant `CONNECT` only to the roles that need it. This closes P5 and P6e as
+  defence in depth.
 - `REVOKE ALL ON SCHEMA public FROM PUBLIC`; `GRANT USAGE` only to the runtime roles.
   `ALTER DEFAULT PRIVILEGES FOR ROLE atlas_owner REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`, and
   `REVOKE EXECUTE` on the existing functions. Functions are EXECUTE-to-PUBLIC by default.
-- Every security function becomes:
-  - `SECURITY DEFINER`, owned by `atlas_owner`;
-  - `SET search_path = pg_catalog, public, pg_temp` (with `pg_temp` explicitly last);
-  - written with **schema-qualified** names (`public.evidence`).
-
-  Trigger functions that keep INVOKER rights also get the pinned `search_path`.
+- Entry procedures become `SECURITY DEFINER`, owned by `atlas_owner`, with
+  `SET search_path = pg_catalog, public, pg_temp` (`pg_temp` explicitly last) and
+  schema-qualified names (`public.evidence`). Trigger functions remain `SECURITY INVOKER`,
+  with the same pinned `search_path` and qualified names.
 - `atlas_guard_evidence`: replace `pg_trigger_depth() < 2` with "the status may change only when
   `current_user = 'atlas_owner'`". Only the definer procedures run as `atlas_owner`, and no runtime
   role holds `UPDATE` on `evidence`. Keep the immutability check.
@@ -240,15 +241,18 @@ Actual tables from the schema at `5c1f0a2b7e44`. In the matrix:
 
 ### 3.4 Views or tables for the API?
 
-**PROPOSAL: views in a dedicated `api` schema** for `evidence` and `verification_reviews`, and for
-every table that gains identity columns. Plain `SELECT` grants for the reference tables.
+**Approved under D1:** use views in a dedicated `api` schema for `evidence`,
+`verification_reviews` and tables that gain identity columns. Grant plain `SELECT` on the
+reference tables.
 
-- Views let the API never see `created_by` principal ids, local paths (SEC-03: the view returns
-  `source_url` only when it is http(s)) or audit columns. A compromised API can then leak less.
-- Make them `security_barrier` views owned by `atlas_owner`. Keep the existing column names, so the
-  ORM read models change only their schema (backward compatibility, plan §4).
+- Views keep `created_by` principal ids, local paths (SEC-03: non-HTTP(S) `source_url` is
+  returned as null) and audit columns out of the API surface.
+- Make them `security_barrier` views owned by `atlas_owner`. Keep the existing column names and
+  use same-name views with `ALTER ROLE atlas_api SET search_path = api`; do not change
+  SQLAlchemy model schema metadata (C-8). Every view must expose all columns mapped by the ORM.
+  Stage 1 must run API tests as `atlas_api` to verify compatibility.
 
-## 4. Human identity and two-person verification (PROPOSAL)
+## 4. Human identity and two-person verification (D2 approved 2026-11-26; implementation pending)
 
 ### 4.1 Options
 
@@ -345,7 +349,7 @@ longer matches: the row is locked, then compared (existing behaviour,
 `test_stale_from_status_is_refused`). There is no request token to replay, because the call is a
 DB transaction in the person's own session.
 
-## 5. Migration isolation and secrets (PROPOSAL)
+## 5. Migration isolation and secrets (D1/D8 approved 2026-11-26; implementation pending)
 
 ### 5.1 Separate the migration job
 
@@ -378,22 +382,27 @@ DB transaction in the person's own session.
   **second** CI job provisions the production role model on a fresh database, migrates as
   `atlas_migrator`, and runs the negative tests as `atlas_api` and as person roles.
 
-### 5.3 Person credentials
+### 5.3 Person credentials (D8 approved 2026-11-26)
 
-- Pilot (PROPOSAL): `scram-sha-256` passwords generated per person and kept in their own password
-  manager, **or** client certificates (`pg_hba` `cert`). Certificates avoid shared typing and are
-  preferred if hosting (Q-7) allows TLS to the database. Choosing is OWNER DECISION D8.
-- `VALID UNTIL` on each person role (for example 90 days), renewed on purpose. Revocation:
-  `ALTER ROLE p_x NOLOGIN`, revoke group membership, set `principals.status = 'revoked'`, and
-  terminate open backends.
+- Use an individual client certificate (`pg_hba` `cert`) when the chosen hosting supports the
+  required TLS/client-certificate setup; otherwise use an individual `scram-sha-256` password
+  kept in that person's password manager. Never share credentials.
+- Each person role has `VALID UNTIL` 90 days, connection limit 1 and `idle_session_timeout`.
+  Revoke with `ALTER ROLE p_x NOLOGIN`, revoke group membership, set
+  `principals.status = 'revoked'`, and terminate open backends.
+- Service-role credentials use separate Compose secret files per process, not plaintext
+  environment variables. Rotation cadence remains open pending the operational design.
 
-## 6. Network topology (PROPOSAL)
+## 6. Network topology (D6/D8 approved 2026-11-26; remote access remains disabled until Q-7 and Stage 3)
 
 ### 6.1 Scenario 1: local, owner only (today)
 
-Every port stays on `127.0.0.1` (VERIFIED: `docker-compose.yml:15,34,51`). Development
-credentials, fictional data only. The role model (§3) applies here too, so it gets tested every
-day. There is no IdP. People are local `p_*` roles created by a dev script.
+Every port stays on `127.0.0.1` (VERIFIED: `docker-compose.yml:15,34,51`). Use the same role
+model as the pilot, provisioned by the operator through the bootstrap SQL file; use fictional
+development principals and git-ignored development credentials only. Keep the superuser test
+harness for replica-mode fixtures and a separate restricted-role test harness. Until Stage 2,
+the legacy CLI login is a documented temporary gap and does not establish authenticated
+curator/reviewer identity. There is no remote access.
 
 ### 6.2 Scenario 2: private pilot, curator and reviewer on separate machines
 
@@ -440,9 +449,10 @@ Notes:
 - **Why both a VPN and an authenticating proxy.** The VPN keeps every service off the public
   internet (defence against unauthenticated scanning and framework CVEs). The proxy gives a named
   identity per browser request, needed for audit and revocation.
-- **Pilot simplification.** The web app is read-only, so a VPN alone (per-person keys) is the
-  minimum. The proxy sign-in is recommended, not required, if the VPN identities are personal
-  (OWNER DECISION D6/D8).
+- **Approved remote-pilot boundary (D6/D8).** Remote access remains disabled until Q-7 is
+  decided and Stage 3 passes. When enabled, require VPN with personal device keys, TLS reverse
+  proxy with OIDC and MFA, no published backend/database host ports, and `hostssl` for person
+  roles from the VPN range. A VPN-only exception is not approved.
 - **Session policy for the proxy** (PROPOSAL):
   - cookies `Secure`, `HttpOnly`, `SameSite=Lax`;
   - 8-hour lifetime, re-authentication with MFA;
