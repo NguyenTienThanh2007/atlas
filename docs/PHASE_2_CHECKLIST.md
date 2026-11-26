@@ -300,6 +300,7 @@ values from **calculated** ones.
 - [ ] **[IN PROGRESS]** P2-5.15 Missing data handling (show "not reported", never zero; exclude from calculations).
   - Done: seven availability states proposed, with what today's schema can and cannot express (WS4 plan §7); vocabulary and Phase A approved as WS4-D6, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d). Phase B (explicit records, a schema change) not approved.
   - Remaining: implementation; tests.
+  - 2026-11-26: the title's "show 'not reported'" can't hold in Phase A: absence must never be shown as "not reported" without a record that someone checked (WS4-D6). Phase A acceptance is "not yet collected" / "not applicable", never zero; "not reported" belongs to Phase B (WS4-4 plan §1.7, C-2). WS4-4 decisions approved ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2f); Phase A implemented on branch `feat/ws4-4-phase-a` (uncommitted): backend 404 passed, frontend 36/36, isolated Docker route check, browser pass. Stays IN PROGRESS until merged with CI, and because Phase B is not built.
 - [ ] **[IN PROGRESS]** P2-5.16 Revision and restatement presentation.
   - Done: the latest revision is shown by default with a "restated" label; API `include_superseded=true` returns history (E-B, E-BR).
   - Remaining: a UI view of revision history and what changed.

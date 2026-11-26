@@ -17,6 +17,7 @@ ReasonCode = Literal[
     "missing_input",
     "missing_opening_balance",
     "ambiguous_opening_balance",
+    "input_not_applicable",
     "input_disputed_or_rejected",
     "input_superseded",
     "unit_mismatch",
@@ -26,17 +27,19 @@ ReasonCode = Literal[
 InputVerification = Literal["all_verified", "some_unverified", "sample"]
 
 # Plan §8: lower rank first; within a rank, by role. Rank 0 (audit AU-3): sample and real data
-# mixed in the company's figures; nothing else about such inputs can be trusted.
+# mixed in the company's figures; nothing else about such inputs can be trusted. WS4-4-D4 adds
+# `input_not_applicable` after the missing-input codes; the order of the earlier codes is unchanged.
 RANK: dict[str, int] = {
     "mixed_sample_and_real": 0,
     "missing_input": 1,
     "missing_opening_balance": 2,
     "ambiguous_opening_balance": 3,
-    "input_disputed_or_rejected": 4,
-    "input_superseded": 5,
-    "unit_mismatch": 6,
-    "equity_not_positive": 7,
-    "assets_not_positive": 7,
+    "input_not_applicable": 4,
+    "input_disputed_or_rejected": 5,
+    "input_superseded": 6,
+    "unit_mismatch": 7,
+    "equity_not_positive": 8,
+    "assets_not_positive": 8,
 }
 ROLE_ORDER: dict[str, int] = {"numerator": 0, "denominator_closing": 1, "denominator_opening": 2}
 

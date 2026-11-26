@@ -23,6 +23,7 @@ from sqlalchemy import and_, not_, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
+from app.calculations.applicability import company_kind, effective
 from app.ingestion.connectors import InputError, RawInput, parse_json
 from app.ingestion.reference import metric_dictionary
 from app.ingestion.runs import RunRecorder
@@ -428,6 +429,18 @@ def _apply_statement(ctx: _Ctx, s: FinancialStatementIn) -> str:
     overlap = _overlapping(ctx, company.id, s)
     if overlap:
         raise _Rejected("conflict", overlap)
+    # WS4-4-D4: no new figure for a metric the dictionary says does not apply to the company's
+    # reviewed kind. Statements stored before the classification are kept (append-only).
+    kind = company_kind(ctx.session, company.id)
+    not_applicable = [
+        f.code for f in figures if effective(kind, dictionary[f.code]) == "not_applicable"
+    ]
+    if not_applicable:
+        raise _Rejected(
+            "invalid",
+            f"metric {', '.join(not_applicable)} does not apply to a company classified "
+            f"{kind.value if kind else 'unclassified'} (metric dictionary applicability)",
+        )
 
     previous = None
     if s.revision > 1:

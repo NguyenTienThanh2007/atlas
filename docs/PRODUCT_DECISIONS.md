@@ -425,6 +425,35 @@ from the text above and are **for the owner to confirm or change** (no decision 
 | PM-3 (W3-D7 threshold) | "> 999,99 %" / "< −999,99 %" | "> 999,99%" / "< −999,99%" (no space, as all percentages on the site) |
 | PM-4 (W3-D11) | "with the WS4-2 vi/en texts" ("Không tính được: …" / "Not calculable: …") | Comparison wording of plan §12.5: "Không so sánh được: dữ liệu mẫu và dữ liệu thật bị trộn lẫn" / "Not comparable: sample and real data are mixed" |
 
+## 2f. WS4-4 missing-data and bank-applicability decisions (approved 2026-11-26)
+
+Approved by the project owner on 2026-11-26 ("Duyệt như đề xuất"), each with the recommended
+option of [WS4_4_DECISIONS.md](WS4_4_DECISIONS.md); design in
+[WS4_4_IMPLEMENTATION_PLAN.md](WS4_4_IMPLEMENTATION_PLAN.md). No earlier decision is changed.
+These approve the design only; **WS4-4 implementation is not authorised yet and has not started.**
+
+| ID | Decision | Approved option |
+| --- | --- | --- |
+| WS4-4-D1 | Company classification model | Append-only `company_classifications` records with evidence and two-person review; no column on `companies`; never derived from the sector, name or ticker |
+| WS4-4-D2 | Kinds and unknown | `bank`, `non_bank`, `other_financial` (no applicability claim for it until the dictionary has a column); unknown = no current classification |
+| WS4-4-D3 | Applying dictionary applicability | Plan §3.1: `not_applicable` only from a reviewed kind **and** a dictionary `not_applicable`; `unclassified` or unknown → no claim ("not yet collected" when absent) |
+| WS4-4-D4 | Not-applicable display, conflicts, calculations | Absent N/A metrics shown as "Không áp dụng"; importer refuses new figures for N/A metrics; existing conflicting rows flagged, not hidden; comparisons of such rows `metric_not_applicable`; defensive ROE/ROA code `input_not_applicable`; both rank after the existing `missing_*` codes; no formula change |
+| WS4-4-D5 | Phase B: `not_reported` records | Design of plan §5.2 approved; **implementation deferred** until the G2 pilot has measured curation hours, and needs its own go-ahead |
+| WS4-4-D6 | `unavailable` state | Vocabulary and sub-reasons `not_published`, `inaccessible`, `temporarily_unavailable`, `access_restricted` (never bypassed), `rights_restricted`; document-level record; same timing as D5 |
+| WS4-4-D7 | Curator and reviewer | Classifications and Phase B records need two people (curator ≠ reviewer, reviewer a person), as WS1; a classification stops counting if its evidence becomes `disputed` or `rejected` |
+| WS4-4-D8 | Visibility | Private pilot only, as all real data (G1, WS4-D11); sample companies visible as sample |
+| WS4-4-D9 | Migration and compatibility | One additive migration for `company_classifications` (no change to existing tables or rows; downgrade drops it); API changes additive only. The owner confirms that WS4-D6's "no schema change" referred to explicit missing-data records, not to a classification store |
+| WS4-4-D10 | Scope and acceptance | Phase A as plan §5.1 with the acceptance criteria of [WS4_4_CHECKLIST.md](WS4_4_CHECKLIST.md); Phase B excluded |
+
+Open questions after this approval: **Q-A** answered by D9; **Q-C** answered by D7 (the
+classification's own two-person review is required; the evidence need not be `verified`, but a
+`disputed` or `rejected` evidence row stops the classification counting). **Q-B** answered in part
+by D2 (securities firms and insurers → `other_financial`); which kind a non-bank credit institution
+such as a finance company gets still needs an accountant's view and is decided per company by the
+two-person review, never from the name.
+
+**Update (2026-11-26, later):** the owner authorised WS4-4 Phase A implementation ("Bắt đầu WS4-4"; W4-B4). Phase B stays deferred (D5, D6). Commit, PR and merge still need separate approval.
+
 ## 3. Rejected alternatives
 
 | Alternative | Why rejected |

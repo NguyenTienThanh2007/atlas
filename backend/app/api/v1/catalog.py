@@ -11,9 +11,11 @@ from sqlalchemy import Select, and_, exists, func, or_, select
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from app.api.v1.schemas import (
+    AbsentMetricOut,
     CalculatedMetricOut,
     CalculationInputOut,
     CalculationIssueOut,
+    ClassificationOut,
     CompanyListItem,
     CompanyOut,
     ComparisonIssueOut,
@@ -30,6 +32,7 @@ from app.api.v1.schemas import (
     SecurityDetailOut,
 )
 from app.calculations import comparisons as cmp
+from app.calculations.applicability import Current, basis, current_classifications, effective
 from app.calculations.comparison_service import comparisons
 from app.calculations.service import calculated_metrics
 from app.db import get_session
@@ -184,7 +187,25 @@ def list_companies(
                 listing.exchange.has(Exchange.code == exchange),
             )
         )
-    return _page(db, stmt, limit, offset, CompanyListItem)
+    page = _page(db, stmt, limit, offset, CompanyListItem)
+    current = current_classifications(db, [c.id for c in page.items])
+    page.items = [
+        c.model_copy(update={"classification": _classification(current.get(c.id))})
+        for c in page.items
+    ]
+    return page
+
+
+def _classification(current: Current | None) -> ClassificationOut:
+    if current is None or current.kind is None:
+        return ClassificationOut()
+    r = current.record
+    return ClassificationOut(
+        kind=r.kind.value,
+        decided_at=r.decided_at,
+        basis=r.basis,
+        source=MetricSourceOut.for_figure(r.evidence, None),
+    )
 
 
 @router.get(
@@ -198,7 +219,10 @@ def get_company(company_id: uuid.UUID, db: DB) -> CompanyOut:
     ).first()
     if company is None:
         raise HTTPException(status_code=404, detail="Company not found")
-    return CompanyOut.model_validate(company)
+    current = current_classifications(db, [company.id]).get(company.id)
+    return CompanyOut.model_validate(company).model_copy(
+        update={"classification": _classification(current)}
+    )
 
 
 @router.get(
@@ -297,6 +321,34 @@ def list_financial_statements(
         .limit(limit)
         .offset(offset)
     ).all()
+    current = current_classifications(db, [company_id]).get(company_id)
+    kind = current.kind if current else None
+    dictionary = metric_dictionary()
+
+    def absent(s: FinancialStatement) -> list[AbsentMetricOut]:
+        """WS4-D6 Phase A: every dictionary metric of this statement type without a figure is
+        "not yet collected", or "not applicable" when the reviewed kind and dictionary say so."""
+        present = {m.metric_code for m in s.metrics}
+        out = []
+        for d in dictionary.values():
+            if d.statement_type is not s.statement_type or d.code in present:
+                continue
+            na = effective(kind, d) == "not_applicable"
+            out.append(
+                AbsentMetricOut(
+                    metric_code=d.code,
+                    metric_name_vi=d.name_vi,
+                    metric_name_en=d.name,
+                    state="not_applicable" if na else "not_yet_collected",
+                    applicability_basis=basis(kind) if na else None,
+                )
+            )
+        return out
+
+    def conflict(code: str) -> bool:
+        d = dictionary.get(code)
+        return d is not None and effective(kind, d) == "not_applicable"
+
     items = [
         FinancialStatementOut(
             id=s.id,
@@ -321,9 +373,11 @@ def list_financial_statements(
                     reported_value=m.reported_value,
                     reported_scale=m.reported_scale,
                     source=MetricSourceOut.for_figure(s.source_evidence, m.source_page),
+                    applicability_conflict=conflict(m.metric_code),
                 )
                 for m in s.metrics
             ],
+            absent_metrics=absent(s),
         )
         for s, flag in rows
     ]

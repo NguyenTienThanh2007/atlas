@@ -109,6 +109,7 @@ test("every calculation reason and input label has text in both languages (WS4-2
     "missing_input",
     "missing_opening_balance",
     "ambiguous_opening_balance",
+    "input_not_applicable", // WS4-4-D4
     "input_disputed_or_rejected",
     "input_superseded",
     "unit_mismatch",
@@ -134,4 +135,28 @@ test("pagination ranges and the mixed-data reason read naturally (AU-3, AU-5)", 
   assert.match(en.pagination.beyond(9, 85), /Page 9 has no items/);
   assert.equal(vi.company.calculated.reason.mixed_sample_and_real, "Không tính được: dữ liệu mẫu và dữ liệu thật bị trộn lẫn");
   assert.equal(en.company.calculated.reason.mixed_sample_and_real, "Not calculable: sample and real data are mixed");
+});
+
+test("WS4-4: comparison reasons, company kinds and absent states have text in both languages", () => {
+  const reasons = [
+    "mixed_sample_and_real",
+    "missing_current_value",
+    "missing_previous_period",
+    "ambiguous_previous_period",
+    "period_mismatch",
+    "missing_previous_value",
+    "input_disputed_or_rejected",
+    "input_superseded",
+    "unit_or_currency_mismatch",
+    "metric_not_applicable",
+    "prior_zero",
+    "sign_change",
+  ];
+  for (const dict of [vi, en]) {
+    assert.deepEqual(Object.keys(dict.company.comparison.reason).sort(), [...reasons].sort());
+    assert.deepEqual(Object.keys(dict.company.kind).sort(), ["bank", "label", "non_bank", "other_financial", "unclassified"]);
+    assert.deepEqual(Object.keys(dict.company.absent).sort(), ["basis", "not_applicable", "not_yet_collected"]);
+  }
+  assert.equal(vi.company.absent.not_yet_collected, "Chưa thu thập");
+  assert.equal(en.company.absent.not_applicable, "Not applicable");
 });

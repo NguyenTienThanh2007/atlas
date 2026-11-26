@@ -9,9 +9,12 @@ from datetime import timedelta
 from sqlalchemy import exists, select
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
+from app.calculations.applicability import company_kind, effective
 from app.calculations.ratios import Figure, Formula, Issue, Outcome, Role, compute, formulas_for
+from app.ingestion.reference import metric_dictionary
 from app.models import (
     Company,
+    CompanyKind,
     Evidence,
     FinancialMetric,
     FinancialStatement,
@@ -93,6 +96,7 @@ def _result(
     balance_sheets: list[FinancialStatement],
     company_is_sample: bool,
     company_mixed: bool,
+    kind: CompanyKind | None,
 ) -> Result:
     inputs: list[Input] = []
     issues: list[Issue] = []
@@ -158,6 +162,17 @@ def _result(
         else:
             inputs.append(Input("denominator_opening", opening, opening_metric))
 
+    # WS4-4-D4, defensive: dictionary 1.1.0 makes every ROE/ROA input applicable to banks and
+    # non-banks, so this never fires today; a later dictionary change could make it.
+    dictionary = metric_dictionary()
+    issues += [
+        Issue(
+            "input_not_applicable", i.role, i.metric.metric_code, i.statement.reporting_period_end
+        )
+        for i in inputs
+        if i.metric.metric_code in dictionary
+        and effective(kind, dictionary[i.metric.metric_code]) == "not_applicable"
+    ]
     figures = [
         Figure(
             role=i.role,
@@ -191,6 +206,7 @@ def calculated_metrics(
     if company is None:
         return []
     mixed = company_mixed(db, company_id, company.is_sample)
+    kind = company_kind(db, company_id)
     statements = latest_statements(db, company_id, quarterly=False)
     incomes = sorted(
         (
@@ -204,7 +220,7 @@ def calculated_metrics(
     )
     balance_sheets = [s for s in statements if s.statement_type is StatementType.BALANCE_SHEET]
     return [
-        _result(formula, income, balance_sheets, company.is_sample, mixed)
+        _result(formula, income, balance_sheets, company.is_sample, mixed, kind)
         for income in incomes
         for formula in sorted(formulas_for(income.scope), key=lambda f: f.code)
     ]
