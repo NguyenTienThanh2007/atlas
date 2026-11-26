@@ -13,6 +13,30 @@ The approved product decisions (A-1..A-11, WS4-D*, WS4-4-D1..D10, EX-2) are **un
 WS4-4-D7 asks that "two people" check each classification. This plan proposes the way to *enforce*
 that; it does not change what the decision says.
 
+## 0. Corrections (2026-11-26, Stage 0 technical audit)
+
+These corrections come from [SEC_01A_OWNER_DECISIONS.md](SEC_01A_OWNER_DECISIONS.md) §2. They were
+tested on a disposable PostgreSQL 17.12 (results T1–T14 there); no existing database was touched.
+The text below them is kept as first written, and each affected line is marked "(see C-n)". Where
+the architecture document says otherwise (Arch §3.1 group grants, §3.2 "every security function
+becomes SECURITY DEFINER", §3.4 schema mapping), these corrections supersede it.
+
+| ID | Was | Correction |
+| --- | --- | --- |
+| C-1 | M1 "reassigns ownership" while running as `atlas_migrator` → `atlas_owner` | `atlas_owner` can neither take over nor `CREATE OR REPLACE` objects owned by the superuser ("must be owner", T2). Ownership transfer is a **bootstrap-superuser provisioning step before M1** |
+| C-2 | M1 downgrade "restores … ownership"; the Stage 1 rollback restores ownership | `atlas_owner` can't give objects back to the superuser (T3). M1's downgrade restores function bodies and grants **and leaves ownership with `atlas_owner`**. Returning ownership is manual, as the superuser |
+| C-3 | Person roles NOINHERIT, with EXECUTE granted to `atlas_curators`/`atlas_reviewers` | A NOINHERIT member can't use the group's EXECUTE (T5). Grant membership `WITH INHERIT TRUE, SET FALSE` (T7). Procedures check `pg_has_role(session_user, …, 'MEMBER')` |
+| C-4 | `atlas_migrator` "NOINHERIT, member of `atlas_owner`" | Since PG 16, inherit and set are options of each grant; a role's NOINHERIT only sets the default (T1). Write the grant explicitly: `GRANT atlas_owner TO atlas_migrator WITH INHERIT FALSE, SET TRUE` |
+| C-5 | "`SECURITY DEFINER` where it writes" for trigger functions; the guard checks `current_user = 'atlas_owner'` | A definer trigger always sees `current_user` = owner (T8), so the guard would pass for everyone. **Trigger functions stay INVOKER** (pinned `search_path`, qualified names). Only the entry procedures are DEFINER. An invoker trigger fired by a definer procedure sees `atlas_owner` (T9) |
+| C-6 | `python -m app.ops roles` provisions existing volumes | That tool would need the superuser password in the app environment (contradicts Arch §5.2). Use one idempotent `roles.sql`: it runs as an init script on fresh volumes, and the operator runs it on existing volumes with `docker compose exec db psql -U "$POSTGRES_USER" -f …` |
+| C-7 | (gap) | The official image's `pg_hba.conf` trusts every local and `127.0.0.1` connection inside the container (VERIFIED on `postgres:17-alpine`). Stage 1 ships a custom `pg_hba.conf` with no `trust` lines. Until then, `docker exec` on the db container gives a superuser shell without a password |
+| C-8 | `models.py` gets "view-backed read models or `schema=`" | `schema='api'` would change `Base.metadata` (used by `alembic check` and the superuser test suite). Instead: same-name views in schema `api` plus `ALTER ROLE atlas_api SET search_path = api` (T10). Each view exposes every mapped column. Stage 1 starts with a spike that runs the API tests **as `atlas_api`** |
+| C-9 | REVOKE TEMP/CONNECT from PUBLIC on `atlas` | Roles are cluster-wide. Revoke on **every** database (`atlas`, `atlas_test`, `postgres`) |
+| C-10 | Default privileges remove PUBLIC EXECUTE | They cover only functions created later by `atlas_owner` (T11). M1 also revokes EXECUTE on the existing functions. DB-13 also asserts that no object is owned by `atlas_migrator` |
+| C-11 | (rule) | `p_*` roles connect directly, one process per person, with no shared pool or pooler. `session_user` is the actor only in that model |
+| C-12 | (gap) | Anchors detect changes made before the latest anchor only, and only if someone other than the operator holds them. Role dumps carry password hashes and are stored encrypted, separately (D10) |
+| C-13 | §1 register: D7 and D11 "Blocks implementation? No"; §9 G-0 lists D1–D4, D6, D8 | §4 says the SEC-03 change "needs owner approval", and C-2 makes the M1 downgrade non-symmetric. So Stage 1 depends on D7 and D11. **Recommended (PROPOSAL):** add D7 and D11 to G-0 ([SEC_01A_OWNER_DECISIONS.md](SEC_01A_OWNER_DECISIONS.md) §4). G-0 is unchanged until the owner decides |
+
 ## 1. Owner decision register (all OWNER DECISION REQUIRED)
 
 | ID | Decision | Context | Options | Advantages / risks | Recommendation (PROPOSAL) | Depends on | Blocks implementation? |
@@ -48,16 +72,16 @@ with the code, and exclude owner review time. They are rough.
 **Tasks**
 
 1. A provisioning script (`infra/postgres/init/02-roles.sql`, plus an idempotent
-   `python -m app.ops roles` for volumes that already exist). It:
+   `python -m app.ops roles` for volumes that already exist; see C-6, C-7, C-9). It:
    - creates `atlas_owner`, `atlas_migrator`, `atlas_api`;
    - runs `REVOKE TEMP/CREATE` from PUBLIC.
 2. A migration `sec01a_least_privilege`:
-   - reassign ownership of every table and function to `atlas_owner`;
+   - reassign ownership of every table and function to `atlas_owner` (see C-1: a superuser step, not M1);
    - `REVOKE EXECUTE … FROM PUBLIC`;
    - grant `atlas_api` SELECT on the `api` schema views (Arch §3.4) and the reference tables;
    - add the views (`api.evidence` filters non-http(s) URLs, which fixes SEC-03).
 3. Harden every trigger function:
-   - `SECURITY DEFINER` where it writes, `SET search_path`, qualified names;
+   - `SECURITY DEFINER` where it writes, `SET search_path`, qualified names (see C-5: trigger functions stay INVOKER);
    - replace the `pg_trigger_depth()` guard;
    - add `BEFORE TRUNCATE` and `BEFORE DELETE` guards (Arch §3.2).
 
@@ -79,7 +103,7 @@ with the code, and exclude owner review time. They are rough.
 
 - Files likely to change: `docker-compose.yml`, `.env.example`, `backend/Dockerfile`,
   `backend/migrations/env.py`, a new migration, `infra/postgres/init/`, `backend/app/db.py`,
-  `backend/app/config.py`, `backend/app/models.py` (view-backed read models or `schema=`),
+  `backend/app/config.py`, `backend/app/models.py` (view-backed read models or `schema=`; see C-8: no model change),
   `.github/workflows/backend.yml`, `docs/DEVELOPMENT.md`, and new tests.
 - Risks:
   - ORM reads must target the views (a column or schema mismatch breaks the API);
@@ -109,7 +133,7 @@ with the code, and exclude owner review time. They are rough.
    - `atlas_approve_classification`;
    - `atlas_stamp_last_verified`, inside the review procedure.
 3. Person-role tooling: `python -m app.ops person add|revoke|list`, owner only.
-   - It creates `p_<id>` NOINHERIT, adds membership, and writes the `principals` and audit rows.
+   - It creates `p_<id>` NOINHERIT, adds membership (see C-3: `WITH INHERIT TRUE, SET FALSE`), and writes the `principals` and audit rows.
 4. CLI:
    - `import`, `review` and `classify` connect as the **person's own** credential (a prompt or a
      certificate);
@@ -169,11 +193,11 @@ with the code, and exclude owner review time. They are rough.
 
 | Step | Migration | Data effect | Reversible? |
 | --- | --- | --- | --- |
-| M1 | `sec01a_least_privilege` (Stage 1) | None (ownership, grants, function bodies, views, guards) | Yes: down restores the old function bodies and ownership |
+| M1 | `sec01a_least_privilege` (Stage 1) | None (ownership, grants, function bodies, views, guards) | Yes: down restores the old function bodies and ownership (see C-2: ownership stays with `atlas_owner`) |
 | M2 | `sec01a_identity` (Stage 2) | Adds nullable columns and new tables; backfills `identity_assurance='typed_name'` on existing reviews; `created_by = NULL` on existing evidence and statements | Down drops the new objects, **refuses** if authenticated reviews exist (like `test_downgrade_refuses_to_discard_review_history`) |
 | M3 | `sec01a_audit_ddl` (Stage 4) | Event trigger (needs the bootstrap superuser) | Yes |
 
-**Ordering.** Every migration runs as `atlas_migrator` → `SET ROLE atlas_owner`. Exceptions are the
+**Ordering.** Every migration runs as `atlas_migrator` → `SET ROLE atlas_owner` (see C-1). Exceptions are the
 role provisioning (bootstrap superuser, once) and M3 (superuser, event triggers). The migration
 completes before the backend starts (`service_completed_successfully`).
 
@@ -196,7 +220,7 @@ completes before the backend starts (`service_completed_successfully`).
   - The existing tests that insert raw SQL reviews (`test_raw_sql_review_is_held_to_the_same_rules`)
     move to calling procedures.
 - **Local development:** `.env.example` gains per-process URLs. An existing volume needs
-  `python -m app.ops roles` once (documented). Never `docker compose down -v` on someone's stack.
+  `python -m app.ops roles` once (documented; see C-6). Never `docker compose down -v` on someone's stack.
 
 ## 5. Test matrix (all PROPOSED, none run)
 
@@ -223,7 +247,7 @@ Automation locations:
 | DB-10 | Trigger disable | All non-owner roles | `ALTER TABLE evidence DISABLE TRIGGER evidence_guard` | `must be owner` | T-12 (P8 TESTED for a non-owner) |
 | DB-11 | Parameter grants | — | Query `pg_parameter_acl` | No grant on `session_replication_role` | T-13 |
 | DB-12 | Display forgery | Any runtime role | `UPDATE companies SET last_verified_at = now()` | Refused; only the review procedure stamps it | T-22 |
-| DB-13 | Ownership and inheritance | — | Every table, view and function owned by `atlas_owner`; `atlas_migrator` NOINHERIT; person roles NOINHERIT; no runtime role is a member of `atlas_owner` | Assertions pass | No silent escalation through membership |
+| DB-13 | Ownership and inheritance | — | Every table, view and function owned by `atlas_owner`; `atlas_migrator` NOINHERIT; person roles NOINHERIT; no runtime role is a member of `atlas_owner` (see C-3, C-10) | Assertions pass | No silent escalation through membership |
 
 ### 5.2 Identity (ID)
 
@@ -272,7 +296,7 @@ Automation locations:
 
 | Stage | Rollback |
 | --- | --- |
-| 1 | `alembic downgrade` to `5c1f0a2b7e44` (as the owner) restores the function bodies and ownership. The Compose file reverts to a single URL. The roles can stay; they are harmless if unused. Data is untouched. |
+| 1 | `alembic downgrade` to `5c1f0a2b7e44` (as the owner) restores the function bodies and ownership (see C-2). The Compose file reverts to a single URL. The roles can stay; they are harmless if unused. Data is untouched. |
 | 2 | Forward fix preferred. A down-migration refuses if authenticated reviews exist. Otherwise restore the pre-migration backup taken in the deployment runbook, then re-run the integrity check. |
 | 3 | Take the pilot host off the VPN. Local mode keeps working. |
 | 4 | Revert the individual changes. Branch protection is the owner's setting. |
@@ -311,7 +335,7 @@ recorded (D10).
 
 | Gate | Before | Approver |
 | --- | --- | --- |
-| G-0 | Any SEC-01A code | Owner: D1–D4, D6, D8 |
+| G-0 | Any SEC-01A code | Owner: D1–D4, D6, D8 (see C-13: adding D7, D11 recommended) |
 | G-1 | Merge Stage 1 | Owner + a recorded human review + green CI |
 | G-2 | Merge Stage 2 | The same |
 | G-3 | Load Company 1–5 real data | Owner: §7 "before real data" met |
