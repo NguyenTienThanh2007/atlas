@@ -39,6 +39,13 @@ export type CompanyListItem = {
   is_sample: boolean;
   sector: SectorRef;
   securities: SecurityBrief[];
+  // WS4-4: the current reviewed classification; "unclassified" unless one counts. Never inferred.
+  classification: {
+    kind: "bank" | "non_bank" | "other_financial" | "unclassified";
+    decided_at: string | null;
+    basis: string | null;
+    source: FigureSource | null;
+  };
 };
 export type Company = Omit<CompanyListItem, "securities"> & {
   tax_code: string | null;
@@ -89,6 +96,15 @@ export type FinancialStatement = {
     reported_value: string | null; // as printed in the document (null for rows from before WS1)
     reported_scale: number | null; // 1, 1000 or 1000000
     source: FigureSource; // WS3: the document and page this figure comes from
+    applicability_conflict: boolean; // WS4-4: stored for a metric that doesn't apply to this kind
+  }[];
+  // WS4-4 (WS4-D6 Phase A): dictionary metrics of this statement type with no figure.
+  absent_metrics: {
+    metric_code: string;
+    metric_name_vi: string;
+    metric_name_en: string;
+    state: "not_yet_collected" | "not_applicable";
+    applicability_basis: "dictionary_bank" | "dictionary_non_bank" | null;
   }[];
 };
 
@@ -100,6 +116,7 @@ export type CalculationReason =
   | "missing_input"
   | "missing_opening_balance"
   | "ambiguous_opening_balance"
+  | "input_not_applicable"
   | "input_disputed_or_rejected"
   | "input_superseded"
   | "unit_mismatch"
@@ -258,6 +275,7 @@ export type ComparisonReason =
   | "input_disputed_or_rejected"
   | "input_superseded"
   | "unit_or_currency_mismatch"
+  | "metric_not_applicable"
   | "prior_zero"
   | "sign_change";
 

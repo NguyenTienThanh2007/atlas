@@ -4,6 +4,8 @@
   python -m app.ingestion review <evidence-id> --from S --decision D --curator C --reviewer R
                                  --checked-against "document, page" [--notes N]
   python -m app.ingestion reviews <evidence-id>
+  python -m app.ingestion classify <company-id> --kind K --evidence E --basis "document, page"
+                                   --curator C --reviewer R [--supersedes ID]
 
 Exit codes: 0 succeeded, 2 partial (some records rejected or conflicting), 1 failed or refused.
 """
@@ -22,8 +24,9 @@ from app.db import _sessionmaker
 from app.ingestion.connectors import InputError, read_local_file
 from app.ingestion.importer import import_bundle
 from app.ingestion.reference import seed_reference
-from app.ingestion.review import history, record_review
+from app.ingestion.review import history, record_classification, record_review
 from app.models import (
+    CompanyKind,
     IngestionRun,
     IngestionStatus,
     ReviewDecision,
@@ -74,6 +77,14 @@ def main(argv: list[str] | None = None) -> int:
     rev.add_argument("--notes")
     hist = sub.add_parser("reviews", help="show the review history of one evidence record")
     hist.add_argument("evidence_id", type=uuid.UUID)
+    cls = sub.add_parser("classify", help="record a two-person company classification (WS4-4)")
+    cls.add_argument("company_id", type=uuid.UUID)
+    cls.add_argument("--kind", required=True, type=CompanyKind)
+    cls.add_argument("--evidence", required=True, type=uuid.UUID, help="evidence about the company")
+    cls.add_argument("--basis", required=True, help="what the document says, and where")
+    cls.add_argument("--curator", required=True)
+    cls.add_argument("--reviewer", required=True)
+    cls.add_argument("--supersedes", type=uuid.UUID, help="the classification this corrects")
     args = parser.parse_args(argv)
     logging.basicConfig(level=get_settings().log_level.upper())
 
@@ -87,26 +98,48 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0
-        if args.command == "review":
+        if args.command in ("review", "classify"):
             try:
-                with session.begin_nested():  # a refusal undoes only this review
-                    review = record_review(
-                        session,
-                        evidence_id=args.evidence_id,
-                        from_status=args.from_status,
-                        decision=args.decision,
-                        curator=args.curator,
-                        reviewer=args.reviewer,
-                        checked_against=args.checked_against,
-                        notes=args.notes,
-                    )
+                with session.begin_nested():  # a refusal undoes only this record
+                    if args.command == "review":
+                        summary = _review_summary(
+                            record_review(
+                                session,
+                                evidence_id=args.evidence_id,
+                                from_status=args.from_status,
+                                decision=args.decision,
+                                curator=args.curator,
+                                reviewer=args.reviewer,
+                                checked_against=args.checked_against,
+                                notes=args.notes,
+                            )
+                        )
+                    else:
+                        c = record_classification(
+                            session,
+                            company_id=args.company_id,
+                            kind=args.kind,
+                            evidence_id=args.evidence,
+                            basis=args.basis,
+                            curator=args.curator,
+                            reviewer=args.reviewer,
+                            supersedes_id=args.supersedes,
+                        )
+                        summary = {
+                            "classification_id": str(c.id),
+                            "company_id": str(c.company_id),
+                            "kind": c.kind.value,
+                            "evidence_id": str(c.evidence_id),
+                            "supersedes_id": str(c.supersedes_id) if c.supersedes_id else None,
+                            "decided_at": c.decided_at.isoformat(),
+                        }
             except IntegrityError as exc:
                 detail = getattr(getattr(exc.orig, "diag", None), "message_primary", None)
                 constraint = getattr(getattr(exc.orig, "diag", None), "constraint_name", None)
                 print(f"refused: {constraint or detail or 'database constraint'}", file=sys.stderr)
                 return 1
             session.commit()
-            print(json.dumps(_review_summary(review), indent=2, ensure_ascii=False))
+            print(json.dumps(summary, indent=2, ensure_ascii=False))
             return 0
         if args.command == "reference":
             runs = seed_reference(session)

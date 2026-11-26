@@ -146,8 +146,10 @@ Example response:
 - No real company or financial data: 0 verified companies. Provider integration is blocked on
   licensing and credentials (see `data/SOURCES.md`). Publicly accessible documents are not treated
   as licensed, and no data is commercially licensed.
-- Metric definitions and bank / non-bank applicability exist (dictionary 1.1.0), but companies have
-  no bank / non-bank type yet, so a figure can't be shown as "not applicable" per company.
+- Metric definitions and bank / non-bank applicability exist (dictionary 1.1.0). A company is a bank,
+  non-bank or other financial company only once a two-person reviewed classification says so
+  (WS4-4); until then nothing is marked "not applicable". Absent figures show "not yet collected";
+  "not reported" and "source not available" need explicit records that don't exist yet (WS4-D6 Phase B).
 - ROE and ROA (WS4-2) are computed from unverified inputs until an independent reviewer exists (Q-3),
   and are labelled so; other ratios are not implemented. Period comparisons (WS4-3) are computed
   the same way and carry the same input labels; they never compare different scopes or kinds of

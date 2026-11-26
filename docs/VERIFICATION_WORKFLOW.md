@@ -172,6 +172,29 @@ same moment could both pass; imports are run one at a time by a curator.
 | Company master data is wrong (name, tax code, sector) | Imports report this as a `conflict` and never overwrite (Phase 1 L-3). The fix is a reviewed correction: dispute → reject the old evidence, then a deliberate, reviewed database change with new evidence. A tooled update path is future work |
 | A review decision was wrong | Record a new review (for example `verified → disputed`). Reviews are never edited |
 
+## 8a. Company classification (WS4-4, 2026-11-26)
+
+A company counts as a **bank**, **non-bank** or **other financial company** (securities firm,
+insurer and similar; no applicability claim is made for these) only through a reviewed record.
+Never decide it from the sector, ticker or name: the Banking & Financial Services sector also holds
+securities firms, insurers and finance companies. A finance company or other non-bank credit
+institution is decided case by case from its own documents (an accountant's view is pending, Q-B).
+
+```
+uv run python -m app.ingestion classify <company-id> --kind bank|non_bank|other_financial \
+    --evidence <company-evidence-id> --basis "what the document says, page" \
+    --curator "…" --reviewer "…" [--supersedes <classification-id>]
+```
+
+- The evidence must be about that company and must not be disputed, rejected or superseded; a
+  sample company uses sample evidence.
+- Curator and reviewer are two different people, as for reviews (§1).
+- Records are never edited. A correction is a new record with `--supersedes`; there is one chain
+  per company and its last record counts.
+- If the cited evidence is later disputed or rejected, the company is shown as unclassified again.
+- Once a company is a bank or non-bank, the importer refuses figures for metrics the dictionary
+  marks `not_applicable` for that kind. Figures stored earlier stay and are flagged on the page.
+
 ## 9. Migration behaviour (`31b1317163eb`)
 
 - **Upgrade:**

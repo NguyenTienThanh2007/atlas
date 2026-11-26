@@ -150,6 +150,14 @@ class ReviewDecision(enum.StrEnum):
 AMOUNT_SCALES = (1, 1_000, 1_000_000)
 
 
+class CompanyKind(enum.StrEnum):
+    """WS4-4-D2. No "unclassified" member: a company without a current classification is unknown."""
+
+    BANK = "bank"
+    NON_BANK = "non_bank"
+    OTHER_FINANCIAL = "other_financial"  # securities firms, insurers…: no applicability claim
+
+
 class StatementType(enum.StrEnum):
     INCOME_STATEMENT = "income_statement"
     BALANCE_SHEET = "balance_sheet"
@@ -466,6 +474,53 @@ class VerificationReview(Base):
     reviewed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.clock_timestamp(), nullable=False
     )
+
+
+class CompanyClassification(Base):
+    """WS4-4-D1, D7: one reviewed claim that a company is a bank, a non-bank or another financial
+    company, with the document it rests on. Append-only (trigger); a correction is a new row that
+    supersedes the old one, so each company has one linear chain and its last row is current.
+    Never derived from the sector, name or ticker."""
+
+    __tablename__ = "company_classifications"
+    __table_args__ = (
+        CheckConstraint("btrim(basis) <> ''", name="basis_present"),
+        CheckConstraint("btrim(curator) <> '' AND btrim(reviewer) <> ''", name="names_present"),
+        CheckConstraint(
+            "lower(btrim(curator)) <> lower(btrim(reviewer))", name="curator_is_not_reviewer"
+        ),
+        CheckConstraint(
+            "lower(btrim(reviewer)) !~ '^(system|atlas|auto|automated|automatic|bot|import|"
+            "importer|ingestion|claude|ai)$'",
+            name="reviewer_is_a_person",
+        ),
+        CheckConstraint("supersedes_id <> id", name="not_own_successor"),
+        UniqueConstraint("supersedes_id", name="uq_company_classifications_supersedes_id"),
+        # One first row per company; with unique `supersedes_id` the chain is linear.
+        Index(
+            "uq_company_classifications_first",
+            "company_id",
+            unique=True,
+            postgresql_where=text("supersedes_id IS NULL"),
+        ),
+        Index("ix_company_classifications_company", "company_id", "decided_at"),
+    )
+
+    id: Mapped[uuid.UUID] = _pk()
+    company_id: Mapped[uuid.UUID] = _fk("companies.id", index=False)
+    kind: Mapped[CompanyKind] = mapped_column(_enum(CompanyKind, "company_kind"), nullable=False)
+    evidence_id: Mapped[uuid.UUID] = _fk("evidence.id", index=False)
+    basis: Mapped[str] = mapped_column(Text, nullable=False)  # what the document says, and where
+    curator: Mapped[str] = mapped_column(String(120), nullable=False)
+    reviewer: Mapped[str] = mapped_column(String(120), nullable=False)
+    supersedes_id: Mapped[uuid.UUID | None] = _fk(
+        "company_classifications.id", nullable=True, index=False
+    )
+    decided_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.clock_timestamp(), nullable=False
+    )
+
+    evidence: Mapped[Evidence] = relationship(lazy="raise")
 
 
 class IngestionRun(Base):

@@ -34,11 +34,13 @@ ReasonCode = Literal[
     "input_disputed_or_rejected",
     "input_superseded",
     "unit_or_currency_mismatch",
+    "metric_not_applicable",
     "prior_zero",
     "sign_change",
 ]
 
 # Plan §12.4 (W3-D10, W3-D11): lower rank first; within a rank, current before previous.
+# WS4-4-D4 adds `metric_not_applicable` before the change-only codes; earlier order unchanged.
 RANK: dict[str, int] = {
     "mixed_sample_and_real": 0,
     "missing_current_value": 1,
@@ -49,8 +51,9 @@ RANK: dict[str, int] = {
     "input_disputed_or_rejected": 6,
     "input_superseded": 7,
     "unit_or_currency_mismatch": 8,
-    "prior_zero": 9,
-    "sign_change": 9,
+    "metric_not_applicable": 9,
+    "prior_zero": 10,
+    "sign_change": 10,
 }
 SIDE_ORDER: dict[str, int] = {"current": 0, "previous": 1}
 

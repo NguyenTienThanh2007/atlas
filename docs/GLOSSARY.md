@@ -97,6 +97,22 @@ New terms (2026-11-26), added for the same native-speaker review. Reason texts f
 | No percentage | Không tính được tỷ lệ thay đổi: … | No percentage: … |
 | Statement scope / All | Phạm vi báo cáo / Tất cả | Statement scope / All |
 
+## Missing data and company type (WS4-4)
+
+New terms (2026-11-26), for the same native-speaker review.
+
+| Concept | Tiếng Việt | English |
+| --- | --- | --- |
+| Company type | Loại doanh nghiệp | Company type |
+| Bank / non-bank / other financial / not classified | Ngân hàng / Không phải ngân hàng / Tổ chức tài chính khác / Chưa phân loại | Bank / Non-bank / Other financial / Not classified |
+| Not yet collected | Chưa thu thập | Not yet collected |
+| Not applicable | Không áp dụng | Not applicable |
+| Basis of "not applicable" | theo phân loại doanh nghiệp đã kiểm tra | based on the reviewed company classification |
+| Unclassified note | Doanh nghiệp chưa được phân loại, nên ATLAS không đánh dấu chỉ tiêu nào là không áp dụng. | This company isn't classified yet, so ATLAS marks no metric as not applicable. |
+| Conflicting figure | Chỉ tiêu không áp dụng cho loại doanh nghiệp này — cần kiểm tra lại | This metric does not apply to this kind of company — needs checking |
+| Input not applicable (ROE/ROA) | Không tính được: đầu vào không áp dụng cho loại doanh nghiệp này | Not calculable: an input does not apply to this kind of company |
+| Metric not applicable (comparison) | Không so sánh được: chỉ tiêu không áp dụng cho loại doanh nghiệp này | Not comparable: the metric does not apply to this kind of company |
+
 ## Navigation
 
 Khám phá (Discover) · Ngành (Sectors) · Doanh nghiệp (Companies) · Danh sách theo dõi

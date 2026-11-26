@@ -573,6 +573,12 @@ Decided by the project owner on 2026-11-24, recorded in [PRODUCT_DECISIONS.md](P
 | WS4-5 | Period comparisons | D9 | No |
 | WS4-6 | Explicit "not reported" / "unavailable" records | D6 Phase B (**not approved**) | **Yes** (needs its own approval) |
 
+*Note (2026-11-26):* the workstreams were delivered under different numbers from this table:
+WS4-2 = calculated-metric registry, service, API and UI for ROE/ROA (rows WS4-2 to WS4-4 above);
+WS4-3 = period comparisons (row WS4-5); WS4-4 = missing-data semantics and bank applicability,
+Phase A ([WS4_4_IMPLEMENTATION_PLAN.md](WS4_4_IMPLEMENTATION_PLAN.md)). Row WS4-6 (explicit records)
+is WS4-4 Phase B, design approved, not built. The table above is kept as written.
+
 ### Exit criteria for WS4 implementation
 
 1. Every implemented formula matches an approved decision, with its id and version in the response.

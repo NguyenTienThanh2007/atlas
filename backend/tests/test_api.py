@@ -157,6 +157,13 @@ def test_list_item_shape_hides_internal_fields(client: TestClient, catalog: dict
         "is_sample",
         "sector",
         "securities",
+        "classification",  # WS4-4 (additive)
+    }
+    assert item["classification"] == {  # never inferred from the sector or name
+        "kind": "unclassified",
+        "decided_at": None,
+        "basis": None,
+        "source": None,
     }
     assert [s["ticker"] for s in item["securities"]] == ["TST4", "TST4P"]
     assert item["securities"][1]["exchange"] == {
@@ -188,7 +195,8 @@ def test_company_list_has_no_n_plus_one(
         get(client, "/companies", limit=1)
     with count_queries(ref) as full_page:
         get(client, "/companies", limit=100)
-    assert len(full_page) == len(one_page) <= 3
+    # count, companies, securities, and (WS4-4) one query for the page's classifications
+    assert len(full_page) == len(one_page) <= 4
 
 
 # ---------------------------------------------------------------- details

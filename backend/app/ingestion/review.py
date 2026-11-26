@@ -13,6 +13,8 @@ from sqlalchemy.orm import Session
 
 from app.models import (
     Company,
+    CompanyClassification,
+    CompanyKind,
     EntityType,
     Evidence,
     ReviewDecision,
@@ -76,3 +78,32 @@ def history(session: Session, evidence_id: uuid.UUID) -> list[VerificationReview
             .order_by(VerificationReview.reviewed_at, VerificationReview.id)
         )
     )
+
+
+def record_classification(
+    session: Session,
+    *,
+    company_id: uuid.UUID,
+    kind: CompanyKind,
+    evidence_id: uuid.UUID,
+    basis: str,
+    curator: str,
+    reviewer: str,
+    supersedes_id: uuid.UUID | None = None,
+) -> CompanyClassification:
+    """Record one reviewed company classification (WS4-4-D1, D7). The database enforces the
+    two-person rule, the evidence rules and the single chain per company (migration
+    5c1f0a2b7e44); it raises IntegrityError when it refuses."""
+    record = CompanyClassification(
+        company_id=company_id,
+        kind=kind,
+        evidence_id=evidence_id,
+        basis=basis,
+        curator=curator,
+        reviewer=reviewer,
+        supersedes_id=supersedes_id,
+    )
+    session.add(record)
+    session.flush()
+    session.refresh(record)
+    return record

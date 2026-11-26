@@ -92,14 +92,23 @@ Design decisions:
   break this (`check_violation`), take `FOR SHARE` on the company row so concurrent writes
   serialise, and evidence can never change between sample and real. The calculation engine checks
   the same rule again and refuses mixed inputs (`mixed_sample_and_real`).
+- **Company classification** (WS4-4, migration `5c1f0a2b7e44`). `company_classifications` holds
+  reviewed claims that a company is a `bank`, `non_bank` or `other_financial` company, each citing
+  company evidence, with curator ≠ reviewer. Append-only; a correction supersedes the previous row
+  (unique `supersedes_id`, one first row per company, so one linear chain). A trigger checks the
+  evidence is about that company, has its sample/real class and is not disputed, rejected or
+  superseded. No row, or a current row whose evidence is later disputed or rejected, means
+  unclassified. Nothing is derived from the sector, name or ticker. `app/calculations/applicability.py`
+  combines the current kind with the dictionary's applicability at read time.
 - **Timestamps** are `timestamptz`. Business dates (listing dates, reporting periods) are `date`.
 - **Enums** are `VARCHAR` plus `CHECK` (not native PG enums), which keeps migrations simple and
   reversible.
 
 Migrations: `2fa53e542881` (baseline) → `981ec5176312` (domain model with append-only triggers)
 → `31b1317163eb` (verification reviews and figure provenance, WS1) → `8de09b58f4c2` (sample/real
-isolation, audit AU-3; upgrade refuses existing mixed data and changes nothing).
-Both downgrade cleanly, and a test checks the round trip.
+isolation, audit AU-3; upgrade refuses existing mixed data and changes nothing) → `5c1f0a2b7e44`
+(company classifications, WS4-4; a new table only).
+All downgrade cleanly, and a test checks the round trip.
 
 ### Ingestion
 
@@ -135,10 +144,11 @@ CLI) commits data and the run record together. The rules are listed in `data/REA
 | `GET /metric-dictionary` | The versioned dictionary as one document (not paginated, 17 metrics); served from `app/reference/metric_dictionary.json` |
 | `GET /sectors`, `GET /sectors/{id}` | Includes `company_count` (one query, scalar subquery) |
 | `GET /companies` | `q` (name, English name or ticker; case-insensitive substring, wildcards escaped), `sector` (code), `exchange` (code, non-delisted listings only), `limit` 1–100, `offset` |
-| `GET /companies/{id}` | With sector and all securities |
+| `GET /companies/{id}` | With sector and all securities. `classification` (WS4-4): `kind` `bank` / `non_bank` / `other_financial` / `unclassified`, with `decided_at`, `basis` and the cited evidence as `source`; also on each `GET /companies` item |
 | `GET /securities/{id}` | With exchange and company |
 | `GET /companies/{id}/evidence` | Evidence for the company and its securities, newest first, with data source and usage status |
 | `GET /companies/{id}/financial-statements` | Latest revisions by default; `include_superseded`, `fiscal_year`, `statement_type`, `scope`. Each metric carries `reported_value`, `reported_scale` and a per-figure `source` (`evidence_id`, `document_title`, `document_url` only when it is a safe http(s) link, `link_status`, `page` or `null`, `verification_status`). See [WS3_CHECKLIST.md](WS3_CHECKLIST.md#response-contract-b-01) |
+| (WS4-4 additions to the above) | Each statement lists `absent_metrics`: every dictionary metric of its type without a figure, `state` `not_yet_collected` or `not_applicable` (only from a reviewed kind and a dictionary `not_applicable`; `applicability_basis` names the column). Each metric carries `applicability_conflict` when it was stored for a metric that does not apply to the company's kind. Absence is never a zero and never "not reported" (WS4-D6 Phase A) |
 
 - Lists return `{items, total, limit, offset}` with a deterministic order (ties broken by `id`).
 - Relationships are declared `lazy="raise"`, so any accidental lazy load fails loudly. Lists

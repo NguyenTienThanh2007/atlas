@@ -199,6 +199,29 @@ if (companyId && !OFFLINE) {
   }
 }
 
+// WS4-4: the company type and every absent metric's state on page 1 match the API; an absent
+// figure is never shown as 0. Needs PROVENANCE_COMPANY_ID like the blocks above.
+if (companyId && !OFFLINE) {
+  const api = process.env.API_URL ?? "http://localhost:8000";
+  const company = await (await fetch(`${api}/api/v1/companies/${companyId}`)).json();
+  const st = await (await fetch(`${api}/api/v1/companies/${companyId}/financial-statements?limit=20`)).json();
+  for (const lang of ["vi", "en"]) {
+    const dict = lang === "vi" ? dictVi : dictEn;
+    const url = `${lang === "vi" ? "" : "/en"}/companies/${companyId}`;
+    const page = text((await get(url)).html);
+    check(page.includes(dict.company.kind.label) && page.includes(dict.company.kind[company.classification.kind]), `${url}: company type missing`);
+    const unclassified = company.classification.kind === "unclassified" && st.total > 0;
+    check(page.includes(dict.company.unclassifiedNote) === unclassified, `${url}: unclassified note shown wrongly`);
+    for (const state of ["not_yet_collected", "not_applicable"]) {
+      const expected = st.items.flatMap((s) => s.absent_metrics).filter((a) => a.state === state).length;
+      const shown = page.split(dict.company.absent[state]).length - 1;
+      check(shown === expected, `${url}: "${dict.company.absent[state]}" shown ${shown} times, expected ${expected}`);
+    }
+    const conflicts = st.items.flatMap((s) => s.metrics).filter((m) => m.applicability_conflict).length;
+    check(page.split(dict.company.conflict).length - 1 === conflicts, `${url}: conflict warnings do not match the API`);
+  }
+}
+
 // AU-5: both lists are paginated on the server, each with its own page parameter, and the page
 // always says which items it shows. Needs PROVENANCE_COMPANY_ID like the block above.
 if (companyId && !OFFLINE) {

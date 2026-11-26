@@ -8,6 +8,7 @@ checklist: [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md).
 | | |
 | --- | --- |
 | Last verified | 2026-11-26, `main` @ `609864c` (PRs #9 and #10 merged, CI green; earlier: 2026-11-25, `8007fe2`) |
+| WS4-4 planning | 2026-11-26: design for missing-data semantics and bank applicability written ([WS4_4_IMPLEMENTATION_PLAN.md](WS4_4_IMPLEMENTATION_PLAN.md), [WS4_4_DECISIONS.md](WS4_4_DECISIONS.md), [WS4_4_CHECKLIST.md](WS4_4_CHECKLIST.md)); no decision approved, nothing implemented, no item below changed. Later the same day: WS4-4-D1 to D10 approved as proposed (PRODUCT_DECISIONS §2f); implementation not authorised |
 | Statuses | `NOT STARTED`, `IN PROGRESS`, `PASS`, `BLOCKED`, `FAIL` only |
 | Owner approval | "Yes" means the item can't pass until the project owner decides (decision ids WS4-D1 to D11 in the plan, §12) |
 
@@ -24,14 +25,14 @@ only on a recorded owner decision (2026-11-24, PRODUCT_DECISIONS §2d); no imple
 | C. ROE | 7 | 7 | 0 | 0 | 0 | 0 |
 | D. ROA | 7 | 7 | 0 | 0 | 0 | 0 |
 | E. Banking | 5 | 4 | 1 | 0 | 0 | 0 |
-| F. Missing-data semantics | 8 | 5 | 2 | 1 | 0 | 0 |
+| F. Missing-data semantics | 8 | 7 | 1 | 0 | 0 | 0 |
 | G. Period comparison | 9 | 9 | 0 | 0 | 0 | 0 |
 | H. Reported vs calculated | 9 | 9 | 0 | 0 | 0 | 0 |
-| I. Testing strategy | 10 | 8 | 1 | 1 | 0 | 0 |
+| I. Testing strategy | 10 | 9 | 0 | 1 | 0 | 0 |
 | J. Approval and implementation readiness | 7 | 7 | 0 | 0 | 0 | 0 |
-| **Total** | **75** | **66** | **7** | **2** | **0** | **0** |
+| **Total** | **75** | **69** | **5** | **1** | **0** | **0** |
 
-(2026-11-26: WS4-G9 passed with WS4-3; before: 65 PASS, 7 IN PROGRESS, 3 NOT STARTED.)
+(2026-11-26: WS4-G9 passed with WS4-3; before: 65 PASS, 7 IN PROGRESS, 3 NOT STARTED. Later the same day WS4-F3, F8 and I6 passed with WS4-4 Phase A (uncommitted branch); before that: 66, 7, 2.)
 
 No item is BLOCKED. The open items are implementation and tests, which wait on the owner's
 go-ahead to implement, plus the parts the owner did not approve (G-3 sign field, missing-data
@@ -102,12 +103,12 @@ Phase B), which stay IN PROGRESS as open questions.
 | --- | --- | --- | --- | --- | --- | --- |
 | WS4-F1 | Zero vs missing | PASS | Rule written: a real 0 is `reported`; absence is never 0 and never enters a formula. Today's schema can't store a null value (`value` NOT NULL) | Plan §7; `backend/app/models.py` | None | No |
 | WS4-F2 | Not reported | IN PROGRESS | State defined and expressible in data | Done: defined (plan §7.1). Remaining: needs an explicit record; **Phase B not approved** (D6), so open | WS4-D6 | Yes |
-| WS4-F3 | Not applicable | IN PROGRESS | State defined and derivable | Done: defined; G-2 and D5 approved. Remaining: dictionary applicability implemented (WS4-B6) | WS4-D5, D6, D10 | Yes |
+| WS4-F3 | Not applicable | PASS | State defined and derivable | Done: defined; G-2 and D5 approved. Remaining: dictionary applicability implemented (WS4-B6). Update 2026-11-26: the "Remaining" above was stale (WS4-B6 already PASS); the real gap was the per-company kind (WS4-4 plan §1.7, C-3). Now derivable: reviewed `company_classifications` + dictionary applicability, `absent_metrics.state = not_applicable` (WS4-4 Phase A, branch `feat/ws4-4-phase-a`, uncommitted; backend 404 passed, route check) | WS4-D5, D6, D10 | Yes |
 | WS4-F4 | Not yet collected | PASS | Defined and derivable from today's data (no row or statement) | Plan §7.1, §7.2 | None | No |
 | WS4-F5 | Invalid | PASS | Defined: rejected at import, never stored, reported by ingestion runs | Plan §7.1; `test_invalid_metrics_are_rejected` | None | No |
 | WS4-F6 | Pending verification | PASS | Defined as a verification state, separate from availability | Plan §7.1; WS3 per-figure `verification_status` | None | No |
 | WS4-F7 | Owner approval of states | PASS | Vocabulary and Phase A approved; Phase B decided separately | WS4-D6 recorded: vocabulary and Phase A approved; Phase B not approved, [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d | WS4-D6 | Yes |
-| WS4-F8 | Implemented and tested | NOT STARTED | Tests in plan §11 "Missing data" pass | Test run, CI | WS4-F7 | Yes |
+| WS4-F8 | Implemented and tested | PASS | Tests in plan §11 "Missing data" pass | Update 2026-11-26 (Phase A): absent figures are `not_yet_collected` or `not_applicable`, never 0; calculations and comparisons refuse them; `tests/test_classification.py` (24) and the WS4-2/WS4-3 suites; branch `feat/ws4-4-phase-a`, uncommitted. Phase B states (`not_reported`, `unavailable`) not built (D6) | WS4-F7 | Yes |
 
 ## G. Period comparison
 
@@ -146,7 +147,7 @@ Phase B), which stay IN PROGRESS as open questions.
 | WS4-I3 | API tests | PASS | Shape, strings, reasons, OpenAPI | `backend/tests/test_calculated_metrics.py` (27) incl. OpenAPI; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
 | WS4-I4 | Integration tests | PASS | Fixture → API → page in vi and en | Isolated Docker stack with a fictional bundle: route check compares API and page in vi and en (DK); WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
 | WS4-I5 | Decimal precision tests | PASS | 32-digit inputs; no float drift | Exact `Fraction` oracle, values near 10^32, fixed-point JSON checks; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
-| WS4-I6 | Missing-data tests | IN PROGRESS | Absence never 0; N/A only via dictionary | Done: absence is never zero and stops the calculation (`missing_input`, `missing_opening_balance`), WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101`. Remaining: showing the D6 states for reported figures in the UI (later WS4 step) | Implementation | No |
+| WS4-I6 | Missing-data tests | PASS | Absence never 0; N/A only via dictionary | Done: absence is never zero and stops the calculation (`missing_input`, `missing_opening_balance`), WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101`. Remaining: showing the D6 states for reported figures in the UI (later WS4 step). Update 2026-11-26: the D6 states are shown in the UI and API (WS4-4 Phase A), N/A only via a reviewed kind and the dictionary; tests in `tests/test_classification.py`; branch `feat/ws4-4-phase-a`, uncommitted | Implementation | No |
 | WS4-I7 | Period alignment tests | PASS | Valid and refused pairs | ±7-day window, non-calendar year, closing date, quarterly exclusion tests; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
 | WS4-I8 | Restatement tests | PASS | Latest revision used and disclosed | `test_latest_revision_is_used_and_disclosed`, `test_bad_latest_revision_never_falls_back[*]`; WS4-2, verified on branch `feat/ws4-2-roe-roa` before merge (2026-11-25; see [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md) BT/FT/DK/BR) and merged as PR #7 (`2079101`) with Backend 288 passed, Frontend 27/27, Docker success on both PR head `037a820` and merge `2079101` | Implementation | No |
 | WS4-I9 | Bank / non-bank tests | NOT STARTED | Bank fixture N/A cases; non-bank unchanged | Test run | Implementation | No |

@@ -7,7 +7,7 @@ import { Pagination } from "@/components/pagination";
 import { COMPARISONS_PAGE_SIZE, PeriodComparisons } from "@/components/period-comparison";
 import { ApiErrorState, BackLink, SampleBadge } from "@/components/states";
 import { errorText, getI18n, unitText, type Dictionary, type Locale } from "@/i18n";
-import { safeHref } from "@/lib/provenance";
+import { figureHref, safeHref, type FigureSource } from "@/lib/provenance";
 import {
   apiGet,
   calculationLabel,
@@ -112,6 +112,15 @@ export default async function CompanyPage({ params, searchParams }: PageProps<"/
             {locale === "vi" ? c.sector.name_vi : c.sector.name}
           </Link>
         </Fact>
+        <Fact label={tc.kind.label}>
+          {tc.kind[c.classification.kind]}
+          {c.classification.basis && (
+            <span className="block text-xs text-muted">
+              {c.classification.basis}
+              {c.classification.source && <ClassificationSource source={c.classification.source} untitled={tf.untitled} />}
+            </span>
+          )}
+        </Fact>
         <Fact label={tc.taxCode}>{c.tax_code ?? t.common.none}</Fact>
         <Fact label={tc.website}>
           {c.website ? (
@@ -169,6 +178,7 @@ export default async function CompanyPage({ params, searchParams }: PageProps<"/
           <p className="text-sm text-muted">{tc.noStatements}</p>
         ) : (
           <div className="space-y-6">
+            {c.classification.kind === "unclassified" && <p className="text-xs text-muted">{tc.unclassifiedNote}</p>}
             {statements.data.items.map((s) => (
               <div key={s.id} className="rounded-lg border border-line px-5 py-4">
                 <h3 className="text-sm font-medium text-mist">
@@ -204,10 +214,22 @@ export default async function CompanyPage({ params, searchParams }: PageProps<"/
                               </span>
                             )}
                             <FigureSourceLine metric={name} source={m.source} labels={tf} />
+                            {m.applicability_conflict && <span className="block text-xs text-brass">{tc.conflict}</span>}
                           </td>
                         </tr>
                       );
                     })}
+                    {s.absent_metrics.map((a) => (
+                      <tr key={a.metric_code} className="align-top">
+                        <th scope="row" className="py-2 pr-4 text-left font-normal text-muted">
+                          {locale === "vi" ? a.metric_name_vi : a.metric_name_en}
+                        </th>
+                        <td className="py-2 text-right text-muted">
+                          {tc.absent[a.state]}
+                          {a.state === "not_applicable" && <span className="block text-xs">{tc.absent.basis}</span>}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -351,6 +373,24 @@ function CalculatedRow({ result: r, locale, t }: { result: CalculatedMetric; loc
         </ul>
       </details>
     </li>
+  );
+}
+
+/** WS4-4: the document a classification cites; a link only when the source is linkable. */
+function ClassificationSource({ source, untitled }: { source: FigureSource; untitled: string }) {
+  const href = figureHref(source);
+  const title = source.document_title ?? untitled;
+  return (
+    <>
+      {" · "}
+      {href ? (
+        <a href={href} rel="noopener noreferrer" target="_blank" className="hover:text-mist hover:underline">
+          {title}
+        </a>
+      ) : (
+        title
+      )}
+    </>
   );
 }
 

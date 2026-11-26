@@ -7,7 +7,7 @@ from decimal import Decimal
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, PlainSerializer, computed_field
+from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, computed_field
 
 from app.calculations.comparisons import ComparisonType, Direction, Side, Status
 from app.calculations.comparisons import ReasonCode as ComparisonReason
@@ -94,6 +94,8 @@ class CompanyListItem(CompanyRef):
     english_name: str | None
     sector: SectorRef
     securities: list[SecurityBrief]
+    # WS4-4: set by the endpoint from the reviewed classification; unclassified unless one counts.
+    classification: "ClassificationOut" = Field(default_factory=lambda: ClassificationOut())
 
 
 class CompanyOut(CompanyListItem):
@@ -170,6 +172,27 @@ class MetricSourceOut(BaseModel):
         )
 
 
+class ClassificationOut(BaseModel):
+    """A company's current reviewed classification (WS4-4-D1, D2, D7). `unclassified` when there
+    is none, or while its evidence is disputed or rejected. Never derived from sector or name."""
+
+    kind: Literal["bank", "non_bank", "other_financial", "unclassified"] = "unclassified"
+    decided_at: datetime | None = None
+    basis: str | None = None  # what the cited document says, and where
+    source: MetricSourceOut | None = None  # the cited company evidence (no page column)
+
+
+class AbsentMetricOut(BaseModel):
+    """A dictionary metric of this statement's type with no figure (WS4-D6 Phase A). Absence is
+    never a zero and never "not reported": ATLAS can't prove anyone checked the document."""
+
+    metric_code: str
+    metric_name_vi: str
+    metric_name_en: str
+    state: Literal["not_yet_collected", "not_applicable"]
+    applicability_basis: Literal["dictionary_bank", "dictionary_non_bank"] | None
+
+
 class MetricOut(_Out):
     metric_code: str
     metric_name: str
@@ -178,6 +201,9 @@ class MetricOut(_Out):
     reported_value: Decimal | None  # as printed in the document; None for rows from before WS1
     reported_scale: int | None  # 1, 1000 or 1000000; None for rows from before WS1
     source: MetricSourceOut
+    # WS4-4-D4: a figure stored for a metric the dictionary says does not apply to this company's
+    # reviewed kind (entered before the classification). Shown, flagged, never hidden.
+    applicability_conflict: bool = False
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -210,6 +236,7 @@ class FinancialStatementOut(_Out):
     is_superseded: bool
     source_evidence: EvidenceOut
     metrics: list[MetricOut]
+    absent_metrics: list[AbsentMetricOut] = []
 
 
 class ErrorOut(BaseModel):
@@ -320,3 +347,7 @@ class PeriodComparisonOut(BaseModel):
     growth_percent: FixedDecimal | None  # 2 decimals, half-up (W3-D4)
     direction: Direction | None
     input_verification: InputVerification | None
+
+
+CompanyListItem.model_rebuild()
+CompanyOut.model_rebuild()

@@ -7,11 +7,13 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
+from app.calculations.applicability import company_kind, effective
 from app.calculations.comparisons import (
     ComparisonType,
     Issue,
     Outcome,
     Period,
+    Side,
     Value,
     compare,
     match,
@@ -79,6 +81,7 @@ def comparisons(
     if company is None:
         return []
     mixed = company_mixed(db, company_id, company.is_sample)
+    classified = company_kind(db, company_id)
     dictionary = metric_dictionary()
     order = {code: i for i, code in enumerate(dictionary)}
     groups: dict[tuple[StatementType, StatementScope], list[FinancialStatement]] = defaultdict(list)
@@ -125,6 +128,12 @@ def comparisons(
                 issues.append(
                     Issue("missing_previous_value", "previous", code, used.reporting_period_end)
                 )
+            # WS4-4-D4: a figure stored for a metric that does not apply to this company's kind.
+            if effective(classified, dictionary[code]) == "not_applicable":
+                on = current if cm is not None else used
+                end = on.reporting_period_end if on is not None else None
+                side: Side = "current" if cm is not None else "previous"
+                issues.append(Issue("metric_not_applicable", side, code, end))
             outcome = compare(
                 code,
                 _value(current, cm),
