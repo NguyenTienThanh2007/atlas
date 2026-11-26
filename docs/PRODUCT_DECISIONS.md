@@ -620,3 +620,27 @@ tests the approved segment C.
 
 Searched but **not cited**: a 2024 MDPI bar-chart study and a Tableau 3D-pie paper. Both returned
 HTTP 403 and couldn't be checked.
+
+## 5. SEC-01A security remediation: G-0 gate scope (approved 2026-11-26)
+
+**Decision:** Before any SEC-01A implementation code is written, Gate G-0 requires the
+project owner to explicitly approve and record **D1–D4, D6–D8 and D11** from
+[SEC_01A_OWNER_DECISIONS.md](SEC_01A_OWNER_DECISIONS.md).
+
+This expands G-0 to include **D7 (the SEC-03 API behaviour change)** and
+**D11 (the non-symmetric M1 rollback strategy)**, in addition to the previously
+listed D1–D4, D6 and D8.
+
+**Scope of this approval:** this entry approves the *gate requirement only*. It does
+**not** approve the proposed substantive choices in D1–D4, D6–D8 or D11. Each of
+those decisions remains open until its proposal is explicitly accepted, amended or
+rejected here by the project owner. In particular, the API behaviour change and
+rollback strategy must not be implemented merely because their inclusion in G-0
+has been approved.
+
+**Approved by:** Tiến Thành, project owner · **Date:** 2026-11-26.
+
+**Effect:** Stage 1 remains unauthorized until every G-0 decision above is separately
+recorded as approved. G-1 (owner approval, recorded human review and green CI) still
+applies before Stage 1 can merge. This decision does not authorize migrations, database
+changes, credential changes, Docker changes or application code.
