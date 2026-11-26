@@ -1,10 +1,11 @@
 # SEC-01A: implementation plan (design only)
 
-**Status: READY FOR OWNER ARCHITECTURE REVIEW. NOT READY FOR IMPLEMENTATION.**
+**Status: DESIGN BASELINE — G-0 COMPLETE; NO IMPLEMENTATION IN THIS PR.**
 
-- Nothing here is approved.
-- Every recommendation is a **PROPOSAL**.
-- No code, migration, database, GitHub setting or deployment was changed by this design phase.
+- D1–D4, D6–D8 and D11 are approved and recorded in `PRODUCT_DECISIONS.md` §§5–7.
+- Other recommendations remain proposals unless separately marked approved.
+- This documentation-only change makes no code, migration, database, credential, Docker,
+  GitHub-settings or deployment change. Stage 1 merge remains subject to G-1.
 
 Baseline: `main` @ `aa3218a`. Architecture: [SEC_01A_SECURITY_ARCHITECTURE.md](SEC_01A_SECURITY_ARCHITECTURE.md)
 ("Arch"). Threats: [SEC_01A_THREAT_MODEL.md](SEC_01A_THREAT_MODEL.md) ("TM").
@@ -35,20 +36,20 @@ becomes SECURITY DEFINER", §3.4 schema mapping), these corrections supersede it
 | C-10 | Default privileges remove PUBLIC EXECUTE | They cover only functions created later by `atlas_owner` (T11). M1 also revokes EXECUTE on the existing functions. DB-13 also asserts that no object is owned by `atlas_migrator` |
 | C-11 | (rule) | `p_*` roles connect directly, one process per person, with no shared pool or pooler. `session_user` is the actor only in that model |
 | C-12 | (gap) | Anchors detect changes made before the latest anchor only, and only if someone other than the operator holds them. Role dumps carry password hashes and are stored encrypted, separately (D10) |
-| C-13 | §1 register: D7 and D11 "Blocks implementation? No"; §9 G-0 originally listed D1–D4, D6, D8 | §4 says the SEC-03 change "needs owner approval", and C-2 makes the M1 downgrade non-symmetric. So Stage 1 depends on D7 and D11. **Owner decision (2026-11-26):** G-0 scope is expanded to include D7 and D11, as recorded in [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §5. This approves the gate scope only; the substantive D7 and D11 proposals remain open |
+| C-13 | §1 register: D7 and D11 "Blocks implementation? No"; §9 G-0 originally listed D1–D4, D6, D8 | §4 says the SEC-03 change "needs owner approval", and C-2 makes the M1 downgrade non-symmetric. So Stage 1 depends on D7 and D11. **Owner decision (2026-11-26):** G-0 scope includes D7 and D11, as recorded in [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §5. The substantive D7 and D11 decisions are separately approved in [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §6; D1–D4, D6 and D8 are approved in §7. |
 
-## 1. Owner decision register (all OWNER DECISION REQUIRED)
+## 1. Owner decision register (approval status recorded in PRODUCT_DECISIONS.md §§5–7)
 
 | ID | Decision | Context | Options | Advantages / risks | Recommendation (PROPOSAL) | Depends on | Blocks implementation? |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| D1 | Database principal architecture | Superuser everywhere (Arch §1.1); three roles are not enough (Arch §2, P5/P6e) | (a) 3 roles, as in the SEC-01 checklist row; (b) Arch §3: NOLOGIN owner, migrator, API, one role per person, definer procedures | (a) is simple but leaves P5/P6e/P7; (b) closes them and costs more grants and procedures | **(b)** | — | **Yes**, for Stages 1–2 |
-| D2 | How reviewer identity is authenticated | SEC-10, T-1, T-6 | (1) app OIDC; (2) a shared credential; (3) a DB role per person; (4) a context variable; (5) hybrid gateway | Arch §4.1 table | **(3)** for the pilot; (5) only if a web review UI is approved later | D1 | **Yes**, for Stage 2 |
-| D3 | Where accounts are managed | Who creates and revokes people | Inside ATLAS (`principals` table plus DB roles, provisioned by the owner) or an external IdP | Inside is simple at 2–3 people; external is needed for SSO | **Inside ATLAS** for the pilot; the IdP is only for proxy sign-in (D8) | D2 | Yes, for Stage 2 |
-| D4 | Does the DB enforce verification through stored procedures? | Invoker triggers force broad grants (P3a, P6c) | (a) keep triggers, grant tables; (b) `SECURITY DEFINER` procedures, no table DML | (a) keeps P5/P6e; (b) brings rewrite effort and tests | **(b)**, with per-record import procedures so the Python validation in `importer.py` stays | D1 | Yes |
+| D1 | Database principal architecture | Superuser everywhere (Arch §1.1); three roles are not enough (Arch §2, P5/P6e) | (a) 3 roles, as in the SEC-01 checklist row; (b) Arch §3: NOLOGIN owner, migrator, API, one role per person, definer procedures | (a) is simple but leaves P5/P6e/P7; (b) closes them and costs more grants and procedures | **(b) — APPROVED 2026-11-26** | — | **Yes**, for Stages 1–2 |
+| D2 | How reviewer identity is authenticated | SEC-10, T-1, T-6 | (1) app OIDC; (2) a shared credential; (3) a DB role per person; (4) a context variable; (5) hybrid gateway | Arch §4.1 table | **(3) — APPROVED 2026-11-26** for the pilot; (5) only if a web review UI is approved later | D1 | **Yes**, for Stage 2 |
+| D3 | Where accounts are managed | Who creates and revokes people | Inside ATLAS (`principals` table plus DB roles, provisioned by the owner) or an external IdP | Inside is simple at 2–3 people; external is needed for SSO | **Inside ATLAS — APPROVED 2026-11-26** for the pilot; the IdP is only for proxy sign-in (D8) | D2 | Yes, for Stage 2 |
+| D4 | Does the DB enforce verification through stored procedures? | Invoker triggers force broad grants (P3a, P6c) | (a) keep triggers, grant tables; (b) `SECURITY DEFINER` procedures, no table DML | (a) keeps P5/P6e; (b) brings rewrite effort and tests | **(b) — APPROVED 2026-11-26**, with per-record import procedures so the Python validation in `importer.py` stays; trigger functions remain INVOKER (C-5) | D1 | Yes |
 | D5 | Direct SQL by privileged operators | TM T-12, T-17 | Accept with detection; or separate duties (another person holds the superuser and the anchor) | Detection only vs real separation (needs a second trusted person) | **Accept and detect** (event trigger, hash chain, external anchor, integrity check) for the pilot; separate duties before G1 | D13 | No (Stage 4 detective work) |
-| D6 | Remote private pilot before Q-7? | SEC-02 | No remote access until hosting is chosen; or a temporary VPN to the owner's machine | A host has to exist either way | **No remote access** until Q-7 is decided and Stage 3 passes | Q-7 | Yes, for Stage 3 |
+| D6 | Remote private pilot before Q-7? | SEC-02 | No remote access until hosting is chosen; or a temporary VPN to the owner's machine | A host has to exist either way | **No remote access — APPROVED 2026-11-26** until Q-7 is decided and Stage 3 passes | Q-7 | Yes, for Stage 3 |
 | D7 | SEC-03..SEC-06, SEC-09 in the same release? | Scope control | All in one release; or staged | One release is larger | **Staged (APPROVED 2026-11-26):** SEC-03 with Stage 1; SEC-10 with Stage 2; SEC-09 with Stage 3; SEC-04/05/06 as Stage 4; SEC-07 branch protection now | D1 | Yes (G-0; SEC-03 API behaviour change) |
-| D8 | Authentication and session policy | Person DB credentials; proxy sessions | DB: SCRAM in a password manager, or client certificates. Proxy: OIDC with MFA, 8 h sessions | Certificates are stronger and need TLS to the DB | **Client certificates** if hosting allows, else SCRAM; `VALID UNTIL` 90 d; MFA on VPN and IdP | Q-7 | Yes, for Stages 2–3 |
+| D8 | Authentication and session policy | Person DB credentials; proxy sessions | DB: SCRAM in a password manager, or client certificates. Proxy: OIDC with MFA, 8 h sessions | Certificates are stronger and need TLS to the DB | **APPROVED 2026-11-26:** individual client certificates if hosting supports them, otherwise individual SCRAM credentials; `VALID UNTIL` 90 d, connection limit 1, MFA on VPN and IdP, 8 h OIDC proxy sessions, separate Compose secret files, no `trust` lines | Q-7 | Yes, for Stages 2–3 |
 | D9 | Audit identity retention and revocation | Reviews must stay attributable after someone leaves | Keep principals forever (NOLOGIN), or anonymise | Accountability vs privacy | **Keep forever** with a display name; personal data limited to name and role; revocation as in Arch §5.3. A legal check on personal-data retention may be needed (OPEN QUESTION) | — | No |
 | D10 | Backup and recovery security | TM T-18 | Encrypted, versioned dumps compared with the anchor on restore | Cost and storage location (Q-7) | **Encrypted dumps + anchor check before reopening** | Q-7, D5 | No (before real data: yes, see D12) |
 | D11 | Rollback strategy | §6 | A forward fix only; or a down-migration plus restore | §6 | **Non-symmetric M1 downgrade (APPROVED 2026-11-26):** restore function bodies and grants; leave ownership with `atlas_owner`. Stage 2 forward fix plus verified backup recovery | D10 (minimum pre-migration backup required) | Yes (G-0; M1 rollback) |
@@ -64,17 +65,18 @@ with the code, and exclude owner review time. They are rough.
 
 ### Stage 0: owner decisions (no code)
 
-- Decide D1–D4, D6–D8 and D11; note D5.
-- **Gate G-0:** all required decisions recorded in `PRODUCT_DECISIONS.md` as a dated section, by the owner. The G-0 scope amendment is recorded in §5; the substantive decisions remain open.
+- D1–D4, D6–D8 and D11 are approved and recorded in `PRODUCT_DECISIONS.md` §§5–7; D7 and D11 were approved in §6, and D1–D4, D6 and D8 in §7.
+- **Gate G-0: SATISFIED (2026-11-26).** This does not waive G-1: Stage 1 still needs owner approval for merge, a recorded human review and green CI.
 
 ### Stage 1: database least privilege (M–L)
 
 **Tasks**
 
-1. A provisioning script (`infra/postgres/init/02-roles.sql`, plus an idempotent
-   `python -m app.ops roles` for volumes that already exist; see C-6, C-7, C-9). It:
-   - creates `atlas_owner`, `atlas_migrator`, `atlas_api`;
-   - runs `REVOKE TEMP/CREATE` from PUBLIC.
+1. One idempotent bootstrap-superuser SQL file (`infra/postgres/init/02-roles.sql`):
+   - runs automatically on fresh volumes through the PostgreSQL init directory;
+   - on an existing volume, is run by the operator with `docker compose exec db psql -U "$POSTGRES_USER" -f …` (C-6); no application provisioning command or superuser secret is added to the app environment;
+   - creates `atlas_owner`, `atlas_migrator`, `atlas_api` and the approved group roles;
+   - revokes PUBLIC `CONNECT` and `TEMP` on every database in the cluster and removes PUBLIC schema privileges as required (C-9).
 2. A migration `sec01a_least_privilege`:
    - reassign ownership of every table and function to `atlas_owner` (see C-1: a superuser step, not M1);
    - `REVOKE EXECUTE … FROM PUBLIC`;
@@ -335,7 +337,7 @@ recorded (D10).
 
 | Gate | Before | Approver |
 | --- | --- | --- |
-| G-0 | Any SEC-01A code | Owner: D1–D4, D6–D8 and D11; D7 and D11 approved 2026-11-26, D1–D4, D6 and D8 remain open (§5–6, C-13) |
+| G-0 | Any SEC-01A code | **SATISFIED 2026-11-26:** D1–D4, D6–D8 and D11 approved and recorded (§5–7, C-13) |
 | G-1 | Merge Stage 1 | Owner + a recorded human review + green CI |
 | G-2 | Merge Stage 2 | The same |
 | G-3 | Load Company 1–5 real data | Owner: §7 "before real data" met |
