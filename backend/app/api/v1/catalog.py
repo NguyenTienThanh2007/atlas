@@ -16,6 +16,8 @@ from app.api.v1.schemas import (
     CalculationIssueOut,
     CompanyListItem,
     CompanyOut,
+    ComparisonIssueOut,
+    ComparisonSideOut,
     ErrorOut,
     EvidenceOut,
     ExchangeOut,
@@ -23,9 +25,12 @@ from app.api.v1.schemas import (
     MetricOut,
     MetricSourceOut,
     Page,
+    PeriodComparisonOut,
     SectorOut,
     SecurityDetailOut,
 )
+from app.calculations import comparisons as cmp
+from app.calculations.comparison_service import comparisons
 from app.calculations.service import calculated_metrics
 from app.db import get_session
 from app.ingestion.reference import MetricDictionary, metric_dictionary, metric_dictionary_document
@@ -34,6 +39,7 @@ from app.models import (
     EntityType,
     Evidence,
     Exchange,
+    FinancialMetric,
     FinancialStatement,
     ListingStatus,
     Sector,
@@ -404,3 +410,77 @@ def list_calculated_metrics(
         for r in results[offset : offset + limit]
     ]
     return Page[CalculatedMetricOut](items=items, total=len(results), limit=limit, offset=offset)
+
+
+def _side(s: FinancialStatement, m: FinancialMetric | None) -> ComparisonSideOut:
+    return ComparisonSideOut(
+        statement_id=s.id,
+        fiscal_year=s.fiscal_year,
+        fiscal_quarter=s.fiscal_quarter,
+        period_start=s.reporting_period_start,
+        period_end=s.reporting_period_end,
+        revision=s.revision,
+        value=m.value if m else None,
+        reported_value=m.reported_value if m else None,
+        reported_scale=m.reported_scale if m else None,
+        source=MetricSourceOut.for_figure(s.source_evidence, m.source_page) if m else None,
+    )
+
+
+@router.get(
+    "/companies/{company_id}/comparisons",
+    response_model=Page[PeriodComparisonOut],
+    responses={404: {"model": ErrorOut}},
+    tags=["companies"],
+)
+def list_comparisons(
+    company_id: uuid.UUID,
+    db: DB,
+    kind: Annotated[cmp.ComparisonType, Query(alias="type", description="Comparison type")],
+    scope: StatementScope | None = None,
+    metric: Annotated[str | None, Query(max_length=64)] = None,
+    fiscal_year: Annotated[int | None, Query(ge=1990, le=2200)] = None,
+    limit: Limit = 20,
+    offset: Offset = 0,
+) -> Page[PeriodComparisonOut]:
+    """Changes between a period and its previous period, computed on request from the latest
+    reported figures (never stored). A row that can't be compared says why; nothing is estimated."""
+    _company_or_404(db, company_id)
+    dictionary = metric_dictionary()
+    if metric is not None and metric not in dictionary:
+        raise HTTPException(status_code=422, detail=f"unknown metric code: {metric}")
+    rows = comparisons(db, company_id, kind, scope, metric, fiscal_year)
+    items = []
+    for r in rows[offset : offset + limit]:
+        d, o = dictionary[r.metric_code], r.outcome
+        items.append(
+            PeriodComparisonOut(
+                type=kind,
+                formula_id=cmp.FORMULA_ID,
+                formula_version=cmp.FORMULA_VERSION,
+                formula_text_vi=cmp.FORMULA_TEXT_VI,
+                formula_text_en=cmp.FORMULA_TEXT_EN,
+                metric_code=r.metric_code,
+                metric_name_vi=d.name_vi,
+                metric_name_en=d.name,
+                statement_type=r.current.statement_type,
+                scope=r.current.scope,
+                unit=r.unit,
+                current=_side(r.current, r.current_metric),
+                previous=_side(r.previous, r.previous_metric) if r.previous else None,
+                status=o.status,
+                reason=o.reason,
+                issues=[
+                    ComparisonIssueOut(
+                        code=i.code, side=i.side, metric_code=i.metric_code, period_end=i.period_end
+                    )
+                    for i in o.issues
+                ],
+                absolute_change=o.absolute_change,
+                growth_value=o.growth_value,
+                growth_percent=o.growth_percent,
+                direction=o.direction,
+                input_verification=o.input_verification,
+            )
+        )
+    return Page[PeriodComparisonOut](items=items, total=len(rows), limit=limit, offset=offset)

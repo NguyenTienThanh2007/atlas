@@ -99,6 +99,7 @@ docker-compose.yml
 | GET | `/api/v1/health` | `200` when the API and database are reachable; `503` with the same body shape when the database check fails |
 | GET | `/api/v1/exchanges` | Exchanges (HOSE, HNX, UPCOM) |
 | GET | `/api/v1/companies/{id}/calculated-metrics` | ROE and ROA computed by ATLAS from the latest annual figures, with formula, inputs and their sources, or the reason they can't be computed; never stored |
+| GET | `/api/v1/companies/{id}/comparisons?type=` | Changes between a period and its previous period (`annual_yoy`, `quarterly_qoq`, `quarterly_yoy`) for every reported metric, with both figures' sources, or the reason they can't be compared; never stored |
 | GET | `/api/v1/metric-dictionary` | Metric dictionary (v1.1.0): names, vi/en definitions, unit, bank / non-bank applicability |
 | GET | `/api/v1/sectors`, `/api/v1/sectors/{id}` | ATLAS sector taxonomy with company counts |
 | GET | `/api/v1/companies` | Search (`q`: name or ticker), filter (`sector`, `exchange` codes), paginate (`limit`, `offset`) |

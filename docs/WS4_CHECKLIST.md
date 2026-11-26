@@ -25,11 +25,13 @@ only on a recorded owner decision (2026-11-24, PRODUCT_DECISIONS §2d); no imple
 | D. ROA | 7 | 7 | 0 | 0 | 0 | 0 |
 | E. Banking | 5 | 4 | 1 | 0 | 0 | 0 |
 | F. Missing-data semantics | 8 | 5 | 2 | 1 | 0 | 0 |
-| G. Period comparison | 9 | 8 | 0 | 1 | 0 | 0 |
+| G. Period comparison | 9 | 9 | 0 | 0 | 0 | 0 |
 | H. Reported vs calculated | 9 | 9 | 0 | 0 | 0 | 0 |
 | I. Testing strategy | 10 | 8 | 1 | 1 | 0 | 0 |
 | J. Approval and implementation readiness | 7 | 7 | 0 | 0 | 0 | 0 |
-| **Total** | **75** | **65** | **7** | **3** | **0** | **0** |
+| **Total** | **75** | **66** | **7** | **2** | **0** | **0** |
+
+(2026-11-26: WS4-G9 passed with WS4-3; before: 65 PASS, 7 IN PROGRESS, 3 NOT STARTED.)
 
 No item is BLOCKED. The open items are implementation and tests, which wait on the owner's
 go-ahead to implement, plus the parts the owner did not approve (G-3 sign field, missing-data
@@ -119,7 +121,7 @@ Phase B), which stay IN PROGRESS as open questions.
 | WS4-G6 | Restatement handling written | PASS | Latest revisions; restated side noted | Plan §8.2 | None | No |
 | WS4-G7 | Fiscal-year alignment written | PASS | Non-calendar years; period-end shift > 7 days refused; cross-company warning | Plan §8.2 | None | No |
 | WS4-G8 | Owner approval | PASS | Rules and growth formula approved | WS4-D9 recorded (growth on \|prior\|), [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d | WS4-D9 | Yes |
-| WS4-G9 | Implemented and tested | NOT STARTED | Tests in plan §11 "Period alignment" pass | Test run, CI | WS4-G8 | Yes |
+| WS4-G9 | Implemented and tested | PASS | Tests in plan §11 "Period alignment" pass | WS4-3 on branch `feat/ws4-3-period-comparison` (2026-11-26, uncommitted): backend 380 passed (period alignment, growth, reasons), frontend 35/35, isolated Docker route check; details in [WS4_3_CHECKLIST.md](WS4_3_CHECKLIST.md). CI and merge not done yet | WS4-G8 | Yes |
 
 ## H. Reported vs calculated
 

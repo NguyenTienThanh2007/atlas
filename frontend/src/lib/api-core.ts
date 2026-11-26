@@ -244,6 +244,90 @@ export function calculationLabel(
   return r.status === "computed" ? r.input_verification : null;
 }
 
+// WS4-3: changes between periods, computed by ATLAS at read time (never stored). Same rules as
+// WS4-2: fixed-point strings that the browser only formats.
+export const COMPARISON_TYPES = ["annual_yoy", "quarterly_qoq", "quarterly_yoy"] as const;
+export type ComparisonType = (typeof COMPARISON_TYPES)[number];
+export type ComparisonReason =
+  | "mixed_sample_and_real"
+  | "missing_current_value"
+  | "missing_previous_period"
+  | "ambiguous_previous_period"
+  | "period_mismatch"
+  | "missing_previous_value"
+  | "input_disputed_or_rejected"
+  | "input_superseded"
+  | "unit_or_currency_mismatch"
+  | "prior_zero"
+  | "sign_change";
+
+export type ComparisonSide = {
+  statement_id: string;
+  fiscal_year: number;
+  fiscal_quarter: number | null;
+  period_start: string;
+  period_end: string;
+  revision: number;
+  value: string | null; // null: this statement does not report the metric
+  reported_value: string | null;
+  reported_scale: number | null;
+  source: FigureSource | null;
+};
+
+export type PeriodComparison = {
+  kind: "comparison";
+  type: ComparisonType;
+  formula_id: string;
+  formula_version: number;
+  formula_text_vi: string;
+  formula_text_en: string;
+  metric_code: string;
+  metric_name_vi: string;
+  metric_name_en: string;
+  statement_type: FinancialStatement["statement_type"];
+  scope: "separate" | "consolidated";
+  unit: string;
+  current: ComparisonSide;
+  previous: ComparisonSide | null; // also the disagreeing period for period_mismatch (not used)
+  status: "computed" | "change_only" | "not_comparable";
+  reason: ComparisonReason | null;
+  issues: { code: ComparisonReason; side: "current" | "previous"; metric_code: string; period_end: string | null }[];
+  absolute_change: string | null; // exact, 6 decimals
+  growth_value: string | null; // 10 decimals
+  growth_percent: string | null; // 2 decimals, already rounded by the API
+  direction: "up" | "down" | "unchanged" | null;
+  input_verification: CalculatedMetric["input_verification"];
+};
+
+/** The comparison type in the URL; anything else is the default, year on year. */
+export function comparisonType(value: string | string[] | undefined): ComparisonType {
+  const v = cleanParam(value);
+  return COMPARISON_TYPES.find((t) => t === v) ?? "annual_yoy";
+}
+
+/** Which input-verification label a comparison shows: none when nothing was compared. */
+export function comparisonLabel(
+  r: Pick<PeriodComparison, "status" | "input_verification">,
+): PeriodComparison["input_verification"] {
+  return r.status === "not_comparable" ? null : r.input_verification;
+}
+
+/** W3-D7 display limit: beyond 999.99 % either way the table shows the limit, and the disclosure
+ * the full value. The API's 2-decimal string decides; no arithmetic here. */
+export function percentBeyondLimit(percent: string): "above" | "below" | null {
+  const match = /^(-?)(\d+)\.\d+$/.exec(percent.trim());
+  if (!match || match[2].replace(/^0+(?=\d)/, "").length <= 3) return null;
+  return match[1] ? "below" : "above";
+}
+
+/** The API's rounded percentage, or the W3-D7 limit text beyond 999.99 % either way. */
+export function percentText(percent: string, locale: DisplayLocale): string {
+  const limit = percentBeyondLimit(percent);
+  if (limit === "above") return `> ${formatFixed("999.99", locale)}%`;
+  if (limit === "below") return `< ${formatFixed("-999.99", locale)}%`;
+  return `${formatFixed(percent, locale)}%`;
+}
+
 export function formatDecimal(value: string, locale: DisplayLocale): string {
   const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(value.trim());
   if (!match) return value;
@@ -251,7 +335,7 @@ export function formatDecimal(value: string, locale: DisplayLocale): string {
   const { group, decimal } = SEPARATORS[locale];
   const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, group);
   const trimmed = frac?.replace(/0+$/, "");
-  return `${sign}${grouped}${trimmed ? `${decimal}${trimmed}` : ""}`;
+  return `${sign ? "\u2212" : ""}${grouped}${trimmed ? `${decimal}${trimmed}` : ""}`;
 }
 
 /** Search-param helpers: keep only well-formed values; the API validates again. */

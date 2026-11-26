@@ -170,12 +170,13 @@ def _ordered(issues: list[Issue]) -> tuple[Issue, ...]:
     return tuple(sorted(issues, key=lambda i: (RANK[i.code], ROLE_ORDER[i.role])))
 
 
-def _verification(figures: list[Figure]) -> InputVerification | None:
-    if not figures:
+def verification_label(statuses: list[VerificationStatus]) -> InputVerification | None:
+    """What a calculated value's inputs are (WS4-D7); never a status of the value itself."""
+    if not statuses:
         return None
-    if any(f.status is VerificationStatus.SAMPLE for f in figures):
+    if VerificationStatus.SAMPLE in statuses:
         return "sample"
-    if all(f.status is VerificationStatus.VERIFIED for f in figures):
+    if all(s is VerificationStatus.VERIFIED for s in statuses):
         return "all_verified"
     return "some_unverified"
 
@@ -230,7 +231,7 @@ def compute(
         if f.unit != f.currency:
             found.append(Issue("unit_mismatch", f.role, f.metric_code, f.period_end))
     mixed = any(i.code == "mixed_sample_and_real" for i in found)
-    verification = None if mixed else _verification(figures)
+    verification = None if mixed else verification_label([f.status for f in figures])
     if found:
         return Outcome(None, None, None, _ordered(found), verification)
 
