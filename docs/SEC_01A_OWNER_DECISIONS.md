@@ -380,11 +380,9 @@ starts, or before G2 real-pilot data is loaded.
 **Gate G-0 (owner-approved scope amendment, 2026-11-26; recorded in PRODUCT_DECISIONS.md §5):**
 D1–D4, D6–D8 and D11 must be explicitly decided and recorded before any SEC-01A code.
 
-This approval changes the *scope of the gate only*. It does **not** approve the substantive
-proposals in D7 or D11 (or any other D1–D13 proposal). D7's SEC-03 API behaviour change
-(`source_url` becomes `null` for non-http(s) URLs) and D11's non-symmetric M1 downgrade
-(leaves ownership with `atlas_owner`) each still require an explicit owner decision before
-implementation. Plan §9 and C-13 in Plan §0 reflect the expanded gate.
+The gate-scope amendment is separate from the substantive approvals. D7 and D11 were
+subsequently approved on 2026-11-26 and are recorded in PRODUCT_DECISIONS.md §6.
+D1–D4, D6 and D8 remain open. Plan §9 and C-13 in Plan §0 reflect the expanded gate.
 
 **Still PROPOSALS / not approved:** D1, D2, D3, D4, D5, D6, D8, D9, D10, D12 and D13.
 D7 and D11 are approved by the owner on 2026-11-26, as recorded in
