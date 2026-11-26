@@ -4,9 +4,10 @@ Decision log for Phase 2 product direction. Rationale lives in
 [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md), referenced as §n. Project owner: **Tiến Thành**.
 Created 2026-11-23.
 
-**Approval status: all decisions A-1 to A-11 approved** by Tiến Thành on 2026-11-23. Everything else is still a
-recommendation. Claude Code recommends; only the project owner approves. When a decision is
-approved, record the date and approver on its row and update
+**Approval status: all decisions A-1 to A-11 approved** by Tiến Thành on 2026-11-23. Other
+proposals remain recommendations unless explicitly approved in a dated section below.
+Claude Code recommends; only the project owner approves. When a decision is approved, record
+the date and approver and update
 [PHASE_2_CHECKLIST.md](PHASE_2_CHECKLIST.md).
 
 ## 1. Decisions recommended by Claude Code
@@ -686,9 +687,9 @@ from the actual stable workflow check names after they are verified on a PR.
   integrity-check result. The broader D10 backup/retention/anchor policy remains a
   separate decision before G2 real data.
 
-**Effect:** D7 and D11 are now approved for G-0. D1–D4, D6 and D8 remain unapproved,
-so G-0 is not yet satisfied and Stage 1 remains unauthorized. G-1 still requires owner
-approval, a recorded human review and green CI before Stage 1 can merge.
+**Effect:** D7 and D11 were approved first; D1–D4, D6 and D8 were subsequently approved
+in §7 on 2026-11-26. G-0 is now satisfied. G-1 still requires owner approval for the
+Stage 1 merge, a recorded human review and green CI.
 
 
 ## 7. SEC-01A owner decisions D1–D4, D6 and D8 (approved 2026-11-26)
