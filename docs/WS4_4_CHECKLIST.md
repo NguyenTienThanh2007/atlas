@@ -12,9 +12,16 @@ NOT STARTED.
 implemented on branch `feat/ws4-4-phase-a` (uncommitted). Each PASS cites the test or check that ran.
 Recorded review, PR/CI and merge (W4-H2 to W4-H4) are not done; W4-B2 waits on an accountant (Q-B).
 
+**Status update (2026-11-26, post-merge, from GitHub):** committed as `219856e`, PR #12 opened and merged by the
+owner's account on 2026-11-26T05:38:29Z as `8692a0c`. CI green on the head (`test`, `build`, `compose`) and on the
+merge (Backend 404 passed, Frontend 36/36, Docker success). The PR has **0 recorded reviews** and 0 comments, so
+W4-H2's criterion ("review recorded on the PR before merge") was not met: W4-H2 FAIL, W4-H3 and W4-H4 PASS.
+Green CI is not a review; AU-6 and P2-8.11 stay open. A post-merge review recorded by the owner would be a dated
+note here; it can't change the fact that the merge came first.
+
 | | |
 | --- | --- |
-| Last verified | 2026-11-26, branch `feat/ws4-4-phase-a` from `main` @ `9d44fb4`, uncommitted |
+| Last verified | 2026-11-26, `main` @ `8692a0c` (PR #12 merge, CI). Earlier: branch `feat/ws4-4-phase-a` from `main` @ `9d44fb4`, uncommitted |
 | Statuses | `NOT STARTED`, `IN PROGRESS`, `PASS`, `BLOCKED`, `FAIL` only |
 | Parent items | WS4_CHECKLIST WS4-E2, F2, F3, F8, I6; PHASE_2_CHECKLIST P2-5.15 |
 
@@ -31,10 +38,11 @@ PASS in group A means the design is written. It does not mean it is approved or 
 | E. Calculation safety | 4 | 4 | 0 | 0 | 0 | 0 |
 | F. API and UI | 6 | 6 | 0 | 0 | 0 | 0 |
 | G. Integrity and regression | 5 | 5 | 0 | 0 | 0 | 0 |
-| H. Release | 4 | 1 | 0 | 3 | 0 | 0 |
-| **Total** | **43** | **39** | **1** | **3** | **0** | **0** |
+| H. Release | 4 | 3 | 0 | 0 | 0 | 1 |
+| **Total** | **43** | **41** | **1** | **0** | **0** | **1** |
 
-(Before the 2026-11-26 approval: 8 PASS, 0 IN PROGRESS, 35 NOT STARTED; after it: 10, 1, 32.)
+(Before the 2026-11-26 approval: 8 PASS, 0 IN PROGRESS, 35 NOT STARTED; after it: 10, 1, 32. After the PR #12
+merge, recounted from the rows: 41 PASS, 1 IN PROGRESS, 0 NOT STARTED, 0 BLOCKED, 1 FAIL; before: 39, 1, 3, 0, 0.)
 
 ## A. Design
 
@@ -115,6 +123,6 @@ PASS in group A means the design is written. It does not mean it is approved or 
 | ID | Item | Status | Acceptance criteria | Evidence | Dependencies | Owner approval |
 | --- | --- | --- | --- | --- | --- | --- |
 | W4-H1 | Checklists updated | PASS | This file, WS4_CHECKLIST, PHASE_2_CHECKLIST recounted | This file, WS4_CHECKLIST and PHASE_2_CHECKLIST recounted (2026-11-26, branch `feat/ws4-4-phase-a`, uncommitted) | G group | No |
-| W4-H2 | Recorded owner review | NOT STARTED | Review recorded on the PR before merge (AU-6) | PR record | W4-H1 | Yes |
-| W4-H3 | PR and CI | NOT STARTED | Green on head and merge | CI links | W4-H2 | Yes |
-| W4-H4 | Merge | NOT STARTED | Merged by the owner | Merge commit | W4-H3 | Yes |
+| W4-H2 | Recorded owner review | FAIL | Review recorded on the PR before merge (AU-6) | PR record. Update 2026-11-26: PR #12 merged as `8692a0c` with 0 reviews and 0 comments (`gh pr view 12`); the criterion was not met before merge | W4-H1 | Yes |
+| W4-H3 | PR and CI | PASS | Green on head and merge | Update 2026-11-26: head `219856e`: `test`, `build`, `compose` pass (runs 45762066162, 45762066101, 45762066191); merge `8692a0c`: Backend 404 passed, Frontend 36/36, Docker success (runs 45762922320, 45762922338, 45762922350) | W4-H2 | Yes |
+| W4-H4 | Merge | PASS | Merged by the owner | Update 2026-11-26: merged by the owner's account, merge commit `8692a0c` | W4-H3 | Yes |
