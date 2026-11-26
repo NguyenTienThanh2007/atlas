@@ -32,7 +32,10 @@ only on a recorded owner decision (2026-11-24, PRODUCT_DECISIONS §2d); no imple
 | J. Approval and implementation readiness | 7 | 7 | 0 | 0 | 0 | 0 |
 | **Total** | **75** | **69** | **5** | **1** | **0** | **0** |
 
-(2026-11-26: WS4-G9 passed with WS4-3; before: 65 PASS, 7 IN PROGRESS, 3 NOT STARTED. Later the same day WS4-F3, F8 and I6 passed with WS4-4 Phase A (uncommitted branch); before that: 66, 7, 2.)
+(2026-11-26: WS4-G9 passed with WS4-3; before: 65 PASS, 7 IN PROGRESS, 3 NOT STARTED. Later the same day WS4-F3, F8 and I6 passed with WS4-4 Phase A (uncommitted branch); before that: 66, 7, 2.
+Update 2026-11-26, post-merge: WS4-4 Phase A merged as PR #12 (`8692a0c`), CI green on head and merge; 0 recorded
+reviews. Recounted from the rows: unchanged at 69 PASS, 5 IN PROGRESS, 1 NOT STARTED. Phase B stays deferred
+(WS4-4-D5).)
 
 No item is BLOCKED. The open items are implementation and tests, which wait on the owner's
 go-ahead to implement, plus the parts the owner did not approve (G-3 sign field, missing-data

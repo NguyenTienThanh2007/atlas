@@ -8,12 +8,12 @@ evidence recorded here.
 | | |
 | --- | --- |
 | **Phase objective** | Turn the Phase 1 foundation into a usable discovery product backed by **at least 5 verified Vietnamese listed companies (stretch target 20–30)** across the 4 approved sectors, with evidence-backed financials and validation by real users |
-| **Current status** | **IN PROGRESS: planning complete.** All product decisions A-1 to A-11 **approved** on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)). A private 5-company pilot can start; **public display of real data waits on gate G1** (legal opinion), reported under Track B. Phase 1 capabilities re-verified. **Execution: CONDITIONAL GO (EX-1).** Merged to `main`: WS1 verification workflow (PR #3, `45ef0ca`), WS2 Vietnamese-first UI (PR #4, `78cf577`), WS3 per-figure sources (PR #5, `4be30b7`), WS4-1 metric dictionary 1.1.0 (PR #6, `105869f`); CI green on each merge (E-MAIN). WS4-2 ROE and ROA (PR #7, `2079101`) and its display fixes (PR #8, `8007fe2`); CI green on each merge (E-MAIN). Independent review: [WS4_2_AUDIT.md](WS4_2_AUDIT.md) (no CRITICAL/HIGH; AU-3 to AU-6 open). Next: WS4-3 period comparison, plan only ([WS4_3_IMPLEMENTATION_PLAN.md](WS4_3_IMPLEMENTATION_PLAN.md)). **Update 2026-11-26:** audit fixes AU-3, AU-4, AU-5 merged (PR #9, `407ed63`); WS4-3 period comparison merged (PR #10, `609864c`); CI green on both merges (E-MAIN). Neither PR has a recorded review (P2-8.11). Post-merge audit: [WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md); next steps: [PHASE_2_NEXT_STEPS.md](PHASE_2_NEXT_STEPS.md). |
-| **Last verified** | 2026-11-26, `main` @ `609864c` (PR #10 merge): Backend 380 passed, Frontend 35/35, Docker success (E-MAIN). Earlier: 2026-11-25, `main` @ `8007fe2`; E-B/E-F (2026-11-23, `3660e5f`), E-WS1, E-WS2, E-WS3 |
+| **Current status** | **IN PROGRESS: planning complete.** All product decisions A-1 to A-11 **approved** on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)). A private 5-company pilot can start; **public display of real data waits on gate G1** (legal opinion), reported under Track B. Phase 1 capabilities re-verified. **Execution: CONDITIONAL GO (EX-1).** Merged to `main`: WS1 verification workflow (PR #3, `45ef0ca`), WS2 Vietnamese-first UI (PR #4, `78cf577`), WS3 per-figure sources (PR #5, `4be30b7`), WS4-1 metric dictionary 1.1.0 (PR #6, `105869f`); CI green on each merge (E-MAIN). WS4-2 ROE and ROA (PR #7, `2079101`) and its display fixes (PR #8, `8007fe2`); CI green on each merge (E-MAIN). Independent review: [WS4_2_AUDIT.md](WS4_2_AUDIT.md) (no CRITICAL/HIGH; AU-3 to AU-6 open). Next: WS4-3 period comparison, plan only ([WS4_3_IMPLEMENTATION_PLAN.md](WS4_3_IMPLEMENTATION_PLAN.md)). **Update 2026-11-26:** audit fixes AU-3, AU-4, AU-5 merged (PR #9, `407ed63`); WS4-3 period comparison merged (PR #10, `609864c`); CI green on both merges (E-MAIN). Neither PR has a recorded review (P2-8.11). Post-merge audit: [WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md); next steps: [PHASE_2_NEXT_STEPS.md](PHASE_2_NEXT_STEPS.md). **Update 2026-11-26 (later):** WS4-4 Phase A (company classification, missing-data states) merged as PR #12 (`8692a0c`), CI green on head and merge, 0 recorded reviews; Phase B deferred until G2 measures curation hours (WS4-4-D5). Security review P2-6.12 written on branch `security/p2-6-12-review` ([SECURITY_REVIEW_2026-11-26.md](SECURITY_REVIEW_2026-11-26.md)): no Critical or High finding; two Medium pilot preconditions (database superuser role, no access control). G2 pilot runbook: [G2_PILOT_RUNBOOK.md](G2_PILOT_RUNBOOK.md). |
+| **Last verified** | 2026-11-26, `main` @ `8692a0c` (PR #12 merge): Backend 404 passed, Frontend 36/36, Docker success (E-MAIN); the same counts re-run locally for the security review. Earlier: 2026-11-26, `609864c` (PR #10 merge): Backend 380 passed, Frontend 35/35, Docker success. Earlier: 2026-11-25, `main` @ `8007fe2`; E-B/E-F (2026-11-23, `3660e5f`), E-WS1, E-WS2, E-WS3 |
 | **Overall completion** | **32 / 83 items PASS (38.6%)**. BLOCKED and FAIL never count as complete |
 | **Completed (PASS)** | 32 |
-| **In progress** | 26 |
-| **Not started** | 15 |
+| **In progress** | 27 |
+| **Not started** | 14 |
 | **Blocked** | 10 |
 | **Failed** | 0 |
 
@@ -24,10 +24,10 @@ evidence recorded here.
 | 3. Verified company dataset | 9 | 0 | 1 | 8 | 0 | 0 |
 | 4. Company discovery experience | 13 | 9 | 4 | 0 | 0 | 0 |
 | 5. Financial intelligence and presentation | 17 | 4 | 4 | 0 | 9 | 0 |
-| 6. Data quality and testing | 12 | 7 | 4 | 1 | 0 | 0 |
+| 6. Data quality and testing | 12 | 7 | 5 | 0 | 0 | 0 |
 | 7. Product validation | 7 | 2 | 1 | 4 | 0 | 0 |
 | 8. Engineering and release readiness | 12 | 0 | 10 | 2 | 0 | 0 |
-| **Total** | **83** | **32** | **26** | **15** | **10** | **0** |
+| **Total** | **83** | **32** | **27** | **14** | **10** | **0** |
 
 Scope changes: 2026-11-23, +2 items (P2-4.12, P2-4.13) added for the MVP scope approved in
 A-3 and A-4. The total went from 81 to 83; no items were removed.
@@ -38,6 +38,10 @@ and confirmed by CI on the PR #7 merge (`2079101`).
 2026-11-26: P2-5.13 moved IN PROGRESS → PASS with WS4-3 evidence, confirmed by CI on the PR #10 merge
 (`609864c`). Counts recounted from the 83 item lines (32 PASS, 26 IN PROGRESS, 15 NOT STARTED,
 10 BLOCKED, 0 FAIL); before: 31, 27, 15, 10, 0.
+2026-11-26 (later): P2-6.12 moved NOT STARTED → IN PROGRESS (security review written on a branch; PASS needs
+the merge and the owner's review). P2-5.15 stays IN PROGRESS although WS4-4 Phase A is merged (PR #12), because
+Phase B is deferred. Recounted from the 83 item lines: 32 PASS, 27 IN PROGRESS, 14 NOT STARTED, 10 BLOCKED, 0 FAIL;
+before: 32, 26, 15, 10, 0.
 
 Percent complete = PASS ÷ total items. Counts are tallied from the item lines below. Re-count after
 every update; don't estimate.
@@ -301,6 +305,7 @@ values from **calculated** ones.
   - Done: seven availability states proposed, with what today's schema can and cannot express (WS4 plan §7); vocabulary and Phase A approved as WS4-D6, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d). Phase B (explicit records, a schema change) not approved.
   - Remaining: implementation; tests.
   - 2026-11-26: the title's "show 'not reported'" can't hold in Phase A: absence must never be shown as "not reported" without a record that someone checked (WS4-D6). Phase A acceptance is "not yet collected" / "not applicable", never zero; "not reported" belongs to Phase B (WS4-4 plan §1.7, C-2). WS4-4 decisions approved ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2f); Phase A implemented on branch `feat/ws4-4-phase-a` (uncommitted): backend 404 passed, frontend 36/36, isolated Docker route check, browser pass. Stays IN PROGRESS until merged with CI, and because Phase B is not built.
+  - 2026-11-26 (post-merge): merged as PR #12 (`8692a0c`); CI on the merge: Backend 404 passed, Frontend 36/36, Docker success (E-MAIN); 0 recorded reviews. Phase B is deferred until the G2 pilot has measured curation hours (WS4-4-D5), so this item stays IN PROGRESS.
 - [ ] **[IN PROGRESS]** P2-5.16 Revision and restatement presentation.
   - Done: the latest revision is shown by default with a "restated" label; API `include_superseded=true` returns history (E-B, E-BR).
   - Remaining: a UI view of revision history and what changed.
@@ -340,7 +345,9 @@ values from **calculated** ones.
 - [ ] **[IN PROGRESS]** P2-6.11 Regression tests.
   - Done: full suites run on every PR (E-CI).
   - Remaining: a regression test for each Phase 2 bug fixed, and a pinned real-data fixture once permitted.
-- [ ] **[NOT STARTED]** P2-6.12 Security review of Phase 2 changes (input handling, external links, dependency audit, secrets).
+- [ ] **[IN PROGRESS]** P2-6.12 Security review of Phase 2 changes (input handling, external links, dependency audit, secrets).
+  - Done (2026-11-26, branch `security/p2-6-12-review` from `main` @ `8692a0c`): review of backend, frontend, migrations, Docker and CI ([SECURITY_REVIEW_2026-11-26.md](SECURITY_REVIEW_2026-11-26.md)); `pip-audit` and `npm audit` 0 vulnerabilities; no Critical or High finding; 2 Medium (SEC-01 database superuser role, SEC-02 no access control), 5 Low, 3 Informational, tracked in [SECURITY_REMEDIATION_CHECKLIST.md](SECURITY_REMEDIATION_CHECKLIST.md). Done by an AI assistant, not an independent human review.
+  - Remaining: merge with CI; the owner's review; owner decisions on SEC-01 and SEC-02 before real pilot data or access from beyond localhost.
 
 ## 7. Product validation
 
@@ -366,19 +373,20 @@ These are release gates. They pass on the current baseline but must be re-verifi
 release candidate, so they stay IN PROGRESS until then.
 
 - [ ] **[IN PROGRESS]** P2-8.1 Backend lint and strict type checks. Baseline: clean (E-B).
-- [ ] **[IN PROGRESS]** P2-8.2 Backend tests. Baseline: 87 passed (E-B); after WS1: 170 passed (E-WS1); after WS3: 201 passed, also on GitHub Actions for `4be30b7`; after WS4-1: 224 passed on GitHub Actions for `105869f` (E-MAIN); after WS4-2: 288 passed on GitHub Actions for `2079101` (E-MAIN); after PR #9: 314 on `407ed63`; after WS4-3: 380 on `609864c` (E-MAIN).
+- [ ] **[IN PROGRESS]** P2-8.2 Backend tests. Baseline: 87 passed (E-B); after WS1: 170 passed (E-WS1); after WS3: 201 passed, also on GitHub Actions for `4be30b7`; after WS4-1: 224 passed on GitHub Actions for `105869f` (E-MAIN); after WS4-2: 288 passed on GitHub Actions for `2079101` (E-MAIN); after PR #9: 314 on `407ed63`; after WS4-3: 380 on `609864c` (E-MAIN); after WS4-4 Phase A: 404 on `8692a0c` (E-MAIN).
 - [ ] **[IN PROGRESS]** P2-8.3 Frontend lint and type checks. Baseline: pass (E-F).
-- [ ] **[IN PROGRESS]** P2-8.4 Frontend unit tests. Baseline: 8/8 (E-F); after WS2: 17/17 (E-WS2); after WS3: 24/24, also on GitHub Actions for `4be30b7`; after WS4-1: 25/25 on GitHub Actions for `105869f` (E-MAIN); after WS4-2: 27/27 on GitHub Actions for `2079101`; after PR #8: 28/28 on `8007fe2` (E-MAIN); after PR #9: 31/31 on `407ed63`; after WS4-3: 35/35 on `609864c` (E-MAIN).
+- [ ] **[IN PROGRESS]** P2-8.4 Frontend unit tests. Baseline: 8/8 (E-F); after WS2: 17/17 (E-WS2); after WS3: 24/24, also on GitHub Actions for `4be30b7`; after WS4-1: 25/25 on GitHub Actions for `105869f` (E-MAIN); after WS4-2: 27/27 on GitHub Actions for `2079101`; after PR #8: 28/28 on `8007fe2` (E-MAIN); after PR #9: 31/31 on `407ed63`; after WS4-3: 35/35 on `609864c` (E-MAIN); after WS4-4 Phase A: 36/36 on `8692a0c` (E-MAIN).
 - [ ] **[IN PROGRESS]** P2-8.5 Production build. Baseline: `next build` passes (E-F).
 - [ ] **[IN PROGRESS]** P2-8.6 Docker clean build. Baseline: Docker workflow passed on `d858fbc` (E-CI).
-- [ ] **[IN PROGRESS]** P2-8.7 Fresh database migration. Baseline: fresh volume migrated and seeded (Phase 1 checklist, section 2). 2026-11-25: fresh volume migrated to `8de09b58f4c2` on an isolated stack (branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed). 2026-11-26: merged in PR #9 (`407ed63`); Docker CI on `407ed63` and `609864c` built and started the stack from a fresh volume; an isolated stack from `main` @ `609864c` migrated to `8de09b58f4c2` (WS4-3 checks).
-- [ ] **[IN PROGRESS]** P2-8.8 Migration upgrade and downgrade tests. Baseline: `test_migrations_upgrade_downgrade_roundtrip` passes (E-B). 2026-11-25: `8de09b58f4c2` passes the round-trip, a step-down/up, and an in-transaction upgrade over existing data that keeps legitimate rows and refuses mixed ones (branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed). 2026-11-26: merged in PR #9; the same tests pass in Backend CI on `407ed63` (314) and `609864c` (380).
-- [ ] **[IN PROGRESS]** P2-8.9 GitHub Actions. Baseline: Backend, Frontend and Docker all passed on PR #2 (E-CI); and on the PR #4 to #8 merge commits (`78cf577`, `4be30b7`, `105869f`, `2079101`, `8007fe2`; Backend not triggered on `8007fe2`, a frontend-only change), and on `407ed63` (PR #9) and `609864c` (PR #10), with Backend and Docker on `45ef0ca` (E-MAIN). Remaining: re-run on the Phase 2 release candidate.
-- [ ] **[IN PROGRESS]** P2-8.10 Documentation. Done: this checklist, the README Phase 2 section, PRODUCT_STRATEGY.md and PRODUCT_DECISIONS.md. Since then: VERIFICATION_WORKFLOW.md (WS1), GLOSSARY.md (WS2), WS3_CHECKLIST.md (WS3), WS4 plan and checklist (proposal). Remaining: docs for each Phase 2 feature. 2026-11-26: WS4-2 and WS4-3 plans, checklists and audits, [WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md), [PHASE_2_NEXT_STEPS.md](PHASE_2_NEXT_STEPS.md).
+- [ ] **[IN PROGRESS]** P2-8.7 Fresh database migration. Baseline: fresh volume migrated and seeded (Phase 1 checklist, section 2). 2026-11-25: fresh volume migrated to `8de09b58f4c2` on an isolated stack (branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed). 2026-11-26: merged in PR #9 (`407ed63`); Docker CI on `407ed63` and `609864c` built and started the stack from a fresh volume; an isolated stack from `main` @ `609864c` migrated to `8de09b58f4c2` (WS4-3 checks). 2026-11-26 (later): migration `5c1f0a2b7e44` (company classifications) merged in PR #12; Docker CI on `8692a0c` started the stack from a fresh volume.
+- [ ] **[IN PROGRESS]** P2-8.8 Migration upgrade and downgrade tests. Baseline: `test_migrations_upgrade_downgrade_roundtrip` passes (E-B). 2026-11-25: `8de09b58f4c2` passes the round-trip, a step-down/up, and an in-transaction upgrade over existing data that keeps legitimate rows and refuses mixed ones (branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed). 2026-11-26: merged in PR #9; the same tests pass in Backend CI on `407ed63` (314) and `609864c` (380). 2026-11-26 (later): `5c1f0a2b7e44` included; Backend CI on `8692a0c` (404); locally `downgrade base` → `upgrade head` → `alembic check` clean (security review §5).
+- [ ] **[IN PROGRESS]** P2-8.9 GitHub Actions. Baseline: Backend, Frontend and Docker all passed on PR #2 (E-CI); and on the PR #4 to #8 merge commits (`78cf577`, `4be30b7`, `105869f`, `2079101`, `8007fe2`; Backend not triggered on `8007fe2`, a frontend-only change), and on `407ed63` (PR #9), `609864c` (PR #10) and `8692a0c` (PR #12), with Backend and Docker on `45ef0ca` (E-MAIN). Remaining: re-run on the Phase 2 release candidate.
+- [ ] **[IN PROGRESS]** P2-8.10 Documentation. Done: this checklist, the README Phase 2 section, PRODUCT_STRATEGY.md and PRODUCT_DECISIONS.md. Since then: VERIFICATION_WORKFLOW.md (WS1), GLOSSARY.md (WS2), WS3_CHECKLIST.md (WS3), WS4 plan and checklist (proposal). Remaining: docs for each Phase 2 feature. 2026-11-26: WS4-2 and WS4-3 plans, checklists and audits, [WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md), [PHASE_2_NEXT_STEPS.md](PHASE_2_NEXT_STEPS.md). 2026-11-26 (later): WS4-4 plan, decisions and checklist; [SECURITY_REVIEW_2026-11-26.md](SECURITY_REVIEW_2026-11-26.md), [SECURITY_REMEDIATION_CHECKLIST.md](SECURITY_REMEDIATION_CHECKLIST.md), [G2_PILOT_RUNBOOK.md](G2_PILOT_RUNBOOK.md).
 - [ ] **[NOT STARTED]** P2-8.11 Pull request review of the Phase 2 changes.
   - Note: PRs #3–#5 were merged by the owner's account with no recorded review; a review of the merged Phase 2 changes is still needed.
   - 2026-11-25: the same holds for PRs #6–#8 (all authored and merged by the owner's account, 0 reviews; `main` has no branch protection). An AI-assisted independent review of PR #7 exists ([WS4_2_AUDIT.md](WS4_2_AUDIT.md)) but is not a human review (audit AU-6).
   - 2026-11-26: the same holds for PR #9 (`407ed63`) and PR #10 (`609864c`): 0 review submissions, 0 review comments, 0 issue comments; green CI is not a review ([WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md) §4). Stays NOT STARTED.
+  - 2026-11-26 (later): the same holds for PR #11 (`9d44fb4`) and PR #12 (`8692a0c`): 0 reviews, 0 comments, merged by the owner's account; `main` still unprotected (SEC-07). The AI-assisted security review is not a human review. Stays NOT STARTED.
 - [ ] **[NOT STARTED]** P2-8.12 Release readiness review (all gates re-verified, blockers reported separately).
 
 ---

@@ -3,7 +3,7 @@
 Vietnam Investment Discovery World: a platform for exploring Vietnam's listed economy by sector,
 company and region.
 
-**Status (2026-11-26, `main` @ `609864c`):** Phase 0 complete. Phase 1 software complete; its exit audit is a
+**Status (2026-11-26, `main` @ `8692a0c`):** Phase 0 complete. Phase 1 software complete; its exit audit is a
 **conditional pass** because non-software data blockers remain ([exit audit](docs/PHASE_1_EXIT_AUDIT.md)).
 Phase 2 planning complete; **Phase 2 execution in progress under a conditional go** (see
 [readiness](docs/PHASE_2_READINESS.md) and [roadmap](docs/ROADMAP.md)). 0 companies verified. The domain model (companies,
@@ -21,8 +21,8 @@ real, verified listed companies (stretch target 20–30) across the 4 approved s
 validation by real users.
 
 **Current status:** planning complete; all product decisions (A-1 to A-11) approved on 2026-11-23.
-Execution started under a **conditional go** (2026-11-23). 31 of 83 checklist items PASS
-(37.3%). Workstreams 1–3 are merged to `main` (PRs #3–#5, CI green). Workstream 3 shows each financial figure's source document and page. Workstream 1 added a two-person verification workflow, per-figure source pages and
+Execution started under a **conditional go** (2026-11-23). 32 of 83 checklist items PASS
+(38.6%). Workstreams 1–3 are merged to `main` (PRs #3–#5, CI green). Workstream 3 shows each financial figure's source document and page. Workstream 1 added a two-person verification workflow, per-figure source pages and
 stricter period and unit checks ([docs/VERIFICATION_WORKFLOW.md](docs/VERIFICATION_WORKFLOW.md)).
 Workstream 2 made the interface **Vietnamese-first**, with English at `/en`
 ([docs/GLOSSARY.md](docs/GLOSSARY.md); terms await a native-speaker review).
@@ -32,7 +32,13 @@ owner's decisions recorded on 2026-11-24 ([docs/WS4_FINANCIAL_INTELLIGENCE_PLAN.
 WS4-1 (metric dictionary 1.1.0) is merged (PR #6). WS4-2 (ROE, ROA) is merged (PR #7, with display
 fixes in PR #8 and audit fixes in PR #9; review in [docs/WS4_2_AUDIT.md](docs/WS4_2_AUDIT.md)). WS4-3
 (period comparison) is merged (PR #10; [docs/WS4_3_POST_MERGE_AUDIT.md](docs/WS4_3_POST_MERGE_AUDIT.md)).
-None of these PRs has a recorded review yet. Next steps: [docs/PHASE_2_NEXT_STEPS.md](docs/PHASE_2_NEXT_STEPS.md).
+WS4-4 Phase A (two-person reviewed company classification; absent figures shown as "not yet collected" or
+"not applicable", never zero) is merged (PR #12; [docs/WS4_4_CHECKLIST.md](docs/WS4_4_CHECKLIST.md)). Phase B
+(explicit "not reported" records) is deferred until the G2 pilot has measured curation hours.
+None of these PRs has a recorded review yet. Security review (2026-11-26, AI-assisted, not an independent review):
+[docs/SECURITY_REVIEW_2026-11-26.md](docs/SECURITY_REVIEW_2026-11-26.md): no Critical or High finding; the database
+role and access control must change before a pilot with real data or remote testers. G2 pilot runbook:
+[docs/G2_PILOT_RUNBOOK.md](docs/G2_PILOT_RUNBOOK.md). Next steps: [docs/PHASE_2_NEXT_STEPS.md](docs/PHASE_2_NEXT_STEPS.md).
 
 **Product direction (approved 2026-11-23):** start with Vietnamese investors learning to research
 listed companies, with a Vietnamese-first interface; offer plain-language profiles where every
@@ -140,6 +146,11 @@ Example response:
   [docs/PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md): product strategy and decision log
 - [docs/PILOT_SELECTION_CRITERIA.md](docs/PILOT_SELECTION_CRITERIA.md): how pilot companies are
   chosen (approved)
+- [docs/G2_PILOT_RUNBOOK.md](docs/G2_PILOT_RUNBOOK.md): five-company pilot workflow and checklists
+  (prepared, not started; no company names)
+- [docs/SECURITY_REVIEW_2026-11-26.md](docs/SECURITY_REVIEW_2026-11-26.md) and
+  [docs/SECURITY_REMEDIATION_CHECKLIST.md](docs/SECURITY_REMEDIATION_CHECKLIST.md): security review
+  and open findings
 
 ## Known limitations
 
@@ -154,7 +165,9 @@ Example response:
   and are labelled so; other ratios are not implemented. Period comparisons (WS4-3) are computed
   the same way and carry the same input labels; they never compare different scopes or kinds of
   period, and say why when they can't compare.
-- No authentication, and no price or market-event data.
+- No authentication, and no price or market-event data. Access control (SEC-02) and a
+  non-superuser database role for the application (SEC-01) are needed before a pilot with real
+  data or remote testers ([docs/SECURITY_REMEDIATION_CHECKLIST.md](docs/SECURITY_REMEDIATION_CHECKLIST.md)).
 - The 3D world view is not implemented; the Discover page only reserves space for it.
 - `.env.example` credentials are for local development only. A production deployment needs
   real secrets management, which is out of scope so far.
