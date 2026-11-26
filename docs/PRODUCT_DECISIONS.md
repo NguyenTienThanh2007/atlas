@@ -620,3 +620,73 @@ tests the approved segment C.
 
 Searched but **not cited**: a 2024 MDPI bar-chart study and a Tableau 3D-pie paper. Both returned
 HTTP 403 and couldn't be checked.
+
+## 5. SEC-01A security remediation: G-0 gate scope (approved 2026-11-26)
+
+**Decision:** Before any SEC-01A implementation code is written, Gate G-0 requires the
+project owner to explicitly approve and record **D1–D4, D6–D8 and D11** from
+[SEC_01A_OWNER_DECISIONS.md](SEC_01A_OWNER_DECISIONS.md).
+
+This expands G-0 to include **D7 (the SEC-03 API behaviour change)** and
+**D11 (the non-symmetric M1 rollback strategy)**, in addition to the previously
+listed D1–D4, D6 and D8.
+
+**Scope of this approval:** this entry approves the *gate requirement only*. The
+substantive decisions D7 and D11 are separately approved in §6 below. The remaining
+decisions D1–D4, D6 and D8 remain open until their proposals are explicitly accepted,
+amended or rejected here by the project owner. No other proposal is approved by this
+entry.
+
+**Approved by:** Tiến Thành, project owner · **Date:** 2026-11-26.
+
+**Effect:** Stage 1 remains unauthorized until every G-0 decision above is separately
+recorded as approved. G-1 (owner approval, recorded human review and green CI) still
+applies before Stage 1 can merge. This decision does not authorize migrations, database
+changes, credential changes, Docker changes or application code.
+
+## 6. SEC-01A decisions D7 and D11 (approved 2026-11-26)
+
+**Approved by:** Tiến Thành, project owner · **Date:** 2026-11-26.
+
+### D7 — staged remediation scope
+
+**Decision: APPROVED.** Adopt the staged remediation sequence in
+[SEC_01A_OWNER_DECISIONS.md](SEC_01A_OWNER_DECISIONS.md):
+
+- Stage 1: SEC-03, with the API view returning `source_url = null` for any non-HTTP(S)
+  URL. This behaviour change is approved. Tests must prove that HTTP(S) source URLs
+  remain intact and local/non-HTTP(S) URLs are never exposed.
+- Stage 2: SEC-10 (replace free-text curator/reviewer identity with authenticated
+  principal identity).
+- Stage 3: SEC-09 (disable API documentation in the pilot deployment).
+- Stage 4: SEC-04, SEC-05 and SEC-06 (safe website links, security headers, and
+  immutable action/image references).
+- SEC-07: enable GitHub branch protection now. The required repository setting is
+  described below; the settings change itself remains an operational action because
+  this workflow cannot write repository administration settings.
+
+**SEC-07 required setting:** protect `main`; require pull requests before merging;
+require at least one approving human review; dismiss stale approvals after new
+commits; require conversation resolution; prohibit force-pushes and branch deletion.
+Do not permit routine administrator bypass. Required CI checks should be selected
+from the actual stable workflow check names after they are verified on a PR.
+
+### D11 — migration rollback
+
+**Decision: APPROVED.** Adopt the non-symmetric rollback strategy:
+
+- M1 downgrade restores the previous function bodies and grants, and leaves object
+  ownership with `atlas_owner`. It must not attempt to transfer ownership back to the
+  bootstrap superuser.
+- Returning ownership to the bootstrap superuser, if ever needed, is a separate
+  manual bootstrap-superuser operation, not part of the migration downgrade.
+- M2 prefers a forward fix. Its downgrade must refuse to discard authenticated review
+  history; if recovery is required after authenticated reviews exist, restore from the
+  verified pre-migration backup under the approved recovery procedure.
+- Before each migration stage, create and record a verified pre-migration backup and
+  integrity-check result. The broader D10 backup/retention/anchor policy remains a
+  separate decision before G2 real data.
+
+**Effect:** D7 and D11 are now approved for G-0. D1–D4, D6 and D8 remain unapproved,
+so G-0 is not yet satisfied and Stage 1 remains unauthorized. G-1 still requires owner
+approval, a recorded human review and green CI before Stage 1 can merge.

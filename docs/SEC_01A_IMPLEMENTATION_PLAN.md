@@ -13,6 +13,30 @@ The approved product decisions (A-1..A-11, WS4-D*, WS4-4-D1..D10, EX-2) are **un
 WS4-4-D7 asks that "two people" check each classification. This plan proposes the way to *enforce*
 that; it does not change what the decision says.
 
+## 0. Corrections (2026-11-26, Stage 0 technical audit)
+
+These corrections come from [SEC_01A_OWNER_DECISIONS.md](SEC_01A_OWNER_DECISIONS.md) §2. They were
+tested on a disposable PostgreSQL 17.12 (results T1–T14 there); no existing database was touched.
+The text below them is kept as first written, and each affected line is marked "(see C-n)". Where
+the architecture document says otherwise (Arch §3.1 group grants, §3.2 "every security function
+becomes SECURITY DEFINER", §3.4 schema mapping), these corrections supersede it.
+
+| ID | Was | Correction |
+| --- | --- | --- |
+| C-1 | M1 "reassigns ownership" while running as `atlas_migrator` → `atlas_owner` | `atlas_owner` can neither take over nor `CREATE OR REPLACE` objects owned by the superuser ("must be owner", T2). Ownership transfer is a **bootstrap-superuser provisioning step before M1** |
+| C-2 | M1 downgrade "restores … ownership"; the Stage 1 rollback restores ownership | `atlas_owner` can't give objects back to the superuser (T3). M1's downgrade restores function bodies and grants **and leaves ownership with `atlas_owner`**. Returning ownership is manual, as the superuser |
+| C-3 | Person roles NOINHERIT, with EXECUTE granted to `atlas_curators`/`atlas_reviewers` | A NOINHERIT member can't use the group's EXECUTE (T5). Grant membership `WITH INHERIT TRUE, SET FALSE` (T7). Procedures check `pg_has_role(session_user, …, 'MEMBER')` |
+| C-4 | `atlas_migrator` "NOINHERIT, member of `atlas_owner`" | Since PG 16, inherit and set are options of each grant; a role's NOINHERIT only sets the default (T1). Write the grant explicitly: `GRANT atlas_owner TO atlas_migrator WITH INHERIT FALSE, SET TRUE` |
+| C-5 | "`SECURITY DEFINER` where it writes" for trigger functions; the guard checks `current_user = 'atlas_owner'` | A definer trigger always sees `current_user` = owner (T8), so the guard would pass for everyone. **Trigger functions stay INVOKER** (pinned `search_path`, qualified names). Only the entry procedures are DEFINER. An invoker trigger fired by a definer procedure sees `atlas_owner` (T9) |
+| C-6 | `python -m app.ops roles` provisions existing volumes | That tool would need the superuser password in the app environment (contradicts Arch §5.2). Use one idempotent `roles.sql`: it runs as an init script on fresh volumes, and the operator runs it on existing volumes with `docker compose exec db psql -U "$POSTGRES_USER" -f …` |
+| C-7 | (gap) | The official image's `pg_hba.conf` trusts every local and `127.0.0.1` connection inside the container (VERIFIED on `postgres:17-alpine`). Stage 1 ships a custom `pg_hba.conf` with no `trust` lines. Until then, `docker exec` on the db container gives a superuser shell without a password |
+| C-8 | `models.py` gets "view-backed read models or `schema=`" | `schema='api'` would change `Base.metadata` (used by `alembic check` and the superuser test suite). Instead: same-name views in schema `api` plus `ALTER ROLE atlas_api SET search_path = api` (T10). Each view exposes every mapped column. Stage 1 starts with a spike that runs the API tests **as `atlas_api`** |
+| C-9 | REVOKE TEMP/CONNECT from PUBLIC on `atlas` | Roles are cluster-wide. Revoke on **every** database (`atlas`, `atlas_test`, `postgres`) |
+| C-10 | Default privileges remove PUBLIC EXECUTE | They cover only functions created later by `atlas_owner` (T11). M1 also revokes EXECUTE on the existing functions. DB-13 also asserts that no object is owned by `atlas_migrator` |
+| C-11 | (rule) | `p_*` roles connect directly, one process per person, with no shared pool or pooler. `session_user` is the actor only in that model |
+| C-12 | (gap) | Anchors detect changes made before the latest anchor only, and only if someone other than the operator holds them. Role dumps carry password hashes and are stored encrypted, separately (D10) |
+| C-13 | §1 register: D7 and D11 "Blocks implementation? No"; §9 G-0 originally listed D1–D4, D6, D8 | §4 says the SEC-03 change "needs owner approval", and C-2 makes the M1 downgrade non-symmetric. So Stage 1 depends on D7 and D11. **Owner decision (2026-11-26):** G-0 scope is expanded to include D7 and D11, as recorded in [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §5. This approves the gate scope only; the substantive D7 and D11 proposals remain open |
+
 ## 1. Owner decision register (all OWNER DECISION REQUIRED)
 
 | ID | Decision | Context | Options | Advantages / risks | Recommendation (PROPOSAL) | Depends on | Blocks implementation? |
@@ -23,11 +47,11 @@ that; it does not change what the decision says.
 | D4 | Does the DB enforce verification through stored procedures? | Invoker triggers force broad grants (P3a, P6c) | (a) keep triggers, grant tables; (b) `SECURITY DEFINER` procedures, no table DML | (a) keeps P5/P6e; (b) brings rewrite effort and tests | **(b)**, with per-record import procedures so the Python validation in `importer.py` stays | D1 | Yes |
 | D5 | Direct SQL by privileged operators | TM T-12, T-17 | Accept with detection; or separate duties (another person holds the superuser and the anchor) | Detection only vs real separation (needs a second trusted person) | **Accept and detect** (event trigger, hash chain, external anchor, integrity check) for the pilot; separate duties before G1 | D13 | No (Stage 4 detective work) |
 | D6 | Remote private pilot before Q-7? | SEC-02 | No remote access until hosting is chosen; or a temporary VPN to the owner's machine | A host has to exist either way | **No remote access** until Q-7 is decided and Stage 3 passes | Q-7 | Yes, for Stage 3 |
-| D7 | SEC-03..SEC-06, SEC-09 in the same release? | Scope control | All in one release; or staged | One release is larger | **Staged:** SEC-03 with Stage 1 (it comes free with the views); SEC-09 with Stage 3; SEC-04/05/06 as Stage 4 | — | No |
+| D7 | SEC-03..SEC-06, SEC-09 in the same release? | Scope control | All in one release; or staged | One release is larger | **Staged (APPROVED 2026-11-26):** SEC-03 with Stage 1; SEC-10 with Stage 2; SEC-09 with Stage 3; SEC-04/05/06 as Stage 4; SEC-07 branch protection now | D1 | Yes (G-0; SEC-03 API behaviour change) |
 | D8 | Authentication and session policy | Person DB credentials; proxy sessions | DB: SCRAM in a password manager, or client certificates. Proxy: OIDC with MFA, 8 h sessions | Certificates are stronger and need TLS to the DB | **Client certificates** if hosting allows, else SCRAM; `VALID UNTIL` 90 d; MFA on VPN and IdP | Q-7 | Yes, for Stages 2–3 |
 | D9 | Audit identity retention and revocation | Reviews must stay attributable after someone leaves | Keep principals forever (NOLOGIN), or anonymise | Accountability vs privacy | **Keep forever** with a display name; personal data limited to name and role; revocation as in Arch §5.3. A legal check on personal-data retention may be needed (OPEN QUESTION) | — | No |
 | D10 | Backup and recovery security | TM T-18 | Encrypted, versioned dumps compared with the anchor on restore | Cost and storage location (Q-7) | **Encrypted dumps + anchor check before reopening** | Q-7, D5 | No (before real data: yes, see D12) |
-| D11 | Rollback strategy | §6 | A forward fix only; or a down-migration plus restore | §6 | **Down-migration for Stage 1** (grants only); Stage 2 a forward fix plus restore from backup | — | No |
+| D11 | Rollback strategy | §6 | A forward fix only; or a down-migration plus restore | §6 | **Non-symmetric M1 downgrade (APPROVED 2026-11-26):** restore function bodies and grants; leave ownership with `atlas_owner`. Stage 2 forward fix plus verified backup recovery | D10 (minimum pre-migration backup required) | Yes (G-0; M1 rollback) |
 | D12 | Acceptance before real pilot data | G2 | §7 list | — | **All of §7 "before real data"** | D1–D4, D10 | **Yes**, for G2 data |
 | D13 | Appoint an independent human reviewer | Q-3, D-6 | Appoint someone; or postpone verification | Without one, nothing can be `verified` | **Appoint** before G2 reviews start; ideally someone other than the database operator | — | Blocks verification, not engineering |
 
@@ -40,24 +64,24 @@ with the code, and exclude owner review time. They are rough.
 
 ### Stage 0: owner decisions (no code)
 
-- Decide D1–D4, D6 and D8, and note D5 and D7.
-- **Gate G-0:** decisions recorded in `PRODUCT_DECISIONS.md` as a new dated section, by the owner.
+- Decide D1–D4, D6–D8 and D11; note D5.
+- **Gate G-0:** all required decisions recorded in `PRODUCT_DECISIONS.md` as a dated section, by the owner. The G-0 scope amendment is recorded in §5; the substantive decisions remain open.
 
 ### Stage 1: database least privilege (M–L)
 
 **Tasks**
 
 1. A provisioning script (`infra/postgres/init/02-roles.sql`, plus an idempotent
-   `python -m app.ops roles` for volumes that already exist). It:
+   `python -m app.ops roles` for volumes that already exist; see C-6, C-7, C-9). It:
    - creates `atlas_owner`, `atlas_migrator`, `atlas_api`;
    - runs `REVOKE TEMP/CREATE` from PUBLIC.
 2. A migration `sec01a_least_privilege`:
-   - reassign ownership of every table and function to `atlas_owner`;
+   - reassign ownership of every table and function to `atlas_owner` (see C-1: a superuser step, not M1);
    - `REVOKE EXECUTE … FROM PUBLIC`;
    - grant `atlas_api` SELECT on the `api` schema views (Arch §3.4) and the reference tables;
    - add the views (`api.evidence` filters non-http(s) URLs, which fixes SEC-03).
 3. Harden every trigger function:
-   - `SECURITY DEFINER` where it writes, `SET search_path`, qualified names;
+   - `SECURITY DEFINER` where it writes, `SET search_path`, qualified names (see C-5: trigger functions stay INVOKER);
    - replace the `pg_trigger_depth()` guard;
    - add `BEFORE TRUNCATE` and `BEFORE DELETE` guards (Arch §3.2).
 
@@ -79,7 +103,7 @@ with the code, and exclude owner review time. They are rough.
 
 - Files likely to change: `docker-compose.yml`, `.env.example`, `backend/Dockerfile`,
   `backend/migrations/env.py`, a new migration, `infra/postgres/init/`, `backend/app/db.py`,
-  `backend/app/config.py`, `backend/app/models.py` (view-backed read models or `schema=`),
+  `backend/app/config.py`, `backend/app/models.py` (view-backed read models or `schema=`; see C-8: no model change),
   `.github/workflows/backend.yml`, `docs/DEVELOPMENT.md`, and new tests.
 - Risks:
   - ORM reads must target the views (a column or schema mismatch breaks the API);
@@ -109,7 +133,7 @@ with the code, and exclude owner review time. They are rough.
    - `atlas_approve_classification`;
    - `atlas_stamp_last_verified`, inside the review procedure.
 3. Person-role tooling: `python -m app.ops person add|revoke|list`, owner only.
-   - It creates `p_<id>` NOINHERIT, adds membership, and writes the `principals` and audit rows.
+   - It creates `p_<id>` NOINHERIT, adds membership (see C-3: `WITH INHERIT TRUE, SET FALSE`), and writes the `principals` and audit rows.
 4. CLI:
    - `import`, `review` and `classify` connect as the **person's own** credential (a prompt or a
      certificate);
@@ -159,7 +183,7 @@ with the code, and exclude owner review time. They are rough.
 - SEC-04 (`safeHref` on the website).
 - SEC-05 (headers).
 - SEC-06 (SHA/digest pinning, Dependabot).
-- SEC-07 (branch protection: **the owner changes GitHub settings**).
+- SEC-07 branch protection is approved under D7 and is an immediate repository-settings action, not deferred to Stage 4. The operational setting change is still pending.
 - The DDL event trigger (AUD-3).
 - The daily anchor job (AUD-4).
 - Image scanning in CI.
@@ -169,19 +193,19 @@ with the code, and exclude owner review time. They are rough.
 
 | Step | Migration | Data effect | Reversible? |
 | --- | --- | --- | --- |
-| M1 | `sec01a_least_privilege` (Stage 1) | None (ownership, grants, function bodies, views, guards) | Yes: down restores the old function bodies and ownership |
+| M1 | `sec01a_least_privilege` (Stage 1) | None (ownership, grants, function bodies, views, guards) | Intentionally non-symmetric: down restores old function bodies and grants, and leaves ownership with `atlas_owner`; no ownership transfer back to the bootstrap superuser (D11, C-2) |
 | M2 | `sec01a_identity` (Stage 2) | Adds nullable columns and new tables; backfills `identity_assurance='typed_name'` on existing reviews; `created_by = NULL` on existing evidence and statements | Down drops the new objects, **refuses** if authenticated reviews exist (like `test_downgrade_refuses_to_discard_review_history`) |
 | M3 | `sec01a_audit_ddl` (Stage 4) | Event trigger (needs the bootstrap superuser) | Yes |
 
-**Ordering.** Every migration runs as `atlas_migrator` → `SET ROLE atlas_owner`. Exceptions are the
+**Ordering.** Every migration runs as `atlas_migrator` → `SET ROLE atlas_owner` (see C-1). Exceptions are the
 role provisioning (bootstrap superuser, once) and M3 (superuser, event triggers). The migration
 completes before the backend starts (`service_completed_successfully`).
 
 ## 4. Backward compatibility
 
-- **API responses:** unchanged. The views keep the column names. Exception (SEC-03, D7):
-  non-http(s) `source_url` becomes `null`. This is an API behaviour change and needs owner
-  approval.
+- **API responses:** view column names remain unchanged. Exception (SEC-03, D7, approved
+  2026-11-26): non-HTTP(S) `source_url` becomes `null`. HTTP(S) source URLs remain unchanged.
+  API-4 must prove that local/non-HTTP(S) paths are never exposed.
 - **Existing data:**
   - `main` holds no real reviews: 0 real companies; the user stack is empty (VERIFIED, read-only).
   - Legacy typed-name reviews, if any, keep their text and are labelled `typed_name`.
@@ -196,7 +220,7 @@ completes before the backend starts (`service_completed_successfully`).
   - The existing tests that insert raw SQL reviews (`test_raw_sql_review_is_held_to_the_same_rules`)
     move to calling procedures.
 - **Local development:** `.env.example` gains per-process URLs. An existing volume needs
-  `python -m app.ops roles` once (documented). Never `docker compose down -v` on someone's stack.
+  `python -m app.ops roles` once (documented; see C-6). Never `docker compose down -v` on someone's stack.
 
 ## 5. Test matrix (all PROPOSED, none run)
 
@@ -223,7 +247,7 @@ Automation locations:
 | DB-10 | Trigger disable | All non-owner roles | `ALTER TABLE evidence DISABLE TRIGGER evidence_guard` | `must be owner` | T-12 (P8 TESTED for a non-owner) |
 | DB-11 | Parameter grants | — | Query `pg_parameter_acl` | No grant on `session_replication_role` | T-13 |
 | DB-12 | Display forgery | Any runtime role | `UPDATE companies SET last_verified_at = now()` | Refused; only the review procedure stamps it | T-22 |
-| DB-13 | Ownership and inheritance | — | Every table, view and function owned by `atlas_owner`; `atlas_migrator` NOINHERIT; person roles NOINHERIT; no runtime role is a member of `atlas_owner` | Assertions pass | No silent escalation through membership |
+| DB-13 | Ownership and inheritance | — | Every table, view and function owned by `atlas_owner`; `atlas_migrator` NOINHERIT; person roles NOINHERIT; no runtime role is a member of `atlas_owner` (see C-3, C-10) | Assertions pass | No silent escalation through membership |
 
 ### 5.2 Identity (ID)
 
@@ -244,7 +268,7 @@ Automation locations:
 | API-1 | Unauthenticated, pilot mode | `APP_ENV=pilot` | Request without the proxy identity header, or from a non-proxy address | 401 | SEC-02 defence in depth |
 | API-2 | Through the proxy | Proxy stack | No session → redirect to the IdP; a disallowed account → 403 | As stated | T-20 |
 | API-3 | Revoked session | Proxy stack | The IdP account is disabled mid-session | Next request denied | T-4/T-5 at the web tier |
-| API-4 | No local paths | A real-source fixture with a `file://` URL | `GET /companies/{id}/evidence` | `source_url` is not the path (`null`) | SEC-03 / T-21 |
+| API-4 | No local or non-HTTP(S) paths | Fixtures with `file://`, relative and other non-HTTP(S) URLs, plus a valid HTTPS URL | `GET /companies/{id}/evidence` | Non-HTTP(S) `source_url` is `null`; valid HTTPS URL is preserved exactly | SEC-03 / T-21; D7 approved |
 | API-5 | No curator operations | — | OpenAPI lists only `GET`; `atlas_api` has no EXECUTE on any procedure | As stated | Read-only by construction |
 
 ### 5.4 Deployment (DEP)
@@ -272,7 +296,7 @@ Automation locations:
 
 | Stage | Rollback |
 | --- | --- |
-| 1 | `alembic downgrade` to `5c1f0a2b7e44` (as the owner) restores the function bodies and ownership. The Compose file reverts to a single URL. The roles can stay; they are harmless if unused. Data is untouched. |
+| 1 | `alembic downgrade` to `5c1f0a2b7e44` (as the owner) restores the function bodies and ownership (see C-2). The Compose file reverts to a single URL. The roles can stay; they are harmless if unused. Data is untouched. |
 | 2 | Forward fix preferred. A down-migration refuses if authenticated reviews exist. Otherwise restore the pre-migration backup taken in the deployment runbook, then re-run the integrity check. |
 | 3 | Take the pilot host off the VPN. Local mode keeps working. |
 | 4 | Revert the individual changes. Branch protection is the owner's setting. |
@@ -311,7 +335,7 @@ recorded (D10).
 
 | Gate | Before | Approver |
 | --- | --- | --- |
-| G-0 | Any SEC-01A code | Owner: D1–D4, D6, D8 |
+| G-0 | Any SEC-01A code | Owner: D1–D4, D6–D8 and D11; D7 and D11 approved 2026-11-26, D1–D4, D6 and D8 remain open (§5–6, C-13) |
 | G-1 | Merge Stage 1 | Owner + a recorded human review + green CI |
 | G-2 | Merge Stage 2 | The same |
 | G-3 | Load Company 1–5 real data | Owner: §7 "before real data" met |
