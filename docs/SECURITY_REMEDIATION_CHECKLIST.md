@@ -26,3 +26,12 @@ Add a dated update when a status changes. Don't rewrite a row's history.
 
 No Critical or High finding was found, so no application code was changed (the scope allows fixes
 for Critical and High only).
+
+**Update 2026-11-26 (SEC-01A design, branch `security/sec-01a-design`, `main` @ `aa3218a`):** a design-only
+architecture review ([SEC_01A_SECURITY_ARCHITECTURE.md](SEC_01A_SECURITY_ARCHITECTURE.md),
+[SEC_01A_THREAT_MODEL.md](SEC_01A_THREAT_MODEL.md), [SEC_01A_IMPLEMENTATION_PLAN.md](SEC_01A_IMPLEMENTATION_PLAN.md))
+found the SEC-01 "Fix" above insufficient on its own. On a disposable database, without superuser:
+a role with the grants that recording a review needs set evidence to `verified` with no review row
+(trigger depth 2, probe P5), and a curator role stored a classification citing another company's
+evidence by shadowing `evidence` with a temporary table (P6e). The proposed fix is in the
+architecture document §3 and §4. No status in the table above changes; nothing was implemented.
