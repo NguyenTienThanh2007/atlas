@@ -2,7 +2,7 @@
 
 **Status: OWNER DECISIONS REQUIRED — STAGE 1 NOT AUTHORIZED.**
 
-- Nothing in this file is approved.
+- None of the D1–D13 proposals in this file is approved. The separate G-0 scope amendment is recorded in `PRODUCT_DECISIONS.md` §5.
 - Each "Proposal" is the design team's recommendation. It becomes a decision only when the owner
   records it in [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) as a new dated section (gate G-0 in
   [SEC_01A_IMPLEMENTATION_PLAN.md](SEC_01A_IMPLEMENTATION_PLAN.md) §9).
@@ -373,14 +373,17 @@ starts, or before G2 real-pilot data is loaded.
 | D12 Acceptance before real data | G2 | D1–D4, D8, D10, D13 |
 | D13 Independent reviewer | G2 | Q-3 |
 
-**Gate G-0 (Plan §9, unchanged):** D1–D4, D6 and D8 must be recorded before any SEC-01A code.
+**Gate G-0 (owner-approved scope amendment, 2026-11-26; recorded in PRODUCT_DECISIONS.md §5):**
+D1–D4, D6–D8 and D11 must be explicitly decided and recorded before any SEC-01A code.
 
-**Recommendation (PROPOSAL): add D7 and D11 to G-0.** Stage 1 changes API compatibility (D7: the
-SEC-03 change nulls `source_url` for non-http(s) URLs) and rollback behaviour (D11: the M1
-downgrade leaves ownership with `atlas_owner`). Both should be approved before any Stage 1 code.
-Until the owner records this, G-0 stays as Plan §9 says (correction C-13 in Plan §0).
+This approval changes the *scope of the gate only*. It does **not** approve the substantive
+proposals in D7 or D11 (or any other D1–D13 proposal). D7's SEC-03 API behaviour change
+(`source_url` becomes `null` for non-http(s) URLs) and D11's non-symmetric M1 downgrade
+(leaves ownership with `atlas_owner`) each still require an explicit owner decision before
+implementation. Plan §9 and C-13 in Plan §0 reflect the expanded gate.
 
-**These decisions stay PROPOSALS until the owner approves them explicitly:** D1, D2, D3, D4, D6,
-D7, D8 and D11. So do D5, D9, D10, D12 and D13. None is marked APPROVED here.
+**The substantive decisions stay PROPOSALS until the owner approves them explicitly:** D1, D2,
+D3, D4, D6, D7, D8 and D11. So do D5, D9, D10, D12 and D13. The owner's approval of G-0
+scope does not approve any of these proposals.
 
 **OWNER DECISIONS REQUIRED — STAGE 1 NOT AUTHORIZED.**
