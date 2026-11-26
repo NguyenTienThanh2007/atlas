@@ -35,7 +35,7 @@ becomes SECURITY DEFINER", §3.4 schema mapping), these corrections supersede it
 | C-10 | Default privileges remove PUBLIC EXECUTE | They cover only functions created later by `atlas_owner` (T11). M1 also revokes EXECUTE on the existing functions. DB-13 also asserts that no object is owned by `atlas_migrator` |
 | C-11 | (rule) | `p_*` roles connect directly, one process per person, with no shared pool or pooler. `session_user` is the actor only in that model |
 | C-12 | (gap) | Anchors detect changes made before the latest anchor only, and only if someone other than the operator holds them. Role dumps carry password hashes and are stored encrypted, separately (D10) |
-| C-13 | §1 register: D7 and D11 "Blocks implementation? No"; §9 G-0 lists D1–D4, D6, D8 | §4 says the SEC-03 change "needs owner approval", and C-2 makes the M1 downgrade non-symmetric. So Stage 1 depends on D7 and D11. **Recommended (PROPOSAL):** add D7 and D11 to G-0 ([SEC_01A_OWNER_DECISIONS.md](SEC_01A_OWNER_DECISIONS.md) §4). G-0 is unchanged until the owner decides |
+| C-13 | §1 register: D7 and D11 "Blocks implementation? No"; §9 G-0 originally listed D1–D4, D6, D8 | §4 says the SEC-03 change "needs owner approval", and C-2 makes the M1 downgrade non-symmetric. So Stage 1 depends on D7 and D11. **Owner decision (2026-11-26):** G-0 scope is expanded to include D7 and D11, as recorded in [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §5. This approves the gate scope only; the substantive D7 and D11 proposals remain open |
 
 ## 1. Owner decision register (all OWNER DECISION REQUIRED)
 
@@ -47,11 +47,11 @@ becomes SECURITY DEFINER", §3.4 schema mapping), these corrections supersede it
 | D4 | Does the DB enforce verification through stored procedures? | Invoker triggers force broad grants (P3a, P6c) | (a) keep triggers, grant tables; (b) `SECURITY DEFINER` procedures, no table DML | (a) keeps P5/P6e; (b) brings rewrite effort and tests | **(b)**, with per-record import procedures so the Python validation in `importer.py` stays | D1 | Yes |
 | D5 | Direct SQL by privileged operators | TM T-12, T-17 | Accept with detection; or separate duties (another person holds the superuser and the anchor) | Detection only vs real separation (needs a second trusted person) | **Accept and detect** (event trigger, hash chain, external anchor, integrity check) for the pilot; separate duties before G1 | D13 | No (Stage 4 detective work) |
 | D6 | Remote private pilot before Q-7? | SEC-02 | No remote access until hosting is chosen; or a temporary VPN to the owner's machine | A host has to exist either way | **No remote access** until Q-7 is decided and Stage 3 passes | Q-7 | Yes, for Stage 3 |
-| D7 | SEC-03..SEC-06, SEC-09 in the same release? | Scope control | All in one release; or staged | One release is larger | **Staged:** SEC-03 with Stage 1 (it comes free with the views); SEC-09 with Stage 3; SEC-04/05/06 as Stage 4 | — | No |
+| D7 | SEC-03..SEC-06, SEC-09 in the same release? | Scope control | All in one release; or staged | One release is larger | **Staged:** SEC-03 with Stage 1 (it comes free with the views); SEC-09 with Stage 3; SEC-04/05/06 as Stage 4 | — | Yes (G-0; SEC-03 API behaviour change) |
 | D8 | Authentication and session policy | Person DB credentials; proxy sessions | DB: SCRAM in a password manager, or client certificates. Proxy: OIDC with MFA, 8 h sessions | Certificates are stronger and need TLS to the DB | **Client certificates** if hosting allows, else SCRAM; `VALID UNTIL` 90 d; MFA on VPN and IdP | Q-7 | Yes, for Stages 2–3 |
 | D9 | Audit identity retention and revocation | Reviews must stay attributable after someone leaves | Keep principals forever (NOLOGIN), or anonymise | Accountability vs privacy | **Keep forever** with a display name; personal data limited to name and role; revocation as in Arch §5.3. A legal check on personal-data retention may be needed (OPEN QUESTION) | — | No |
 | D10 | Backup and recovery security | TM T-18 | Encrypted, versioned dumps compared with the anchor on restore | Cost and storage location (Q-7) | **Encrypted dumps + anchor check before reopening** | Q-7, D5 | No (before real data: yes, see D12) |
-| D11 | Rollback strategy | §6 | A forward fix only; or a down-migration plus restore | §6 | **Down-migration for Stage 1** (grants only); Stage 2 a forward fix plus restore from backup | — | No |
+| D11 | Rollback strategy | §6 | A forward fix only; or a down-migration plus restore | §6 | **Down-migration for Stage 1** (grants only); Stage 2 a forward fix plus restore from backup | — | Yes (G-0; M1 rollback) |
 | D12 | Acceptance before real pilot data | G2 | §7 list | — | **All of §7 "before real data"** | D1–D4, D10 | **Yes**, for G2 data |
 | D13 | Appoint an independent human reviewer | Q-3, D-6 | Appoint someone; or postpone verification | Without one, nothing can be `verified` | **Appoint** before G2 reviews start; ideally someone other than the database operator | — | Blocks verification, not engineering |
 
@@ -64,8 +64,8 @@ with the code, and exclude owner review time. They are rough.
 
 ### Stage 0: owner decisions (no code)
 
-- Decide D1–D4, D6 and D8, and note D5 and D7.
-- **Gate G-0:** decisions recorded in `PRODUCT_DECISIONS.md` as a new dated section, by the owner.
+- Decide D1–D4, D6–D8 and D11; note D5.
+- **Gate G-0:** all required decisions recorded in `PRODUCT_DECISIONS.md` as a dated section, by the owner. The G-0 scope amendment is recorded in §5; the substantive decisions remain open.
 
 ### Stage 1: database least privilege (M–L)
 
@@ -335,7 +335,7 @@ recorded (D10).
 
 | Gate | Before | Approver |
 | --- | --- | --- |
-| G-0 | Any SEC-01A code | Owner: D1–D4, D6, D8 (see C-13: adding D7, D11 recommended) |
+| G-0 | Any SEC-01A code | Owner: D1–D4, D6–D8 and D11; each substantive decision must be explicitly approved and recorded (§5, C-13) |
 | G-1 | Merge Stage 1 | Owner + a recorded human review + green CI |
 | G-2 | Merge Stage 2 | The same |
 | G-3 | Load Company 1–5 real data | Owner: §7 "before real data" met |
