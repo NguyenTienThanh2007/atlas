@@ -9,6 +9,8 @@ from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, PlainSerializer, computed_field
 
+from app.calculations.comparisons import ComparisonType, Direction, Side, Status
+from app.calculations.comparisons import ReasonCode as ComparisonReason
 from app.calculations.ratios import InputVerification, ReasonCode, Role
 from app.ingestion.reference import metric_dictionary
 from app.models import (
@@ -267,4 +269,54 @@ class CalculatedMetricOut(BaseModel):
     denominator_average: FixedDecimal | None  # exact, 7 decimals
     inputs: list[CalculationInputOut]
     issues: list[CalculationIssueOut]
+    input_verification: InputVerification | None
+
+
+class ComparisonSideOut(BaseModel):
+    """One period of a comparison: its latest-revision statement and, if reported, the figure."""
+
+    statement_id: uuid.UUID
+    fiscal_year: int
+    fiscal_quarter: int | None
+    period_start: date
+    period_end: date
+    revision: int
+    value: FixedDecimal | None  # None = this statement does not report the metric
+    reported_value: FixedDecimal | None
+    reported_scale: int | None
+    source: MetricSourceOut | None
+
+
+class ComparisonIssueOut(BaseModel):
+    code: ComparisonReason
+    side: Side
+    metric_code: str
+    period_end: date | None  # end of the statement concerned; None when no statement matched
+
+
+class PeriodComparisonOut(BaseModel):
+    """A change between two periods computed at read time (WS4-3). Never stored and never
+    verified itself: `input_verification` describes its inputs only."""
+
+    kind: Literal["comparison"] = "comparison"
+    type: ComparisonType
+    formula_id: str
+    formula_version: int
+    formula_text_vi: str
+    formula_text_en: str
+    metric_code: str
+    metric_name_vi: str
+    metric_name_en: str
+    statement_type: StatementType
+    scope: StatementScope
+    unit: str
+    current: ComparisonSideOut
+    previous: ComparisonSideOut | None
+    status: Status
+    reason: ComparisonReason | None
+    issues: list[ComparisonIssueOut]
+    absolute_change: FixedDecimal | None  # exact, 6 decimals
+    growth_value: FixedDecimal | None  # 10 decimals, half-even (W3-D4)
+    growth_percent: FixedDecimal | None  # 2 decimals, half-up (W3-D4)
+    direction: Direction | None
     input_verification: InputVerification | None

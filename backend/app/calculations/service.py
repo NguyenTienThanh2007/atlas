@@ -38,20 +38,20 @@ class Result:
     outcome: Outcome
 
 
-def _latest_annual(db: Session, company_id: uuid.UUID) -> list[FinancialStatement]:
-    """Latest revisions of annual income statements and balance sheets, with figures and evidence.
+def latest_statements(
+    db: Session, company_id: uuid.UUID, *, quarterly: bool
+) -> list[FinancialStatement]:
+    """Latest revisions of one granularity's statements (every type), with figures and evidence.
     A revision replaced by a newer one is never returned, whatever the newer one's status."""
     newer = aliased(FinancialStatement)
     superseded = exists().where(newer.supersedes_id == FinancialStatement.id)
+    quarter = FinancialStatement.fiscal_quarter
     return list(
         db.scalars(
             select(FinancialStatement)
             .where(
                 FinancialStatement.company_id == company_id,
-                FinancialStatement.fiscal_quarter.is_(None),
-                FinancialStatement.statement_type.in_(
-                    [StatementType.INCOME_STATEMENT, StatementType.BALANCE_SHEET]
-                ),
+                quarter.is_not(None) if quarterly else quarter.is_(None),
                 ~superseded,
             )
             .options(
@@ -66,7 +66,7 @@ def _metric(statement: FinancialStatement, code: str) -> FinancialMetric | None:
     return next((m for m in statement.metrics if m.metric_code == code), None)
 
 
-def _company_mixed(db: Session, company_id: uuid.UUID, is_sample: bool) -> bool:
+def company_mixed(db: Session, company_id: uuid.UUID, is_sample: bool) -> bool:
     """True when any statement of the company (any type, granularity or revision) has evidence of
     the other classification. The database refuses such rows since migration 8de09b58f4c2; this
     is the independent check of the calculation engine (audit AU-3)."""
@@ -190,8 +190,8 @@ def calculated_metrics(
     company = db.get(Company, company_id)
     if company is None:
         return []
-    mixed = _company_mixed(db, company_id, company.is_sample)
-    statements = _latest_annual(db, company_id)
+    mixed = company_mixed(db, company_id, company.is_sample)
+    statements = latest_statements(db, company_id, quarterly=False)
     incomes = sorted(
         (
             s

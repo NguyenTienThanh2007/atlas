@@ -401,6 +401,19 @@ implementation is not authorised yet and has not started.**
 | W3-D9 | Period matching | Exactly the rules of plan §2; no cross-scope or incompatible-period comparison; ambiguous matches refused, never guessed |
 | W3-D10 | Statuses and reason codes | The codes, precedence and vi/en messages of plan §5.1 |
 
+**Update (2026-11-26):** after the WS4-3 audit ([WS4_3_AUDIT.md](WS4_3_AUDIT.md)) the owner approved the
+items of [WS4_3_IMPLEMENTATION_PLAN.md](WS4_3_IMPLEMENTATION_PLAN.md) §12.15 as proposed. W3-D1 to
+W3-D10 above are unchanged. **WS4-3 implementation (W3-B3) is still not authorised.**
+
+| ID | Decision | Approved option |
+| --- | --- | --- |
+| W3-D11 | Mixed sample and real inputs (audit A3-1) | Reason `mixed_sample_and_real` at rank 0, status `not_comparable`, with the WS4-2 vi/en texts; `input_verification` null |
+| W3-D7 (threshold) | Value of the display limit approved in W3-D7 (audit A3-2) | Above 999,99 % in absolute value the table shows "> 999,99 %" / "< −999,99 %"; the full value is in the calculation disclosure; the API is unaffected |
+| A3-5 | Comparison rows (plan detail within W3-D6) | One row per metric reported on at least one side; no row when neither side reports it |
+| A3-7 | Minus sign | U+2212 for negative values in `formatDecimal` (display only, site-wide), as for percentages (AU-2) |
+
+**Update (2026-11-26, later):** the owner authorised WS4-3 implementation ("Bắt đầu WS4-3"; W3-B3). Commit, PR and merge still need separate approval.
+
 ## 3. Rejected alternatives
 
 | Alternative | Why rejected |

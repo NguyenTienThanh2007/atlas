@@ -6,7 +6,7 @@
 
 import { en as dictEn } from "../src/i18n/en.ts";
 import { vi as dictVi } from "../src/i18n/vi.ts";
-import { formatFixed } from "../src/lib/api-core.ts";
+import { formatDecimal, formatFixed, percentText } from "../src/lib/api-core.ts";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const OFFLINE = process.env.EXPECT === "offline";
@@ -28,6 +28,8 @@ const text = (html) =>
     .replace(/<[^>]+>/g, " ")
     .replace(/&#x27;|&#39;/g, "'")
     .replace(/&quot;/g, '"')
+    .replace(/&gt;/g, ">")
+    .replace(/&lt;/g, "<")
     .replace(/&amp;/g, "&")
     .replace(/\s+/g, " ");
 const ENGLISH_UI = ["Companies", "Sectors", "Watchlist", "Loading", "Search", "Couldn't", "Sample data", "Previous", "Next", "Not found", "API unreachable"];
@@ -96,6 +98,7 @@ if (companyId && !OFFLINE) {
   const api = process.env.API_URL ?? "http://localhost:8000";
   const body = await (await fetch(`${api}/api/v1/companies/${companyId}/financial-statements`)).json();
   const calculated = await (await fetch(`${api}/api/v1/companies/${companyId}/calculated-metrics?limit=20`)).json(); // page 1, as rendered
+  const compared = await (await fetch(`${api}/api/v1/companies/${companyId}/comparisons?type=annual_yoy&limit=20`)).json();
   for (const lang of ["vi", "en"]) {
     const url = `${lang === "vi" ? "" : "/en"}/companies/${companyId}`;
     const { html } = await get(url);
@@ -134,10 +137,12 @@ if (companyId && !OFFLINE) {
     // WS4-2: each calculated ratio shows the API's percentage, or the reason it can't be computed.
     const page = text(html);
     const k = (lang === "vi" ? dictVi : dictEn).company.calculated;
-    // Audit AU-1: only computed ratios carry an input-verification label.
+    // Audit AU-1: only computed ratios carry an input-verification label; WS4-3: so do compared rows.
     for (const [key, label] of Object.entries(k.verification)) {
       if (key === "sample") continue; // same text as the page's sample badge
-      const expected = calculated.items.filter((r) => r.status === "computed" && r.input_verification === key).length;
+      const expected =
+        calculated.items.filter((r) => r.status === "computed" && r.input_verification === key).length +
+        compared.items.filter((r) => r.status !== "not_comparable" && r.input_verification === key).length;
       const shown = page.split(label).length - 1;
       check(shown === expected, `${url}: "${label}" shown ${shown} times, expected ${expected}`);
     }
@@ -153,6 +158,44 @@ if (companyId && !OFFLINE) {
         check(page.includes(reason), `${url}: ${r.formula_id} ${r.fiscal_year} should say "${reason}"`);
       }
     }
+  }
+}
+
+// WS4-3: every comparison row shows the API's result, the reason it has none, and never a 0 or a
+// bare dash in its place. Needs PROVENANCE_COMPANY_ID like the blocks above.
+if (companyId && !OFFLINE) {
+  const api = process.env.API_URL ?? "http://localhost:8000";
+  const fetchRows = async (type) =>
+    (await fetch(`${api}/api/v1/companies/${companyId}/comparisons?type=${type}&limit=20`)).json();
+  for (const lang of ["vi", "en"]) {
+    const dict = lang === "vi" ? dictVi : dictEn;
+    const k = dict.company.comparison;
+    for (const type of ["annual_yoy", "quarterly_qoq", "quarterly_yoy"]) {
+      const url = `${lang === "vi" ? "" : "/en"}/companies/${companyId}${type === "annual_yoy" ? "" : `?compare=${type}`}`;
+      const [{ html }, body] = await Promise.all([get(url), fetchRows(type)]);
+      const page = text(html);
+      check(page.includes(k.title), `${url}: comparison section missing`);
+      check(page.includes(k.seasonality) === (type === "quarterly_qoq"), `${url}: seasonality note only for quarter on quarter`);
+      check(/aria-current="page"[^>]*>[^<]*</.test(html) && html.includes(k.type[type]), `${url}: active comparison type not marked`);
+      if (body.total === 0) check(page.includes(k.none), `${url}: expected "${k.none}"`);
+      else check(page.includes(dict.pagination.range(1, Math.min(20, body.total), body.total)), `${url}: comparison range missing`);
+      for (const r of body.items) {
+        const id = `${url}: ${r.metric_code} ${r.current.period_end}`;
+        check(page.includes(lang === "vi" ? r.metric_name_vi : r.metric_name_en), `${id}: name missing`);
+        if (r.status === "computed") check(page.includes(percentText(r.growth_percent, lang)), `${id}: should show ${percentText(r.growth_percent, lang)}`);
+        else check(page.includes(k.reason[r.reason]), `${id}: should say "${k.reason[r.reason]}"`);
+        if (r.status !== "not_comparable") {
+          const change = `${k.direction[r.direction]} ${formatDecimal(r.absolute_change, lang)}`;
+          check(page.includes(change), `${id}: should show "${change}"`);
+        }
+      }
+      check(!html.includes("<canvas") && !html.includes("<svg class=\"recharts"), `${url}: no charts in WS4-3 (W3-D8)`);
+    }
+    // The control links keep the other lists' pages; paging keeps the chosen comparison.
+    const base = `${lang === "vi" ? "" : "/en"}/companies/${companyId}`;
+    const kept = await get(`${base}?ratios_page=2&compare=quarterly_yoy`);
+    const links = [...kept.html.matchAll(/href="([^"]*compare=quarterly_qoq[^"]*)"/g)].map((m) => m[1].replace(/&amp;/g, "&"));
+    check(links.some((h) => h.includes("ratios_page=2") && h.endsWith("#comparisons")), `${base}: comparison control drops ratios_page`);
   }
 }
 

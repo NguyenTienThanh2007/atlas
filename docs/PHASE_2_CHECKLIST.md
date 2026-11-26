@@ -274,6 +274,7 @@ values from **calculated** ones.
   - Done: comparability rules proposed (WS4 plan §8); approved as WS4-D9, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d).
   - Remaining: implementation; tests.
   - 2026-11-25: implementation plan and checklist written ([WS4_3_IMPLEMENTATION_PLAN.md](WS4_3_IMPLEMENTATION_PLAN.md), [WS4_3_CHECKLIST.md](WS4_3_CHECKLIST.md)); ten owner decisions W3-D1 to W3-D10 pending. Not implemented.
+  - 2026-11-26: decisions W3-D1 to W3-D11 approved; audit [WS4_3_AUDIT.md](WS4_3_AUDIT.md). Implemented on branch `feat/ws4-3-period-comparison` (uncommitted): `GET /companies/{id}/comparisons`, company-page section; backend 380 passed, frontend 35/35, isolated Docker route check and browser pass. Stays IN PROGRESS until the PR has a recorded owner review, green CI and is merged.
 - [ ] **[IN PROGRESS]** P2-5.14 Currency and unit formatting.
   - Done: exact digit grouping from decimal strings, never floats (`formatDecimal`, unit test in E-F); unit shown next to each value.
   - Remaining: compact Vietnamese scales (tỷ / triệu), a locale decision, and negative-value styling.

@@ -11,6 +11,10 @@ import {
   formatFixed,
   metricLabel,
   pageRange,
+  comparisonLabel,
+  comparisonType,
+  percentBeyondLimit,
+  percentText,
   pageNumber,
   SECTOR_CODE,
 } from "./api-core.ts";
@@ -61,9 +65,10 @@ test("fetchJson handles a non-JSON success body", async () => {
 test("formatDecimal groups digits without float rounding, per language", () => {
   assert.equal(formatDecimal("12345678901234567890.123456", "en"), "12,345,678,901,234,567,890.123456");
   assert.equal(formatDecimal("12345678901234567890.123456", "vi"), "12.345.678.901.234.567.890,123456");
-  assert.equal(formatDecimal("-25.000001", "en"), "-25.000001");
-  assert.equal(formatDecimal("-25.000001", "vi"), "-25,000001");
-  assert.equal(formatDecimal("-1234567.5", "vi"), "-1.234.567,5");
+  // A3-7: the typographic minus (U+2212), as for percentages (AU-2).
+  assert.equal(formatDecimal("-25.000001", "en"), "\u221225.000001");
+  assert.equal(formatDecimal("-25.000001", "vi"), "\u221225,000001");
+  assert.equal(formatDecimal("-1234567.5", "vi"), "\u22121.234.567,5");
   assert.equal(formatDecimal("2000000000.000000", "en"), "2,000,000,000");
   assert.equal(formatDecimal("2000000000.000000", "vi"), "2.000.000.000");
   assert.equal(formatDecimal("999", "vi"), "999");
@@ -140,4 +145,34 @@ test("page ranges for server-paginated lists (AU-5)", () => {
   assert.deepEqual(pageRange(6, 20, 85), { from: 101, to: 85, pages: 5, beyond: true });
   assert.deepEqual(pageRange(1, 20, 0), { from: 1, to: 0, pages: 1, beyond: false });
   assert.deepEqual(pageRange(1, 20, 20), { from: 1, to: 20, pages: 1, beyond: false });
+});
+
+test("comparisonType keeps only the three approved types", () => {
+  assert.equal(comparisonType("quarterly_qoq"), "quarterly_qoq");
+  assert.equal(comparisonType(["quarterly_yoy", "x"]), "quarterly_yoy");
+  for (const bad of [undefined, "", "monthly", "ANNUAL_YOY"]) assert.equal(comparisonType(bad), "annual_yoy");
+});
+
+test("only compared rows carry an input-verification label", () => {
+  assert.equal(comparisonLabel({ status: "computed", input_verification: "all_verified" }), "all_verified");
+  assert.equal(comparisonLabel({ status: "change_only", input_verification: "sample" }), "sample");
+  assert.equal(comparisonLabel({ status: "not_comparable", input_verification: "some_unverified" }), null);
+});
+
+test("percentBeyondLimit applies the W3-D7 limit of 999.99 % either way", () => {
+  assert.equal(percentBeyondLimit("999.99"), null);
+  assert.equal(percentBeyondLimit("-999.99"), null);
+  assert.equal(percentBeyondLimit("0.00"), null);
+  assert.equal(percentBeyondLimit("1000.00"), "above");
+  assert.equal(percentBeyondLimit("99999900.00"), "above");
+  assert.equal(percentBeyondLimit("-9999999999999999999999999999999999999800.00"), "below");
+  assert.equal(percentBeyondLimit("not a number"), null);
+});
+
+test("percentText shows the API percentage or the display limit, per language", () => {
+  assert.equal(percentText("20.00", "vi"), "20,00%");
+  assert.equal(percentText("-0.01", "en"), "\u22120.01%");
+  assert.equal(percentText("999.99", "en"), "999.99%");
+  assert.equal(percentText("99999900.00", "vi"), "> 999,99%");
+  assert.equal(percentText("-1000.00", "en"), "< \u2212999.99%");
 });

@@ -75,6 +75,28 @@ label text (WS4-D7); the verification statuses above use "xác minh". The review
 | Page range (audit AU-5) | Đang hiển thị 1–20 / 85 | Showing 1–20 of 85 |
 | Past the last page | Trang 9 không có mục nào (tổng cộng 85 mục) | Page 9 has no items (85 in total) |
 
+## Period comparison (WS4-3)
+
+New terms (2026-11-26), added for the same native-speaker review. Reason texts follow plan §5.1
+(W3-D10) and W3-D11.
+
+| Concept | Tiếng Việt | English |
+| --- | --- | --- |
+| Period comparison (section) | So sánh giữa các kỳ (do ATLAS tính) | Period comparison (computed by ATLAS) |
+| Year on year | Năm so với năm trước | Year on year |
+| Quarter on quarter | Quý so với quý trước | Quarter on quarter |
+| Same quarter last year | Quý so với cùng kỳ năm trước | Same quarter last year |
+| This period / previous period | Kỳ này / Kỳ trước | This period / Previous period |
+| Change versus previous period (W3-D3; never "growth") | Thay đổi so với kỳ trước | Change versus previous period |
+| Change (%) | Thay đổi (%) | Change (%) |
+| Up / down / unchanged | tăng / giảm / không đổi | up / down / unchanged |
+| Seasonality note | Số liệu quý có thể chịu ảnh hưởng mùa vụ, nên quý này khác quý trước không nhất thiết là xu hướng. | Quarterly figures can be seasonal, so a change from the previous quarter isn't necessarily a trend. |
+| No value | Không có số liệu | No value |
+| Full value (display limit, W3-D7) | Giá trị đầy đủ: … (tỷ lệ …) | Full value: … (ratio …) |
+| Not comparable | Không so sánh được: … | Not comparable: … |
+| No percentage | Không tính được tỷ lệ thay đổi: … | No percentage: … |
+| Statement scope / All | Phạm vi báo cáo / Tất cả | Statement scope / All |
+
 ## Navigation
 
 Khám phá (Discover) · Ngành (Sectors) · Doanh nghiệp (Companies) · Danh sách theo dõi

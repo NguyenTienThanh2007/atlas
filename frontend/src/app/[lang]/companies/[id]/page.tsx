@@ -2,13 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { FigureSourceLine } from "@/components/figure-source";
 import { Pagination } from "@/components/pagination";
+import { COMPARISONS_PAGE_SIZE, PeriodComparisons } from "@/components/period-comparison";
 import { ApiErrorState, BackLink, SampleBadge } from "@/components/states";
 import { errorText, getI18n, unitText, type Dictionary, type Locale } from "@/i18n";
-import { figureHref, safeHref, type FigureSource } from "@/lib/provenance";
+import { safeHref } from "@/lib/provenance";
 import {
   apiGet,
   calculationLabel,
+  comparisonType,
   denominatorUnit,
   formatDate,
   formatDecimal,
@@ -21,6 +24,7 @@ import {
   type Evidence,
   type FinancialStatement,
   type Page,
+  type PeriodComparison,
 } from "@/lib/api";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,12 +46,19 @@ export default async function CompanyPage({ params, searchParams }: PageProps<"/
 
   const statementsPage = pageNumber(sp.statements_page);
   const ratiosPage = pageNumber(sp.ratios_page);
+  const comparisonsPage = pageNumber(sp.comparisons_page);
+  const compare = comparisonType(sp.compare);
+  const compareScope =
+    sp.compare_scope === "consolidated" || sp.compare_scope === "separate" ? sp.compare_scope : undefined;
   const kept = {
     statements_page: statementsPage > 1 ? String(statementsPage) : undefined,
     ratios_page: ratiosPage > 1 ? String(ratiosPage) : undefined,
+    compare: compare === "annual_yoy" ? undefined : compare,
+    compare_scope: compareScope,
+    comparisons_page: comparisonsPage > 1 ? String(comparisonsPage) : undefined,
   };
 
-  const [company, evidence, statements, calculated] = await Promise.all([
+  const [company, evidence, statements, calculated, comparisons] = await Promise.all([
     apiGet<Company>(`/companies/${id}`),
     apiGet<Page<Evidence>>(`/companies/${id}/evidence`, { limit: 50 }),
     apiGet<Page<FinancialStatement>>(`/companies/${id}/financial-statements`, {
@@ -57,6 +68,12 @@ export default async function CompanyPage({ params, searchParams }: PageProps<"/
     apiGet<Page<CalculatedMetric>>(`/companies/${id}/calculated-metrics`, {
       limit: RATIOS_PAGE_SIZE,
       offset: (ratiosPage - 1) * RATIOS_PAGE_SIZE,
+    }),
+    apiGet<Page<PeriodComparison>>(`/companies/${id}/comparisons`, {
+      type: compare,
+      scope: compareScope,
+      limit: COMPARISONS_PAGE_SIZE,
+      offset: (comparisonsPage - 1) * COMPARISONS_PAGE_SIZE,
     }),
   ]);
   if (!company.ok && company.kind === "not_found") notFound();
@@ -240,6 +257,15 @@ export default async function CompanyPage({ params, searchParams }: PageProps<"/
         )}
       </Section>
 
+      <PeriodComparisons
+        companyId={id}
+        result={comparisons}
+        kind={compare}
+        scope={compareScope}
+        page={comparisonsPage}
+        kept={kept}
+      />
+
       <Section title={tc.sources}>
         {!evidence.ok ? (
           <p className="text-sm text-bad">{errorText(t, evidence)}</p>
@@ -325,42 +351,6 @@ function CalculatedRow({ result: r, locale, t }: { result: CalculatedMetric; loc
         </ul>
       </details>
     </li>
-  );
-}
-
-/** WS3: the document and page one figure comes from. Missing pages and non-linkable documents are
- * stated, never guessed; the link opens the document at the figure's page. */
-function FigureSourceLine({
-  metric,
-  source,
-  labels,
-}: {
-  metric: string;
-  source: FigureSource;
-  labels: Dictionary["company"]["figure"];
-}) {
-  const title = source.document_title ?? labels.untitled;
-  const href = figureHref(source);
-  const page = source.page === null ? labels.noPage : labels.page(source.page);
-  return (
-    <span className="mt-0.5 block text-xs leading-snug break-words text-muted">
-      {labels.source}:{" "}
-      {href ? (
-        <a
-          href={href}
-          rel="noopener noreferrer"
-          target="_blank"
-          aria-label={labels.open(metric, title, source.page)}
-          className="text-mist underline decoration-line underline-offset-2 hover:decoration-mist"
-        >
-          {title} · {page}
-        </a>
-      ) : (
-        <>
-          {title} · {page} · <span className="text-brass">{labels.noLink}</span>
-        </>
-      )}
-    </span>
   );
 }
 

@@ -154,6 +154,10 @@ the document prints amounts:
   company changes its year-end. They are rejected and would need an explicit, reviewed exception.
   The quarter number isn't checked against the months, because that needs the company's
   year-end, which isn't stored yet.
+- **Stand-alone quarters only (W3-D1, 2026-11-26):** a quarterly income or cash-flow figure must be
+  printed in the document for that quarter alone ("Quý này"). Never type a figure derived by
+  subtracting two year-to-date ("Lũy kế từ đầu năm") columns: that would be a calculated figure
+  recorded as reported. If only year-to-date figures are printed, import no quarter for it.
 
 The overlap check runs in the importer, not as a database constraint. Two imports running at the
 same moment could both pass; imports are run one at a time by a curator.
