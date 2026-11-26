@@ -47,11 +47,11 @@ becomes SECURITY DEFINER", §3.4 schema mapping), these corrections supersede it
 | D4 | Does the DB enforce verification through stored procedures? | Invoker triggers force broad grants (P3a, P6c) | (a) keep triggers, grant tables; (b) `SECURITY DEFINER` procedures, no table DML | (a) keeps P5/P6e; (b) brings rewrite effort and tests | **(b)**, with per-record import procedures so the Python validation in `importer.py` stays | D1 | Yes |
 | D5 | Direct SQL by privileged operators | TM T-12, T-17 | Accept with detection; or separate duties (another person holds the superuser and the anchor) | Detection only vs real separation (needs a second trusted person) | **Accept and detect** (event trigger, hash chain, external anchor, integrity check) for the pilot; separate duties before G1 | D13 | No (Stage 4 detective work) |
 | D6 | Remote private pilot before Q-7? | SEC-02 | No remote access until hosting is chosen; or a temporary VPN to the owner's machine | A host has to exist either way | **No remote access** until Q-7 is decided and Stage 3 passes | Q-7 | Yes, for Stage 3 |
-| D7 | SEC-03..SEC-06, SEC-09 in the same release? | Scope control | All in one release; or staged | One release is larger | **Staged:** SEC-03 with Stage 1 (it comes free with the views); SEC-09 with Stage 3; SEC-04/05/06 as Stage 4 | — | Yes (G-0; SEC-03 API behaviour change) |
+| D7 | SEC-03..SEC-06, SEC-09 in the same release? | Scope control | All in one release; or staged | One release is larger | **Staged (APPROVED 2026-11-26):** SEC-03 with Stage 1; SEC-10 with Stage 2; SEC-09 with Stage 3; SEC-04/05/06 as Stage 4; SEC-07 branch protection now | D1 | Yes (G-0; SEC-03 API behaviour change) |
 | D8 | Authentication and session policy | Person DB credentials; proxy sessions | DB: SCRAM in a password manager, or client certificates. Proxy: OIDC with MFA, 8 h sessions | Certificates are stronger and need TLS to the DB | **Client certificates** if hosting allows, else SCRAM; `VALID UNTIL` 90 d; MFA on VPN and IdP | Q-7 | Yes, for Stages 2–3 |
 | D9 | Audit identity retention and revocation | Reviews must stay attributable after someone leaves | Keep principals forever (NOLOGIN), or anonymise | Accountability vs privacy | **Keep forever** with a display name; personal data limited to name and role; revocation as in Arch §5.3. A legal check on personal-data retention may be needed (OPEN QUESTION) | — | No |
 | D10 | Backup and recovery security | TM T-18 | Encrypted, versioned dumps compared with the anchor on restore | Cost and storage location (Q-7) | **Encrypted dumps + anchor check before reopening** | Q-7, D5 | No (before real data: yes, see D12) |
-| D11 | Rollback strategy | §6 | A forward fix only; or a down-migration plus restore | §6 | **Down-migration for Stage 1** (grants only); Stage 2 a forward fix plus restore from backup | — | Yes (G-0; M1 rollback) |
+| D11 | Rollback strategy | §6 | A forward fix only; or a down-migration plus restore | §6 | **Non-symmetric M1 downgrade (APPROVED 2026-11-26):** restore function bodies and grants; leave ownership with `atlas_owner`. Stage 2 forward fix plus verified backup recovery | D10 (minimum pre-migration backup required) | Yes (G-0; M1 rollback) |
 | D12 | Acceptance before real pilot data | G2 | §7 list | — | **All of §7 "before real data"** | D1–D4, D10 | **Yes**, for G2 data |
 | D13 | Appoint an independent human reviewer | Q-3, D-6 | Appoint someone; or postpone verification | Without one, nothing can be `verified` | **Appoint** before G2 reviews start; ideally someone other than the database operator | — | Blocks verification, not engineering |
 
@@ -183,7 +183,7 @@ with the code, and exclude owner review time. They are rough.
 - SEC-04 (`safeHref` on the website).
 - SEC-05 (headers).
 - SEC-06 (SHA/digest pinning, Dependabot).
-- SEC-07 (branch protection: **the owner changes GitHub settings**).
+- SEC-07 branch protection is approved under D7 and is an immediate repository-settings action, not deferred to Stage 4. The operational setting change is still pending.
 - The DDL event trigger (AUD-3).
 - The daily anchor job (AUD-4).
 - Image scanning in CI.
@@ -193,7 +193,7 @@ with the code, and exclude owner review time. They are rough.
 
 | Step | Migration | Data effect | Reversible? |
 | --- | --- | --- | --- |
-| M1 | `sec01a_least_privilege` (Stage 1) | None (ownership, grants, function bodies, views, guards) | Yes: down restores the old function bodies and ownership (see C-2: ownership stays with `atlas_owner`) |
+| M1 | `sec01a_least_privilege` (Stage 1) | None (ownership, grants, function bodies, views, guards) | Intentionally non-symmetric: down restores old function bodies and grants, and leaves ownership with `atlas_owner`; no ownership transfer back to the bootstrap superuser (D11, C-2) |
 | M2 | `sec01a_identity` (Stage 2) | Adds nullable columns and new tables; backfills `identity_assurance='typed_name'` on existing reviews; `created_by = NULL` on existing evidence and statements | Down drops the new objects, **refuses** if authenticated reviews exist (like `test_downgrade_refuses_to_discard_review_history`) |
 | M3 | `sec01a_audit_ddl` (Stage 4) | Event trigger (needs the bootstrap superuser) | Yes |
 
@@ -203,9 +203,9 @@ completes before the backend starts (`service_completed_successfully`).
 
 ## 4. Backward compatibility
 
-- **API responses:** unchanged. The views keep the column names. Exception (SEC-03, D7):
-  non-http(s) `source_url` becomes `null`. This is an API behaviour change and needs owner
-  approval.
+- **API responses:** view column names remain unchanged. Exception (SEC-03, D7, approved
+  2026-11-26): non-HTTP(S) `source_url` becomes `null`. HTTP(S) source URLs remain unchanged.
+  API-4 must prove that local/non-HTTP(S) paths are never exposed.
 - **Existing data:**
   - `main` holds no real reviews: 0 real companies; the user stack is empty (VERIFIED, read-only).
   - Legacy typed-name reviews, if any, keep their text and are labelled `typed_name`.
@@ -268,7 +268,7 @@ Automation locations:
 | API-1 | Unauthenticated, pilot mode | `APP_ENV=pilot` | Request without the proxy identity header, or from a non-proxy address | 401 | SEC-02 defence in depth |
 | API-2 | Through the proxy | Proxy stack | No session → redirect to the IdP; a disallowed account → 403 | As stated | T-20 |
 | API-3 | Revoked session | Proxy stack | The IdP account is disabled mid-session | Next request denied | T-4/T-5 at the web tier |
-| API-4 | No local paths | A real-source fixture with a `file://` URL | `GET /companies/{id}/evidence` | `source_url` is not the path (`null`) | SEC-03 / T-21 |
+| API-4 | No local or non-HTTP(S) paths | Fixtures with `file://`, relative and other non-HTTP(S) URLs, plus a valid HTTPS URL | `GET /companies/{id}/evidence` | Non-HTTP(S) `source_url` is `null`; valid HTTPS URL is preserved exactly | SEC-03 / T-21; D7 approved |
 | API-5 | No curator operations | — | OpenAPI lists only `GET`; `atlas_api` has no EXECUTE on any procedure | As stated | Read-only by construction |
 
 ### 5.4 Deployment (DEP)
@@ -335,7 +335,7 @@ recorded (D10).
 
 | Gate | Before | Approver |
 | --- | --- | --- |
-| G-0 | Any SEC-01A code | Owner: D1–D4, D6–D8 and D11; each substantive decision must be explicitly approved and recorded (§5, C-13) |
+| G-0 | Any SEC-01A code | Owner: D1–D4, D6–D8 and D11; D7 and D11 approved 2026-11-26, D1–D4, D6 and D8 remain open (§5–6, C-13) |
 | G-1 | Merge Stage 1 | Owner + a recorded human review + green CI |
 | G-2 | Merge Stage 2 | The same |
 | G-3 | Load Company 1–5 real data | Owner: §7 "before real data" met |
