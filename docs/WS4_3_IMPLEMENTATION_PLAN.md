@@ -1,5 +1,11 @@
 # WS4-3: Financial period comparison plan
 
+**Status update (2026-11-26, after merge): merged as PR #10 (`609864c`, feature commit `42f2f8a`),
+CI green on head and merge. No recorded review (W3-H2). Two details the code settles that §12 left
+open: `prior_zero` is recorded on the `previous` side and `sign_change` on the `current` side
+(§12.4 shows "—"); an issue's `period_end` is `null` when no previous statement matched. See
+[WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md) (PM-1 to PM-4).**
+
 **Status update (2026-11-26, implementation): implemented as specified in §12 on branch
 `feat/ws4-3-period-comparison`, not committed. No migration. Evidence per item in
 [WS4_3_CHECKLIST.md](WS4_3_CHECKLIST.md). Two small presentation choices made during

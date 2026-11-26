@@ -7,7 +7,7 @@ checklist: [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md).
 
 | | |
 | --- | --- |
-| Last verified | 2026-11-25, `main` @ `8007fe2` (PRs #7 and #8 merged, CI green) |
+| Last verified | 2026-11-26, `main` @ `609864c` (PRs #9 and #10 merged, CI green; earlier: 2026-11-25, `8007fe2`) |
 | Statuses | `NOT STARTED`, `IN PROGRESS`, `PASS`, `BLOCKED`, `FAIL` only |
 | Owner approval | "Yes" means the item can't pass until the project owner decides (decision ids WS4-D1 to D11 in the plan, §12) |
 
@@ -121,7 +121,7 @@ Phase B), which stay IN PROGRESS as open questions.
 | WS4-G6 | Restatement handling written | PASS | Latest revisions; restated side noted | Plan §8.2 | None | No |
 | WS4-G7 | Fiscal-year alignment written | PASS | Non-calendar years; period-end shift > 7 days refused; cross-company warning | Plan §8.2 | None | No |
 | WS4-G8 | Owner approval | PASS | Rules and growth formula approved | WS4-D9 recorded (growth on \|prior\|), [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d | WS4-D9 | Yes |
-| WS4-G9 | Implemented and tested | PASS | Tests in plan §11 "Period alignment" pass | WS4-3 on branch `feat/ws4-3-period-comparison` (2026-11-26, uncommitted): backend 380 passed (period alignment, growth, reasons), frontend 35/35, isolated Docker route check; details in [WS4_3_CHECKLIST.md](WS4_3_CHECKLIST.md). CI and merge not done yet | WS4-G8 | Yes |
+| WS4-G9 | Implemented and tested | PASS | Tests in plan §11 "Period alignment" pass | WS4-3 on branch `feat/ws4-3-period-comparison` (2026-11-26, uncommitted): backend 380 passed (period alignment, growth, reasons), frontend 35/35, isolated Docker route check; details in [WS4_3_CHECKLIST.md](WS4_3_CHECKLIST.md). CI and merge not done yet. Update 2026-11-26: merged as PR #10 (`609864c`); CI on the merge: Backend 380 passed, Frontend 35/35, Docker success; no recorded review (W3-H2) | WS4-G8 | Yes |
 
 ## H. Reported vs calculated
 

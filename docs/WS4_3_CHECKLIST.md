@@ -13,9 +13,14 @@ Later the same day W3-B4 passed (owner approval of plan §12.15).
 WS4-3 is implemented on branch `feat/ws4-3-period-comparison` (not committed). Each PASS below
 cites the test or check that ran; PR, CI, recorded review and merge (W3-H2 to W3-H4) are not done.
 
+**Status update (2026-11-26, after merge):** committed as `42f2f8a` and merged as PR #10
+(`609864c`) with CI green on head and merge; W3-H3 and W3-H4 PASS on that evidence. **W3-H2 (recorded
+owner review) stays NOT STARTED**: PR #10 has no review submissions or comments, and CI is not a
+review. Post-merge audit: [WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md).
+
 | | |
 | --- | --- |
-| Last verified | 2026-11-26, branch `feat/ws4-3-period-comparison` from `main` @ `407ed63`, uncommitted (earlier: 2026-11-25, `main` @ `8007fe2`) |
+| Last verified | 2026-11-26, `main` @ `609864c` (PR #10 merge; earlier the same day on branch `feat/ws4-3-period-comparison`; 2026-11-25, `main` @ `8007fe2`) |
 | Statuses | `NOT STARTED`, `IN PROGRESS`, `PASS`, `BLOCKED`, `FAIL` only |
 | Parent items | WS4_CHECKLIST group G (WS4-G9 implemented and tested); PHASE_2_CHECKLIST P2-5.13 |
 
@@ -33,10 +38,10 @@ built.
 | E. API | 6 | 6 | 0 | 0 | 0 | 0 |
 | F. Frontend | 9 | 9 | 0 | 0 | 0 | 0 |
 | G. Integrity and regression | 7 | 7 | 0 | 0 | 0 | 0 |
-| H. Release | 4 | 1 | 0 | 3 | 0 | 0 |
-| **Total** | **56** | **53** | **0** | **3** | **0** | **0** |
+| H. Release | 4 | 3 | 0 | 1 | 0 | 0 |
+| **Total** | **56** | **55** | **0** | **1** | **0** | **0** |
 
-(Before the 2026-11-26 updates: 49 items, 10 PASS, 39 NOT STARTED; after the audit: 56 items, 13 PASS, 43 NOT STARTED.)
+(Before the 2026-11-26 updates: 49 items, 10 PASS, 39 NOT STARTED; after the audit: 56 items, 13 PASS, 43 NOT STARTED; after implementation: 53 PASS, 3 NOT STARTED.)
 
 ## A. Design
 
@@ -133,5 +138,5 @@ built.
 | --- | --- | --- | --- | --- | --- | --- |
 | W3-H1 | Checklists updated | PASS | This file, WS4_CHECKLIST (group G) and PHASE_2_CHECKLIST (P2-5.13) recounted | This file, WS4_CHECKLIST (WS4-G9) and PHASE_2_CHECKLIST (P2-5.13) recounted 2026-11-26 (2026-11-26) | G group | No |
 | W3-H2 | Recorded owner review | NOT STARTED | The owner's review recorded on the PR before merge (AU-6) | PR record | W3-H1 | Yes |
-| W3-H3 | PR and CI | NOT STARTED | Backend, Frontend, Docker green on head and merge | CI links | W3-H2 | Yes (commit, PR) |
-| W3-H4 | Merge | NOT STARTED | Merged by the owner | Merge commit | W3-H3 | Yes |
+| W3-H3 | PR and CI | PASS | Backend, Frontend, Docker green on head and merge | PR #10 opened at the owner's request; CI green on head `42f2f8a` (Backend, Frontend, Docker) and on merge `609864c` (Backend 380 passed, Frontend 35/35, Docker success) — [WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md) §3. Its dependency W3-H2 was **not** met: no recorded review before merge (2026-11-26) | W3-H2 | Yes (commit, PR) |
+| W3-H4 | Merge | PASS | Merged by the owner | Merged 2026-11-26 04:47 UTC by the owner's account as `609864c`, identical to `42f2f8a`. Merged without a recorded review (W3-H2 NOT STARTED) (2026-11-26) | W3-H3 | Yes |
