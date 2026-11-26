@@ -221,8 +221,10 @@ completes before the backend starts (`service_completed_successfully`).
   - A new role-test harness runs as the real roles.
   - The existing tests that insert raw SQL reviews (`test_raw_sql_review_is_held_to_the_same_rules`)
     move to calling procedures.
-- **Local development:** `.env.example` gains per-process URLs. An existing volume needs
-  `python -m app.ops roles` once (documented; see C-6). Never `docker compose down -v` on someone's stack.
+- **Local development:** `.env.example` gains per-process URLs. An existing volume is
+  provisioned by the operator using the idempotent bootstrap SQL file and bootstrap-superuser
+  connection (C-6); no application command provisions roles. Never `docker compose down -v`
+  on someone's stack.
 
 ## 5. Test matrix (all PROPOSED, none run)
 
