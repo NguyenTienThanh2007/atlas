@@ -165,3 +165,15 @@ Evidence:
 
 AU-6 (process: no recorded human review, no branch protection) stays open. Q-3, G1, Q-7, Q-8 and
 the native-speaker glossary review are unchanged.
+
+## Status update (2026-11-26, after merge)
+
+The statuses above are kept as written. Since then:
+
+| Finding | Status | Evidence |
+| --- | --- | --- |
+| AU-3 | **FIXED and merged** | PR #9 merged 2026-11-25 12:44 UTC as `407ed63` (identical to head `6c01f11`). Backend CI on the merge: `314 passed`, `alembic check` clean ([run](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45616669307)); migration `8de09b58f4c2` is the head on `main` |
+| AU-4 | **FIXED and merged** | Same PR. Frontend CI on the merge: 31/31, build ([run](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45616669447)) |
+| AU-5 | **FIXED and merged** | Same PR and Frontend run; Docker CI success ([run](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45616669282)) |
+| AU-6 | **OPEN** | PR #9 and PR #10 (WS4-3, `609864c`) were also merged by the owner's account with 0 reviews and 0 comments; `main` is still unprotected ([WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md) §4) |
+

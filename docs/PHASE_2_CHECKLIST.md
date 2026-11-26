@@ -8,11 +8,11 @@ evidence recorded here.
 | | |
 | --- | --- |
 | **Phase objective** | Turn the Phase 1 foundation into a usable discovery product backed by **at least 5 verified Vietnamese listed companies (stretch target 20–30)** across the 4 approved sectors, with evidence-backed financials and validation by real users |
-| **Current status** | **IN PROGRESS: planning complete.** All product decisions A-1 to A-11 **approved** on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)). A private 5-company pilot can start; **public display of real data waits on gate G1** (legal opinion), reported under Track B. Phase 1 capabilities re-verified. **Execution: CONDITIONAL GO (EX-1).** Merged to `main`: WS1 verification workflow (PR #3, `45ef0ca`), WS2 Vietnamese-first UI (PR #4, `78cf577`), WS3 per-figure sources (PR #5, `4be30b7`), WS4-1 metric dictionary 1.1.0 (PR #6, `105869f`); CI green on each merge (E-MAIN). WS4-2 ROE and ROA (PR #7, `2079101`) and its display fixes (PR #8, `8007fe2`); CI green on each merge (E-MAIN). Independent review: [WS4_2_AUDIT.md](WS4_2_AUDIT.md) (no CRITICAL/HIGH; AU-3 to AU-6 open). Next: WS4-3 period comparison, plan only ([WS4_3_IMPLEMENTATION_PLAN.md](WS4_3_IMPLEMENTATION_PLAN.md)). |
-| **Last verified** | 2026-11-25, `main` @ `8007fe2` (PR #8 merge): Frontend and Docker CI success; Backend last ran on `2079101` (PR #7 merge, 288 passed), and PR #8 changed no backend file (E-MAIN). Earlier evidence: E-B/E-F (2026-11-23, `3660e5f`), E-WS1, E-WS2, E-WS3 |
-| **Overall completion** | **31 / 83 items PASS (37.3%)**. BLOCKED and FAIL never count as complete |
-| **Completed (PASS)** | 31 |
-| **In progress** | 27 |
+| **Current status** | **IN PROGRESS: planning complete.** All product decisions A-1 to A-11 **approved** on 2026-11-23 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)). A private 5-company pilot can start; **public display of real data waits on gate G1** (legal opinion), reported under Track B. Phase 1 capabilities re-verified. **Execution: CONDITIONAL GO (EX-1).** Merged to `main`: WS1 verification workflow (PR #3, `45ef0ca`), WS2 Vietnamese-first UI (PR #4, `78cf577`), WS3 per-figure sources (PR #5, `4be30b7`), WS4-1 metric dictionary 1.1.0 (PR #6, `105869f`); CI green on each merge (E-MAIN). WS4-2 ROE and ROA (PR #7, `2079101`) and its display fixes (PR #8, `8007fe2`); CI green on each merge (E-MAIN). Independent review: [WS4_2_AUDIT.md](WS4_2_AUDIT.md) (no CRITICAL/HIGH; AU-3 to AU-6 open). Next: WS4-3 period comparison, plan only ([WS4_3_IMPLEMENTATION_PLAN.md](WS4_3_IMPLEMENTATION_PLAN.md)). **Update 2026-11-26:** audit fixes AU-3, AU-4, AU-5 merged (PR #9, `407ed63`); WS4-3 period comparison merged (PR #10, `609864c`); CI green on both merges (E-MAIN). Neither PR has a recorded review (P2-8.11). Post-merge audit: [WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md); next steps: [PHASE_2_NEXT_STEPS.md](PHASE_2_NEXT_STEPS.md). |
+| **Last verified** | 2026-11-26, `main` @ `609864c` (PR #10 merge): Backend 380 passed, Frontend 35/35, Docker success (E-MAIN). Earlier: 2026-11-25, `main` @ `8007fe2`; E-B/E-F (2026-11-23, `3660e5f`), E-WS1, E-WS2, E-WS3 |
+| **Overall completion** | **32 / 83 items PASS (38.6%)**. BLOCKED and FAIL never count as complete |
+| **Completed (PASS)** | 32 |
+| **In progress** | 26 |
 | **Not started** | 15 |
 | **Blocked** | 10 |
 | **Failed** | 0 |
@@ -23,11 +23,11 @@ evidence recorded here.
 | 2. Data governance and provenance | 8 | 7 | 0 | 0 | 1 | 0 |
 | 3. Verified company dataset | 9 | 0 | 1 | 8 | 0 | 0 |
 | 4. Company discovery experience | 13 | 9 | 4 | 0 | 0 | 0 |
-| 5. Financial intelligence and presentation | 17 | 3 | 5 | 0 | 9 | 0 |
+| 5. Financial intelligence and presentation | 17 | 4 | 4 | 0 | 9 | 0 |
 | 6. Data quality and testing | 12 | 7 | 4 | 1 | 0 | 0 |
 | 7. Product validation | 7 | 2 | 1 | 4 | 0 | 0 |
 | 8. Engineering and release readiness | 12 | 0 | 10 | 2 | 0 | 0 |
-| **Total** | **83** | **31** | **27** | **15** | **10** | **0** |
+| **Total** | **83** | **32** | **26** | **15** | **10** | **0** |
 
 Scope changes: 2026-11-23, +2 items (P2-4.12, P2-4.13) added for the MVP scope approved in
 A-3 and A-4. The total went from 81 to 83; no items were removed.
@@ -35,6 +35,9 @@ A-3 and A-4. The total went from 81 to 83; no items were removed.
 proposal now exists (WS4 plan). Nothing moved to PASS; no formula is approved or implemented.
 2026-11-25: P2-5.11, 5.12 and 5.17 moved IN PROGRESS → PASS with WS4-2 evidence, gathered on the branch
 and confirmed by CI on the PR #7 merge (`2079101`).
+2026-11-26: P2-5.13 moved IN PROGRESS → PASS with WS4-3 evidence, confirmed by CI on the PR #10 merge
+(`609864c`). Counts recounted from the 83 item lines (32 PASS, 26 IN PROGRESS, 15 NOT STARTED,
+10 BLOCKED, 0 FAIL); before: 31, 27, 15, 10, 0.
 
 Percent complete = PASS ÷ total items. Counts are tallied from the item lines below. Re-count after
 every update; don't estimate.
@@ -60,6 +63,9 @@ every update; don't estimate.
    between reported and calculated values. Proposed in
    [WS4_FINANCIAL_INTELLIGENCE_PLAN.md](WS4_FINANCIAL_INTELLIGENCE_PLAN.md); owner decisions
    WS4-D1 to WS4-D11 recorded 2026-11-24 (Q-5 resolved). Implementation waits on the owner's go-ahead.
+   *Update 2026-11-26:* implemented and merged (WS4-2: PRs #7, #8; audit fixes: PR #9; WS4-3 period
+   comparison: PR #10). Remaining WS4 work: missing-data states and bank applicability (WS4-4; see
+   [PHASE_2_NEXT_STEPS.md](PHASE_2_NEXT_STEPS.md)).
 6. **Product validation with real users (section 7).**
 
 **Related documents:** [README](../README.md) ·
@@ -128,6 +134,15 @@ the tests are re-run.
   ([Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45610139607): 28/28;
   [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45610139576) success; Backend not
   triggered by the path filter, no backend change).
+  PR #9 (audit fixes AU-3, AU-4, AU-5) merged 2026-11-25 as `407ed63`, identical to head `6c01f11`
+  ([Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45616669307): `314 passed`,
+  `alembic check` clean; [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45616669447):
+  31/31; [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45616669282) success).
+  PR #10 (WS4-3) merged 2026-11-26 as `609864c`, identical to head `42f2f8a`
+  ([Backend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45757432716): `380 passed`,
+  `alembic check` clean; [Frontend](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45757432592):
+  35/35, build; [Docker](https://github.com/NguyenTienThanh2007/atlas/actions/runs/45757432573) success;
+  PR-head runs also green). Checked 2026-11-26 ([WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md) §3).
   The PRs were opened and merged by the owner's account with no recorded GitHub review.
 - **E-BR**: browser verification recorded in [PHASE_1_CHECKLIST.md](PHASE_1_CHECKLIST.md)
   sections 11–12 (2026-11-22, code `d858fbc`, identical to `main`).
@@ -168,6 +183,7 @@ the tests are re-run.
 - [x] **[PASS]** P2-2.6 Real and fictional records cannot be confused.
   - Evidence: `companies.is_sample`; sample sources may only use `verification_status = sample` and real sources may not; statements can't cross between sample and real companies. Tests `test_sample_and_real_data_never_mix`, `test_statement_for_sample_company_from_real_source_is_rejected` and `test_sample_fixture_imports_flagged_and_idempotently` pass (E-B). UI shows a "Sample data" badge in lists and a banner on the detail page (E-BR).
   - 2026-11-25 (audit AU-3, branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed): the database now enforces this too. Migration `8de09b58f4c2` refuses any write that mixes sample and real evidence within a company, including direct SQL, and the calculation engine refuses mixed inputs (`backend/tests/test_sample_isolation.py`; full suite 314 passed on a clean copy).
+  - 2026-11-26: merged in PR #9 (`407ed63`); Backend CI on the merge: 314 passed, `alembic check` clean (E-MAIN).
 - [x] **[PASS]** P2-2.7 Support financial statement revisions and restatements.
   - Evidence: `revision` plus `supersedes_id` with CHECK `(revision = 1) = (supersedes_id IS NULL)`; append-only triggers on `financial_statements` and `financial_metrics` (migration `981ec5176312`). Tests `test_financial_history_is_append_only`, `test_statement_identity_and_revision_rules`, `test_restatement_is_a_new_revision_and_history_is_kept`, `test_changed_figures_are_a_conflict_not_an_overwrite` and `test_financial_statements_latest_revision_and_exact_values` pass (E-B).
 - [x] **[PASS]** P2-2.8 Document data correction and review procedures, including how to correct company master data (today an import can only report a conflict; see Phase 1 L-3).
@@ -270,15 +286,17 @@ values from **calculated** ones.
 - [x] **[PASS]** P2-5.12 ROA: formula, calculation and tests.
   - Done: options, proposed default and edge cases written (WS4 plan §5). Formula approved: WS4-D2, WS4-D3, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d).
   - Evidence (WS4-2, 2026-11-25, gathered on branch `feat/ws4-2-roe-roa` from `main` @ `105869f`, then merged as PR #7 `2079101` with Backend 288 passed, Frontend 27/27 and Docker CI success on head and merge; details in [WS4_2_CHECKLIST.md](WS4_2_CHECKLIST.md)): backend `pytest` **288 passed** (+64), ruff/mypy clean, `alembic check` clean (no migration); frontend clean copy lint, typecheck, `npm test` 27/27, build; isolated Docker stack with a fictional bundle: route check online, offline and per calculated value in vi and en; browser desktop and 375×812. Re-verified by CI on merge (E-MAIN). ROA = `net_profit` ÷ average `total_assets` per scope (WS4-D2, D3).
-- [ ] **[IN PROGRESS]** P2-5.13 Financial period comparisons (year over year, quarter over quarter), only between comparable periods and scopes.
+- [x] **[PASS]** P2-5.13 Financial period comparisons (year over year, quarter over quarter), only between comparable periods and scopes.
   - Done: comparability rules proposed (WS4 plan §8); approved as WS4-D9, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d).
   - Remaining: implementation; tests.
   - 2026-11-25: implementation plan and checklist written ([WS4_3_IMPLEMENTATION_PLAN.md](WS4_3_IMPLEMENTATION_PLAN.md), [WS4_3_CHECKLIST.md](WS4_3_CHECKLIST.md)); ten owner decisions W3-D1 to W3-D10 pending. Not implemented.
   - 2026-11-26: decisions W3-D1 to W3-D11 approved; audit [WS4_3_AUDIT.md](WS4_3_AUDIT.md). Implemented on branch `feat/ws4-3-period-comparison` (uncommitted): `GET /companies/{id}/comparisons`, company-page section; backend 380 passed, frontend 35/35, isolated Docker route check and browser pass. Stays IN PROGRESS until the PR has a recorded owner review, green CI and is merged.
+  - Evidence (2026-11-26, post-merge): merged as PR #10 (`609864c`); CI on the merge: Backend 380 passed incl. matching, growth, reason and API tests, Frontend 35/35 and build, Docker success (E-MAIN). Year on year, quarter on quarter and same quarter last year; only same company, statement type, scope and granularity; ambiguous or mismatched periods refused. Verified against the code in [WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md) §2. The note above made a recorded owner review a condition; as for P2-5.11 and 5.12, that review is tracked by P2-8.11 (still NOT STARTED) and W3-H2, not by this item.
 - [ ] **[IN PROGRESS]** P2-5.14 Currency and unit formatting.
   - Done: exact digit grouping from decimal strings, never floats (`formatDecimal`, unit test in E-F); unit shown next to each value.
   - Remaining: compact Vietnamese scales (tỷ / triệu), a locale decision, and negative-value styling.
   - 2026-11-24: display and rounding rules proposed (WS4 plan §10); approved as WS4-D8, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d); not implemented.
+  - 2026-11-26: negative values now use the typographic minus (U+2212) everywhere (WS4-3 audit A3-7, PR #10). Remaining: compact Vietnamese scales and the locale decision.
 - [ ] **[IN PROGRESS]** P2-5.15 Missing data handling (show "not reported", never zero; exclude from calculations).
   - Done: seven availability states proposed, with what today's schema can and cannot express (WS4 plan §7); vocabulary and Phase A approved as WS4-D6, decision recorded 2026-11-24 ([PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §2d). Phase B (explicit records, a schema change) not approved.
   - Remaining: implementation; tests.
@@ -347,18 +365,19 @@ These are release gates. They pass on the current baseline but must be re-verifi
 release candidate, so they stay IN PROGRESS until then.
 
 - [ ] **[IN PROGRESS]** P2-8.1 Backend lint and strict type checks. Baseline: clean (E-B).
-- [ ] **[IN PROGRESS]** P2-8.2 Backend tests. Baseline: 87 passed (E-B); after WS1: 170 passed (E-WS1); after WS3: 201 passed, also on GitHub Actions for `4be30b7`; after WS4-1: 224 passed on GitHub Actions for `105869f` (E-MAIN); after WS4-2: 288 passed on GitHub Actions for `2079101` (E-MAIN).
+- [ ] **[IN PROGRESS]** P2-8.2 Backend tests. Baseline: 87 passed (E-B); after WS1: 170 passed (E-WS1); after WS3: 201 passed, also on GitHub Actions for `4be30b7`; after WS4-1: 224 passed on GitHub Actions for `105869f` (E-MAIN); after WS4-2: 288 passed on GitHub Actions for `2079101` (E-MAIN); after PR #9: 314 on `407ed63`; after WS4-3: 380 on `609864c` (E-MAIN).
 - [ ] **[IN PROGRESS]** P2-8.3 Frontend lint and type checks. Baseline: pass (E-F).
-- [ ] **[IN PROGRESS]** P2-8.4 Frontend unit tests. Baseline: 8/8 (E-F); after WS2: 17/17 (E-WS2); after WS3: 24/24, also on GitHub Actions for `4be30b7`; after WS4-1: 25/25 on GitHub Actions for `105869f` (E-MAIN); after WS4-2: 27/27 on GitHub Actions for `2079101`; after PR #8: 28/28 on `8007fe2` (E-MAIN).
+- [ ] **[IN PROGRESS]** P2-8.4 Frontend unit tests. Baseline: 8/8 (E-F); after WS2: 17/17 (E-WS2); after WS3: 24/24, also on GitHub Actions for `4be30b7`; after WS4-1: 25/25 on GitHub Actions for `105869f` (E-MAIN); after WS4-2: 27/27 on GitHub Actions for `2079101`; after PR #8: 28/28 on `8007fe2` (E-MAIN); after PR #9: 31/31 on `407ed63`; after WS4-3: 35/35 on `609864c` (E-MAIN).
 - [ ] **[IN PROGRESS]** P2-8.5 Production build. Baseline: `next build` passes (E-F).
 - [ ] **[IN PROGRESS]** P2-8.6 Docker clean build. Baseline: Docker workflow passed on `d858fbc` (E-CI).
-- [ ] **[IN PROGRESS]** P2-8.7 Fresh database migration. Baseline: fresh volume migrated and seeded (Phase 1 checklist, section 2). 2026-11-25: fresh volume migrated to `8de09b58f4c2` on an isolated stack (branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed).
-- [ ] **[IN PROGRESS]** P2-8.8 Migration upgrade and downgrade tests. Baseline: `test_migrations_upgrade_downgrade_roundtrip` passes (E-B). 2026-11-25: `8de09b58f4c2` passes the round-trip, a step-down/up, and an in-transaction upgrade over existing data that keeps legitimate rows and refuses mixed ones (branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed).
-- [ ] **[IN PROGRESS]** P2-8.9 GitHub Actions. Baseline: Backend, Frontend and Docker all passed on PR #2 (E-CI); and on the PR #4 to #8 merge commits (`78cf577`, `4be30b7`, `105869f`, `2079101`, `8007fe2`; Backend not triggered on `8007fe2`, a frontend-only change), with Backend and Docker on `45ef0ca` (E-MAIN). Remaining: re-run on the Phase 2 release candidate.
-- [ ] **[IN PROGRESS]** P2-8.10 Documentation. Done: this checklist, the README Phase 2 section, PRODUCT_STRATEGY.md and PRODUCT_DECISIONS.md. Since then: VERIFICATION_WORKFLOW.md (WS1), GLOSSARY.md (WS2), WS3_CHECKLIST.md (WS3), WS4 plan and checklist (proposal). Remaining: docs for each Phase 2 feature.
+- [ ] **[IN PROGRESS]** P2-8.7 Fresh database migration. Baseline: fresh volume migrated and seeded (Phase 1 checklist, section 2). 2026-11-25: fresh volume migrated to `8de09b58f4c2` on an isolated stack (branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed). 2026-11-26: merged in PR #9 (`407ed63`); Docker CI on `407ed63` and `609864c` built and started the stack from a fresh volume; an isolated stack from `main` @ `609864c` migrated to `8de09b58f4c2` (WS4-3 checks).
+- [ ] **[IN PROGRESS]** P2-8.8 Migration upgrade and downgrade tests. Baseline: `test_migrations_upgrade_downgrade_roundtrip` passes (E-B). 2026-11-25: `8de09b58f4c2` passes the round-trip, a step-down/up, and an in-transaction upgrade over existing data that keeps legitimate rows and refuses mixed ones (branch `fix/ws4-2-audit-au3-au4-au5`, not yet committed). 2026-11-26: merged in PR #9; the same tests pass in Backend CI on `407ed63` (314) and `609864c` (380).
+- [ ] **[IN PROGRESS]** P2-8.9 GitHub Actions. Baseline: Backend, Frontend and Docker all passed on PR #2 (E-CI); and on the PR #4 to #8 merge commits (`78cf577`, `4be30b7`, `105869f`, `2079101`, `8007fe2`; Backend not triggered on `8007fe2`, a frontend-only change), and on `407ed63` (PR #9) and `609864c` (PR #10), with Backend and Docker on `45ef0ca` (E-MAIN). Remaining: re-run on the Phase 2 release candidate.
+- [ ] **[IN PROGRESS]** P2-8.10 Documentation. Done: this checklist, the README Phase 2 section, PRODUCT_STRATEGY.md and PRODUCT_DECISIONS.md. Since then: VERIFICATION_WORKFLOW.md (WS1), GLOSSARY.md (WS2), WS3_CHECKLIST.md (WS3), WS4 plan and checklist (proposal). Remaining: docs for each Phase 2 feature. 2026-11-26: WS4-2 and WS4-3 plans, checklists and audits, [WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md), [PHASE_2_NEXT_STEPS.md](PHASE_2_NEXT_STEPS.md).
 - [ ] **[NOT STARTED]** P2-8.11 Pull request review of the Phase 2 changes.
   - Note: PRs #3–#5 were merged by the owner's account with no recorded review; a review of the merged Phase 2 changes is still needed.
   - 2026-11-25: the same holds for PRs #6–#8 (all authored and merged by the owner's account, 0 reviews; `main` has no branch protection). An AI-assisted independent review of PR #7 exists ([WS4_2_AUDIT.md](WS4_2_AUDIT.md)) but is not a human review (audit AU-6).
+  - 2026-11-26: the same holds for PR #9 (`407ed63`) and PR #10 (`609864c`): 0 review submissions, 0 review comments, 0 issue comments; green CI is not a review ([WS4_3_POST_MERGE_AUDIT.md](WS4_3_POST_MERGE_AUDIT.md) §4). Stays NOT STARTED.
 - [ ] **[NOT STARTED]** P2-8.12 Release readiness review (all gates re-verified, blockers reported separately).
 
 ---

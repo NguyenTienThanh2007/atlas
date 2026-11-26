@@ -414,6 +414,17 @@ W3-D10 above are unchanged. **WS4-3 implementation (W3-B3) is still not authoris
 
 **Update (2026-11-26, later):** the owner authorised WS4-3 implementation ("Bắt đầu WS4-3"; W3-B3). Commit, PR and merge still need separate approval.
 
+**Implementation status (2026-11-26, after merge).** The owner asked for the commit and the PR; WS4-3
+was merged as PR #10 (`609864c`) by the owner's account, with CI green and no recorded review
+(AU-6). The audit fixes AU-3, AU-4 and AU-5 authorised on 2026-11-25 were merged earlier as PR #9
+(`407ed63`), also without a recorded review. Two wording details in the merged code differ slightly
+from the text above and are **for the owner to confirm or change** (no decision is altered here):
+
+| Ref | Decision text | Merged code |
+| --- | --- | --- |
+| PM-3 (W3-D7 threshold) | "> 999,99 %" / "< −999,99 %" | "> 999,99%" / "< −999,99%" (no space, as all percentages on the site) |
+| PM-4 (W3-D11) | "with the WS4-2 vi/en texts" ("Không tính được: …" / "Not calculable: …") | Comparison wording of plan §12.5: "Không so sánh được: dữ liệu mẫu và dữ liệu thật bị trộn lẫn" / "Not comparable: sample and real data are mixed" |
+
 ## 3. Rejected alternatives
 
 | Alternative | Why rejected |
