@@ -4,9 +4,10 @@ Decision log for Phase 2 product direction. Rationale lives in
 [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md), referenced as §n. Project owner: **Tiến Thành**.
 Created 2026-11-23.
 
-**Approval status: all decisions A-1 to A-11 approved** by Tiến Thành on 2026-11-23. Everything else is still a
-recommendation. Claude Code recommends; only the project owner approves. When a decision is
-approved, record the date and approver on its row and update
+**Approval status: all decisions A-1 to A-11 approved** by Tiến Thành on 2026-11-23. Other
+proposals remain recommendations unless explicitly approved in a dated section below.
+Claude Code recommends; only the project owner approves. When a decision is approved, record
+the date and approver and update
 [PHASE_2_CHECKLIST.md](PHASE_2_CHECKLIST.md).
 
 ## 1. Decisions recommended by Claude Code
@@ -633,16 +634,15 @@ listed D1–D4, D6 and D8.
 
 **Scope of this approval:** this entry approves the *gate requirement only*. The
 substantive decisions D7 and D11 are separately approved in §6 below. The remaining
-decisions D1–D4, D6 and D8 remain open until their proposals are explicitly accepted,
-amended or rejected here by the project owner. No other proposal is approved by this
-entry.
+decisions D1–D4, D6 and D8 were subsequently approved by the project owner on
+2026-11-26 and are recorded in §7. No other proposal is approved by this entry.
 
 **Approved by:** Tiến Thành, project owner · **Date:** 2026-11-26.
 
-**Effect:** Stage 1 remains unauthorized until every G-0 decision above is separately
-recorded as approved. G-1 (owner approval, recorded human review and green CI) still
-applies before Stage 1 can merge. This decision does not authorize migrations, database
-changes, credential changes, Docker changes or application code.
+**Effect:** G-0 is now satisfied: D1–D4, D6–D8 and D11 have all been approved and recorded.
+G-1 (owner approval for the Stage 1 merge, a recorded human review and green CI) still
+applies. This documentation-only approval record does not itself implement, merge or
+deploy migrations, database changes, credential changes, Docker changes or application code.
 
 ## 6. SEC-01A decisions D7 and D11 (approved 2026-11-26)
 
@@ -687,6 +687,127 @@ from the actual stable workflow check names after they are verified on a PR.
   integrity-check result. The broader D10 backup/retention/anchor policy remains a
   separate decision before G2 real data.
 
-**Effect:** D7 and D11 are now approved for G-0. D1–D4, D6 and D8 remain unapproved,
-so G-0 is not yet satisfied and Stage 1 remains unauthorized. G-1 still requires owner
-approval, a recorded human review and green CI before Stage 1 can merge.
+**Effect:** D7 and D11 were approved first; D1–D4, D6 and D8 were subsequently approved
+in §7 on 2026-11-26. G-0 is now satisfied. G-1 still requires owner approval for the
+Stage 1 merge, a recorded human review and green CI.
+
+
+## 7. SEC-01A owner decisions D1–D4, D6 and D8 (approved 2026-11-26)
+
+**Approved by:** Tiến Thành, project owner · **Date:** 2026-11-26.
+
+These decisions complete Gate G-0 together with D7 and D11 in §6. They approve the
+design choices below; this entry is a documentation record only and contains no
+implementation, migration, credential, Docker or database change.
+
+### D1 — database ownership and role model
+
+**Decision: APPROVED.** Adopt the role model in
+[SEC_01A_OWNER_DECISIONS.md](SEC_01A_OWNER_DECISIONS.md) and
+[SEC_01A_SECURITY_ARCHITECTURE.md](SEC_01A_SECURITY_ARCHITECTURE.md):
+
+- `atlas_owner` is NOLOGIN and owns application schemas, tables and functions.
+- `atlas_migrator` is a separate login used only by the one-shot migration job. Its
+  membership is explicitly granted with `INHERIT FALSE, SET TRUE`; it must
+  `SET ROLE atlas_owner` for migrations.
+- `atlas_api` is read-only and reads same-name views in schema `api` through its
+  role-level `search_path`. SQLAlchemy model metadata remains unchanged; each view
+  must expose every mapped column.
+- `atlas_curators` and `atlas_reviewers` are NOLOGIN group roles with only the
+  required procedure EXECUTE privileges. Personal `p_*` logins receive membership
+  with `INHERIT TRUE, SET FALSE`.
+- The bootstrap superuser is not used at runtime. It is reserved for initial role
+  provisioning, the ownership-transfer step before M1, and controlled break-glass
+  operations. Provisioning is performed by the operator using an idempotent SQL file,
+  never by the application.
+
+### D2 — authenticated human identity
+
+**Decision: APPROVED.** Adopt option 3: one PostgreSQL login per person for the private
+pilot.
+
+- Procedures derive the actor from PostgreSQL `session_user`, never from a supplied
+  curator/reviewer name or request field.
+- ATLAS manages stable principals and append-only principal role events.
+- Each person connects directly using their own login; one process per person, with
+  no shared login, shared connection pool or pooler in the identity path.
+- A login proves control of a credential, not who is physically at the keyboard.
+  Credentials must remain personal and unshared.
+- Legacy evidence without an authenticated curator identity cannot be newly verified
+  until it is re-imported or re-attested under the approved workflow.
+- A future web review UI or gateway identity model requires a separate decision.
+
+### D3 — local development and CLI authentication
+
+**Decision: APPROVED.** Use the production role model in local development and CI role
+tests, with an explicitly temporary CLI compatibility gap before Stage 2.
+
+- The local provisioning SQL creates `atlas_owner`, `atlas_migrator`, `atlas_api`,
+  the curator/reviewer groups, and fictional development principals
+  `p_dev_curator` and `p_dev_reviewer`. Development credentials stay in
+  git-ignored files and are never reused outside development.
+- Keep the existing superuser test harness for fixtures that require
+  `session_replication_role = replica`; add a separate role-test harness using the
+  actual restricted roles.
+- During Stage 1, the legacy local CLI may continue using its existing owner-like
+  development login. This is a documented temporary gap, not authenticated identity,
+  and cannot be used to claim that two-person verification is enforced.
+- In Stage 2, `import`, `review` and `classify` connect as the individual
+  `p_*` user. Use a prompted secret, a per-user `~/.pgpass` with mode 0600, or the
+  approved client-certificate path. Human credentials never enter repository
+  `.env` files.
+
+### D4 — database-enforced writes and import architecture
+
+**Decision: APPROVED.** All writes to protected tables go through
+`SECURITY DEFINER` entry procedures owned by `atlas_owner`, with pinned
+`search_path` and schema-qualified object names.
+
+- Trigger functions remain `SECURITY INVOKER`; they use a pinned `search_path`
+  and qualified names. Only entry procedures are `SECURITY DEFINER`.
+- The evidence guard permits verification-status changes only when
+  `current_user = 'atlas_owner'` inside an approved definer procedure.
+- Import uses per-record procedures called by the existing Python importer, preserving
+  its validation, savepoints and issue reporting.
+- Runtime roles receive no direct `UPDATE`, `DELETE` or `TRUNCATE` privileges on
+  protected tables; writes are procedure-only.
+- Revoke PUBLIC `CONNECT` and `TEMP` on every database in the PostgreSQL cluster,
+  and explicitly revoke PUBLIC EXECUTE on existing functions as well as configuring
+  default privileges for future functions.
+
+### D6 — no remote private-pilot access before Q-7 and Stage 3
+
+**Decision: APPROVED.** ATLAS remains localhost-only until both conditions hold:
+
+1. Q-7 (hosting and budget) is decided.
+2. Stage 3 passes its VPN, per-person device-key, TLS reverse-proxy/OIDC, network
+   isolation and acceptance requirements.
+
+No shared SSH tunnel or other remote path is treated as localhost-only. If the curator
+and reviewer cannot work on the same host, the pilot waits; remote access is not enabled
+as a workaround.
+
+### D8 — credentials, TLS and authentication policy
+
+**Decision: APPROVED.** Adopt the following credential policy, subject to Q-7 for
+hosting-dependent capabilities:
+
+- Person credentials: use individual client certificates when the chosen hosting
+  environment supports the required TLS/client-certificate setup; otherwise use
+  individual `scram-sha-256` credentials kept in each person's own password manager.
+- Person roles have a 90-day `VALID UNTIL` policy, connection limit 1 and an
+  `idle_session_timeout`; credentials are never shared.
+- Service-role secrets use separate Compose secret files per process, not plaintext
+  environment variables. The rotation cadence remains to be specified with the hosting
+  and operational design.
+- Remove all `trust` authentication lines. Connections beyond the Docker network
+  must use `hostssl`.
+- A remote pilot requires VPN MFA and OIDC MFA at the reverse proxy. Proxy sessions
+  last 8 hours and use `Secure`, `HttpOnly` and `SameSite=Lax` cookies.
+- This decision does not select a hosting provider, identity provider, VPN product or
+  budget; Q-7 remains open.
+
+**G-0 result:** D1–D4, D6–D8 and D11 are now approved. G-0 is satisfied. G-1 still
+requires owner approval for the Stage 1 merge, a recorded human review and green CI.
+D5, D9, D10, D12 and D13 remain separate open decisions or dependencies. No code or
+infrastructure change is included in this approval record.

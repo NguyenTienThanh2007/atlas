@@ -1,12 +1,15 @@
 # SEC-01A Stage 0: owner decisions
 
-**Status: OWNER DECISIONS REQUIRED — STAGE 1 NOT AUTHORIZED.**
+**Status: G-0 COMPLETE — STAGE 1 IMPLEMENTATION NOT INCLUDED IN THIS DOCUMENTATION PR.**
 
-- None of the D1–D13 proposals in this file is approved. The separate G-0 scope amendment is recorded in `PRODUCT_DECISIONS.md` §5.
-- Each "Proposal" is the design team's recommendation. It becomes a decision only when the owner
-  records it in [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) as a new dated section (gate G-0 in
-  [SEC_01A_IMPLEMENTATION_PLAN.md](SEC_01A_IMPLEMENTATION_PLAN.md) §9).
-- Written by an AI assistant. It is not a human review.
+- D1–D4, D6–D8 and D11 were approved by the project owner on 2026-11-26 and are recorded in
+  [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) §§5–7. D7 and D11 were approved earlier in §6;
+  D1–D4, D6 and D8 are approved in §7.
+- D5, D9, D10, D12 and D13 remain separate open decisions or dependencies. Their proposals
+  must not be treated as approved.
+- Stage 1 code is not part of this documentation-only change. Any Stage 1 merge still requires
+  G-1: owner approval, a recorded human review and green CI.
+- Written by an AI assistant. This document and its edits are not an independent human review.
 
 ## 1. Baseline (VERIFIED FACT)
 
@@ -66,7 +69,9 @@ starts, or before G2 real-pilot data is loaded.
 
 ### D1: database ownership and role model
 
-- **Proposal:**
+**Status: APPROVED by Tiến Thành, 2026-11-26.**
+
+- **Approved design:**
   - `atlas_owner` is NOLOGIN and owns everything.
   - `atlas_migrator` is a member of `atlas_owner` (`INHERIT FALSE, SET TRUE`) and is used only by a
     one-shot migration job.
@@ -84,7 +89,7 @@ starts, or before G2 real-pilot data is loaded.
   - The API views must match the ORM columns exactly (C-8 spike).
   - The superuser and the owner can still bypass everything (D5).
 - **Dependencies:** none.
-- **Owner must approve:**
+- **Approval recorded:**
   1. the principal list and its attributes;
   2. that the bootstrap superuser is never used at runtime;
   3. same-name `api` views read through the role `search_path`;
@@ -93,7 +98,9 @@ starts, or before G2 real-pilot data is loaded.
 
 ### D2: human identity, one PostgreSQL login per person
 
-- **Proposal:** for the pilot, option 3 (Arch §4.1).
+**Status: APPROVED by Tiến Thành, 2026-11-26.**
+
+- **Approved design:** for the pilot, option 3 (Arch §4.1).
   - Each curator and reviewer has a personal `p_<id>` login.
   - Procedures take the actor from `session_user` and never from arguments.
   - A `principals` table (stable UUIDs, never deleted) and an append-only role-event log are
@@ -109,7 +116,7 @@ starts, or before G2 real-pilot data is loaded.
   - A later web review UI needs a new decision (option 5, gateway trust).
   - The `--curator` and `--reviewer` CLI flags go away (breaking change for operators).
 - **Dependencies:** D1, D8.
-- **Owner must approve:**
+- **Approval recorded:**
   1. option 3 for the pilot;
   2. ATLAS-managed principals;
   3. the rule that `session_user` is the only actor source;
@@ -119,40 +126,37 @@ starts, or before G2 real-pilot data is loaded.
 
 ### D3: local development and CLI authentication
 
-- **Proposal:**
-  - **Local development uses the same role model as production**, so the negative tests run every
-    day.
-    - A dev provisioning SQL creates `atlas_owner`, `atlas_migrator`, `atlas_api` and two fictional
-      people, `p_dev_curator` and `p_dev_reviewer`, with dev-only passwords kept in git-ignored
-      files.
-    - The test suite keeps a superuser harness for fixtures that need replica mode.
-    - A separate role-test harness connects as the real roles.
-  - **The CLI** connects as the person.
-    - The password is prompted, or comes from a per-user `~/.pgpass` with mode 0600, or a client
-      certificate (D8).
-    - It is never read from the repository `.env`.
-    - `.env` keeps only per-process service URLs.
-  - **Until Stage 2 lands,** the CLI in local dev keeps the old shared login, and that is documented
-    as a known gap (Plan Stage 1 task 6).
-- **Benefits:**
-  - The production model is exercised locally.
-  - No human credentials in `.env`.
-  - Dev and CI behave alike.
-- **Risks and trade-offs:**
-  - More local setup steps.
-  - Existing volumes need the operator provisioning step (C-6).
-  - Dev passwords must never be reused anywhere else.
+**Status: APPROVED by Tiến Thành, 2026-11-26.**
+
+- **Approved design:**
+  - Local development uses the same PostgreSQL role model as the pilot, so restricted-role
+    negative tests run locally and in CI.
+  - A bootstrap-operated, idempotent SQL file provisions `atlas_owner`, `atlas_migrator`,
+    `atlas_api`, curator/reviewer groups and fictional `p_dev_curator` /
+    `p_dev_reviewer` accounts. Development credentials stay in git-ignored files and are
+    never reused outside development.
+  - Keep a superuser test harness for fixtures requiring replica mode and a separate
+    role-test harness that connects as the actual restricted roles.
+  - Until Stage 2, the legacy local CLI may keep its existing owner-like development login.
+    This is an explicit temporary gap, must be documented, and cannot count as authenticated
+    identity or prove two-person verification.
+  - In Stage 2, `import`, `review` and `classify` connect as each person's own
+    `p_*` credential, using a prompt, per-user `~/.pgpass` with mode 0600, or the
+    approved client-certificate path. Human credentials never enter repository `.env`.
+- **Benefits:** the production role model is exercised locally; no human credentials are
+  committed; CI can test both the legacy superuser fixtures and the real permission model.
+- **Risks and trade-offs:** more local setup; existing volumes need operator provisioning
+  (C-6); development credentials must never be reused elsewhere.
 - **Dependencies:** D1, D2, D8.
-- **Owner must approve:**
-  1. the same role model locally;
-  2. fictional dev people;
-  3. the CLI credential sources;
-  4. accepting the gap until Stage 2 lands.
-- **Blocks:** Stage 1 (dev provisioning) and Stage 2 (CLI authentication).
+- **Approval recorded:** same role model locally, fictional dev principals, credential
+  sources for Stage 2, and the temporary pre-Stage-2 CLI gap.
+- **Blocks:** Stage 1 role provisioning and Stage 2 CLI authentication.
 
 ### D4: security-definer procedures and the import architecture
 
-- **Proposal:**
+**Status: APPROVED by Tiến Thành, 2026-11-26.**
+
+- **Approved design:**
   - All writes to protected tables go through `SECURITY DEFINER` entry procedures owned by
     `atlas_owner`, with `SET search_path = pg_catalog, public, pg_temp` and schema-qualified names.
   - **Trigger functions stay SECURITY INVOKER** (C-5).
@@ -171,7 +175,7 @@ starts, or before G2 real-pilot data is loaded.
   - A definer bug runs with owner rights, so every procedure needs negative tests.
   - Procedures must refuse callers that aren't principals (the migrator, the owner).
 - **Dependencies:** D1.
-- **Owner must approve:**
+- **Approval recorded:**
   1. procedures-only writes;
   2. per-record import procedures rather than one bundle procedure;
   3. invoker triggers with the `current_user` guard.
@@ -208,7 +212,9 @@ starts, or before G2 real-pilot data is loaded.
 
 ### D6: remote pilot access stays disabled until Q-7 is resolved
 
-- **Proposal:** no access from beyond localhost until all of these hold:
+**Status: APPROVED by Tiến Thành, 2026-11-26.**
+
+- **Approved design:** no access from beyond localhost until all of these hold:
   1. Q-7 (hosting and budget) is decided;
   2. Stage 3 passes: VPN with personal device keys, a TLS reverse proxy with OIDC sign-in, no
      backend or database host ports, `hostssl` only for `p_*` roles from the VPN range.
@@ -218,7 +224,7 @@ starts, or before G2 real-pilot data is loaded.
 - **Risks and trade-offs:** curator and reviewer must share the host machine, or wait, until Q-7.
   That could delay G2 if they aren't co-located.
 - **Dependencies:** Q-7, D8.
-- **Owner must approve:**
+- **Approval recorded:**
   1. "no remote access before Q-7 and Stage 3";
   2. what counts as "localhost only" (for example, no SSH tunnels shared with others).
 - **Blocks:** Stage 3. G2 too, if the reviewer is remote.
@@ -247,7 +253,9 @@ starts, or before G2 real-pilot data is loaded.
 
 ### D8: database credentials, TLS and authentication policy
 
-- **Proposal:**
+**Status: APPROVED by Tiến Thành, 2026-11-26.**
+
+- **Approved design:**
   - **Person roles:** client certificates (`pg_hba` `cert`) if hosting allows, otherwise
     `scram-sha-256` passwords in each person's own password manager. Plus `VALID UNTIL` 90 days,
     connection limit 1, `idle_session_timeout`.
@@ -261,7 +269,7 @@ starts, or before G2 real-pilot data is loaded.
   - Passwords can be shared (TM T-6).
   - The IdP choice depends on Q-7 (no provider chosen).
 - **Dependencies:** Q-7 (for TLS and the IdP).
-- **Owner must approve:**
+- **Approval recorded:**
   1. certificates or passwords;
   2. expiry and rotation periods;
   3. MFA for the VPN and the IdP;
